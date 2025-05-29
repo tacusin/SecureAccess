@@ -135,6 +135,11 @@ class SecurityApp {
       btn.addEventListener('click', (e) => this.handleExport(e));
     });
     
+    // Advanced report buttons
+    document.querySelectorAll('.report-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => this.handleAdvancedReport(e));
+    });
+    
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('touchstart', (e) => {
@@ -160,6 +165,21 @@ class SecurityApp {
     // Initialize emergency module
     if (window.EmergencyManager) {
       await window.EmergencyManager.init();
+    }
+    
+    // Initialize OCR manager
+    if (window.OCRManager) {
+      await window.OCRManager.init();
+    }
+    
+    // Initialize QR generator
+    if (window.QRGenerator) {
+      await window.QRGenerator.init();
+    }
+    
+    // Initialize reports manager
+    if (window.ReportsManager) {
+      await window.ReportsManager.init();
     }
     
     // Load initial data
@@ -457,6 +477,9 @@ class SecurityApp {
             <span class="material-icons">${actionIcon}</span>
           </button>
           ${showActions ? `
+            <button class="icon-button show-qr" title="Show QR Code">
+              <span class="material-icons">qr_code</span>
+            </button>
             <button class="icon-button edit-person" title="Edit">
               <span class="material-icons">edit</span>
             </button>
@@ -475,6 +498,8 @@ class SecurityApp {
     
     if (e.target.closest('.action-toggle')) {
       await this.togglePersonStatus(personId);
+    } else if (e.target.closest('.show-qr')) {
+      await this.showPersonQR(personId);
     } else if (e.target.closest('.edit-person')) {
       this.showEditPersonnelModal(personId);
     } else if (e.target.closest('.delete-person')) {
@@ -571,7 +596,7 @@ class SecurityApp {
   }
 
   // Modals
-  showAddPersonnelModal(defaultRole = 'visitor') {
+  showAddPersonnelModal(defaultRole = 'visitor', prefilledData = {}) {
     const modalContent = `
       <div class="modal-header">
         <h3>Add Personnel</h3>
@@ -583,7 +608,7 @@ class SecurityApp {
         <form id="add-personnel-form" class="personnel-form">
           <div class="form-group">
             <label for="person-name">Name *</label>
-            <input type="text" id="person-name" required>
+            <input type="text" id="person-name" required value="${prefilledData.name || ''}">`
           </div>
           
           <div class="form-group">
@@ -895,6 +920,108 @@ class SecurityApp {
 
   showError(message) {
     this.showToast(message, 'error');
+  }
+
+  // OCR and QR Code functionality
+  async handleIDScan() {
+    try {
+      if (!window.OCRManager || !window.OCRManager.isAvailable()) {
+        this.showToast('ID scanning is loading. Please try again in a moment.', 'info');
+        return;
+      }
+
+      this.showToast('Starting ID scan...', 'info');
+      const scannedData = await window.OCRManager.showScanIDModal();
+      
+      if (scannedData && scannedData.name) {
+        // Pre-populate the add personnel modal with scanned data
+        this.showAddPersonnelModal('visitor', scannedData);
+        this.showToast('ID scan completed! Please review the information.', 'success');
+      } else if (scannedData === null) {
+        this.showToast('ID scan cancelled', 'info');
+      } else {
+        this.showToast('Could not extract information from ID. Please add manually.', 'warning');
+      }
+    } catch (error) {
+      console.error('[App] Error during ID scan:', error);
+      this.showError('Failed to scan ID card. Please try again.');
+    }
+  }
+
+  async handleQRScan() {
+    try {
+      this.showToast('QR code scanning will be available soon!', 'info');
+      // QR scanning would use camera to read QR codes
+      // For now, we'll focus on QR generation
+    } catch (error) {
+      console.error('[App] Error during QR scan:', error);
+      this.showError('Failed to scan QR code. Please try again.');
+    }
+  }
+
+  async showPersonQR(personId) {
+    try {
+      const person = window.StorageManager.getPersonnel(personId);
+      if (!person) {
+        this.showError('Person not found');
+        return;
+      }
+
+      if (!window.QRGenerator || !window.QRGenerator.isAvailable()) {
+        this.showToast('QR code generation is loading. Please try again in a moment.', 'info');
+        return;
+      }
+
+      await window.QRGenerator.showQRModal(person);
+    } catch (error) {
+      console.error('[App] Error showing QR code:', error);
+      this.showError('Failed to generate QR code');
+    }
+  }
+
+  async handleAdvancedReport(e) {
+    try {
+      const reportType = e.currentTarget.dataset.report;
+      
+      if (!window.ReportsManager || !window.ReportsManager.isAvailable()) {
+        this.showToast('Reports system is loading. Please try again in a moment.', 'info');
+        return;
+      }
+
+      this.showToast('Generating report...', 'info');
+
+      let report;
+      switch (reportType) {
+        case 'occupancy-summary':
+          report = await window.ReportsManager.generateOccupancyReport();
+          break;
+        case 'personnel-activity':
+          report = await window.ReportsManager.generatePersonnelActivityReport();
+          break;
+        case 'security-audit':
+          report = await window.ReportsManager.generateSecurityAuditReport();
+          break;
+        case 'visitor-analytics':
+          report = await window.ReportsManager.generateVisitorAnalyticsReport();
+          break;
+        case 'time-tracking':
+          report = await window.ReportsManager.generateTimeTrackingReport();
+          break;
+        case 'compliance':
+          report = await window.ReportsManager.generateComplianceReport();
+          break;
+        default:
+          throw new Error('Unknown report type');
+      }
+
+      // Export the report as HTML
+      await window.ReportsManager.exportReportAsHTML(report);
+      this.showToast('Report generated and downloaded successfully!', 'success');
+
+    } catch (error) {
+      console.error('[App] Error generating advanced report:', error);
+      this.showError('Failed to generate report. Please try again.');
+    }
   }
 
   async showConfirmDialog(title, message) {
