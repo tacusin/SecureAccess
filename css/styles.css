@@ -2,24 +2,24 @@
 
 /* CSS Custom Properties (Design System) */
 :root {
-  /* Colors - Material Design 3 inspired */
-  --primary: 25 79% 44%; /* #1976D2 */
-  --primary-variant: 25 79% 36%; /* #1565C0 */
-  --secondary: 45 100% 51%; /* #FF9800 */
-  --secondary-variant: 45 100% 42%; /* #F57C00 */
-  --background: 210 11% 98%; /* #F5F7FA */
-  --surface: 0 0% 100%; /* #FFFFFF */
-  --surface-variant: 210 11% 96%; /* #F1F3F6 */
-  --error: 4 90% 58%; /* #F44336 */
-  --warning: 45 100% 51%; /* #FF9800 */
-  --success: 122 39% 49%; /* #4CAF50 */
-  --on-primary: 0 0% 100%; /* #FFFFFF */
-  --on-secondary: 0 0% 0%; /* #000000 */
-  --on-background: 210 11% 15%; /* #1F2937 */
-  --on-surface: 210 11% 15%; /* #1F2937 */
-  --on-surface-variant: 210 7% 46%; /* #6B7280 */
-  --outline: 210 7% 82%; /* #D1D5DB */
-  --outline-variant: 210 11% 91%; /* #E5E7EB */
+  /* Colors - Secure Access cyan/teal theme */
+  --primary: 0 229 255; /* #00E5FF */
+  --primary-variant: 0 188 212; /* #00BCD4 */
+  --secondary: 0 172 193; /* #00ACC1 */
+  --secondary-variant: 0 151 167; /* #0097A7 */
+  --background: 13 27 42; /* #0D1B2A */
+  --surface: 27 42 65; /* #1B2A41 */
+  --surface-variant: 44 62 80; /* #2C3E50 */
+  --error: 244 67 54; /* #F44336 */
+  --warning: 255 193 7; /* #FFC107 */
+  --success: 76 175 80; /* #4CAF50 */
+  --on-primary: 13 27 42; /* #0D1B2A */
+  --on-secondary: 255 255 255; /* #FFFFFF */
+  --on-background: 0 229 255; /* #00E5FF */
+  --on-surface: 224 247 250; /* #E0F7FA */
+  --on-surface-variant: 178 235 242; /* #B2EBF2 */
+  --outline: 0 172 193; /* #00ACC1 */
+  --outline-variant: 84 110 122; /* #546E7A */
   
   /* Emergency colors */
   --emergency: 4 90% 58%; /* #F44336 */
