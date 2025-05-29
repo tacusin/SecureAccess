@@ -336,15 +336,15 @@ body {
 .action-button {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition-fast);
-  min-height: var(--touch-target);
+  min-height: 52px;
   text-decoration: none;
 }
 
@@ -512,24 +512,19 @@ body {
 }
 
 .personnel-grid {
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .person-card {
   background: hsl(var(--surface));
   border: 1px solid hsl(var(--outline-variant));
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas: 
-    "avatar info actions"
-    "avatar status actions";
-  gap: var(--spacing-lg);
-  align-items: start;
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   transition: var(--transition-fast);
   cursor: pointer;
-  min-height: 100px;
 }
 
 .person-card:hover {
@@ -538,9 +533,8 @@ body {
 }
 
 .person-avatar {
-  grid-area: avatar;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: hsl(var(--surface-variant));
   display: flex;
@@ -562,10 +556,10 @@ body {
 }
 
 .person-info {
-  grid-area: info;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .person-name {
@@ -581,15 +575,13 @@ body {
 }
 
 .person-status {
-  grid-area: status;
   font-size: var(--font-size-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
   width: fit-content;
-  margin-top: var(--spacing-xs);
 }
 
 .person-status.checked-in {
