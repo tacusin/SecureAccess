@@ -52,6 +52,10 @@ class SecurityApp {
   }
 
   async registerServiceWorker() {
+    // Temporarily disabled during development to avoid cache issues
+    console.log('[App] Service worker registration disabled for development');
+    return;
+    
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
