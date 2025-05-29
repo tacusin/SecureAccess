@@ -622,13 +622,14 @@ body {
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
   border-left: 4px solid hsl(var(--emergency));
+  color: white;
 }
 
 .emergency-status {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  color: hsl(var(--emergency));
+  color: white;
   font-weight: 500;
 }
 
@@ -646,7 +647,7 @@ body {
   gap: var(--spacing-sm);
   padding: var(--spacing-xl);
   background: hsl(var(--emergency));
-  color: hsl(var(--on-primary));
+  color: white;
   border: none;
   border-radius: var(--radius-lg);
   font-weight: 500;
