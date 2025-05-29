@@ -608,7 +608,7 @@ class SecurityApp {
         <form id="add-personnel-form" class="personnel-form">
           <div class="form-group">
             <label for="person-name">Name *</label>
-            <input type="text" id="person-name" required value="${prefilledData.name || ''}">`
+            <input type="text" id="person-name" required value="${prefilledData.name || ''}">
           </div>
           
           <div class="form-group">
