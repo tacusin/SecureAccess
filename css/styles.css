@@ -520,11 +520,16 @@ body {
   border: 1px solid hsl(var(--outline-variant));
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: 
+    "avatar info actions"
+    "avatar status actions";
   gap: var(--spacing-md);
+  align-items: start;
   transition: var(--transition-fast);
   cursor: pointer;
+  min-height: 80px;
 }
 
 .person-card:hover {
@@ -533,6 +538,7 @@ body {
 }
 
 .person-avatar {
+  grid-area: avatar;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -556,26 +562,33 @@ body {
 }
 
 .person-info {
-  flex: 1;
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
 .person-name {
   font-weight: 500;
   color: hsl(var(--on-surface));
-  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-lg);
 }
 
 .person-role {
   font-size: var(--font-size-sm);
   color: hsl(var(--on-surface-variant));
-  margin-bottom: var(--spacing-xs);
+  text-transform: capitalize;
 }
 
 .person-status {
+  grid-area: status;
   font-size: var(--font-size-sm);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: fit-content;
 }
 
 .person-status.checked-in {
@@ -589,8 +602,18 @@ body {
 }
 
 .person-actions {
+  grid-area: actions;
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-sm);
+  align-items: end;
+}
+
+.person-timestamp {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--on-surface-variant));
+  text-align: right;
+  line-height: 1.2;
 }
 
 /* Filters */
