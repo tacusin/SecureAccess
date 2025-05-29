@@ -224,6 +224,7 @@ body {
   width: 48px;
   height: 48px;
   margin-bottom: var(--spacing-sm);
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.3));
 }
 
 .nav-header h3 {
