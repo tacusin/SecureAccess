@@ -704,6 +704,158 @@ body {
   font-size: 24px;
 }
 
+/* Shift Management Styles */
+.shifts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.shift-status {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.shift-status.active {
+  background: hsl(var(--success) / 0.1);
+  color: hsl(var(--success));
+}
+
+.shift-status.inactive {
+  background: hsl(var(--outline) / 0.1);
+  color: hsl(var(--on-surface-variant));
+}
+
+.no-shift-message, .no-handovers-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: hsl(var(--on-surface-variant));
+}
+
+.no-shift-message .material-icons, .no-handovers-message .material-icons {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.shift-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.shift-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: hsl(var(--surface-variant) / 0.5);
+  border-radius: var(--radius-sm);
+}
+
+.shift-detail-label {
+  font-weight: 500;
+  color: hsl(var(--on-surface-variant));
+}
+
+.shift-detail-value {
+  font-weight: 600;
+  color: hsl(var(--on-surface));
+}
+
+.shift-timer {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: hsl(var(--primary));
+  text-align: center;
+  padding: var(--spacing-md);
+  background: hsl(var(--primary) / 0.1);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-md) 0;
+}
+
+.handover-count {
+  background: hsl(var(--error));
+  color: hsl(var(--on-error));
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.handover-item, .shift-item {
+  padding: var(--spacing-md);
+  border: 1px solid hsl(var(--outline));
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  background: hsl(var(--surface));
+}
+
+.handover-header, .shift-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.handover-meta, .shift-meta {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--on-surface-variant));
+}
+
+.handover-notes {
+  margin: var(--spacing-sm) 0;
+  padding: var(--spacing-sm);
+  background: hsl(var(--surface-variant) / 0.5);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid hsl(var(--primary));
+}
+
+.handover-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.shift-type-indicator {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.shift-type-day {
+  background: #FFC107;
+  color: #000;
+}
+
+.shift-type-afternoon {
+  background: #FF9800;
+  color: #fff;
+}
+
+.shift-type-night {
+  background: #3F51B5;
+  color: #fff;
+}
+
+.shift-type-custom {
+  background: #9C27B0;
+  color: #fff;
+}
+
 /* Modals */
 .modal-overlay {
   position: fixed;

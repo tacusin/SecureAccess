@@ -140,6 +140,11 @@ class SecurityApp {
       btn.addEventListener('click', (e) => this.handleAdvancedReport(e));
     });
     
+    // Shift management buttons
+    document.getElementById('start-shift-btn')?.addEventListener('click', () => this.showStartShiftModal());
+    document.getElementById('end-shift-btn')?.addEventListener('click', () => this.handleEndShift());
+    document.getElementById('handover-btn')?.addEventListener('click', () => this.showHandoverModal());
+    
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('touchstart', (e) => {
@@ -180,6 +185,11 @@ class SecurityApp {
     // Initialize reports manager
     if (window.ReportsManager) {
       await window.ReportsManager.init();
+    }
+    
+    // Initialize shift manager
+    if (window.ShiftManager) {
+      await window.ShiftManager.init();
     }
     
     // Load initial data
