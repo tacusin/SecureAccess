@@ -970,6 +970,56 @@ body {
   }
 }
 
+/* Enhanced mobile optimizations for Android */
+@media (max-width: 768px) {
+  /* Better touch targets for mobile */
+  .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .action-button {
+    min-height: 48px;
+  }
+  
+  /* Mobile-specific report buttons */
+  .report-options {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  
+  .report-btn {
+    min-height: 70px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .export-options {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Mobile camera modal */
+  .camera-modal .modal-content {
+    width: 95vw;
+    height: 90vh;
+    max-width: none;
+    max-height: none;
+  }
+  
+  /* Mobile keyboard handling */
+  .modal-content {
+    max-height: calc(100vh - env(keyboard-inset-height, 0px));
+  }
+  
+  /* Better scrolling on mobile */
+  .person-list {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Mobile-friendly form inputs */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
 /* Print styles */
 @media print {
   .app-bar,
