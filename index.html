@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1976D2">
+    <meta name="description" content="Enterprise Security Access Management System">
+    <title>Security Access Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon-192.svg">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/themes.css">
+    
+    <!-- Material Design Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <h2>Security Access Manager</h2>
+        <p>Loading...</p>
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="app hidden">
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <div class="app-bar-content">
+                <button id="menu-btn" class="icon-button" aria-label="Menu">
+                    <span class="material-icons">menu</span>
+                </button>
+                <h1 class="app-title">Security Manager</h1>
+                <div class="app-bar-actions">
+                    <button id="emergency-btn" class="emergency-button" aria-label="Emergency Mode">
+                        <span class="material-icons">warning</span>
+                    </button>
+                    <button id="theme-toggle" class="icon-button" aria-label="Toggle theme">
+                        <span class="material-icons">dark_mode</span>
+                    </button>
+                    <button id="settings-btn" class="icon-button" aria-label="Settings">
+                        <span class="material-icons">settings</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Drawer -->
+        <nav id="nav-drawer" class="nav-drawer">
+            <div class="nav-header">
+                <img src="assets/icons/icon-192.svg" alt="Logo" class="nav-logo">
+                <h3>Security Manager</h3>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <span class="material-icons">dashboard</span>Dashboard
+                </a></li>
+                <li><a href="#checkin" class="nav-item" data-page="checkin">
+                    <span class="material-icons">login</span>Check In/Out
+                </a></li>
+                <li><a href="#personnel" class="nav-item" data-page="personnel">
+                    <span class="material-icons">people</span>Personnel
+                </a></li>
+                <li><a href="#reports" class="nav-item" data-page="reports">
+                    <span class="material-icons">analytics</span>Reports
+                </a></li>
+                <li><a href="#emergency" class="nav-item" data-page="emergency">
+                    <span class="material-icons">warning</span>Emergency
+                </a></li>
+                <li><a href="#help" class="nav-item" data-page="help">
+                    <span class="material-icons">help</span>Help
+                </a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <div class="occupancy-counter">
+                        <div class="counter-card">
+                            <span class="counter-number" id="current-occupancy">0</span>
+                            <span class="counter-label">Current Occupancy</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="action-button primary" data-action="quick-checkin">
+                                <span class="material-icons">login</span>
+                                Quick Check-In
+                            </button>
+                            <button class="action-button secondary" data-action="bulk-checkout">
+                                <span class="material-icons">logout</span>
+                                Bulk Check-Out
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Today's Activity</h3>
+                        <div class="stats-grid">
+                            <div class="stat">
+                                <span class="stat-number" id="todays-checkins">0</span>
+                                <span class="stat-label">Check-ins</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" id="todays-checkouts">0</span>
+                                <span class="stat-label">Check-outs</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card full-width">
+                        <h3>Current Occupants</h3>
+                        <div id="current-occupants-list" class="occupants-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-In/Out Page -->
+            <div id="checkin-page" class="page">
+                <div class="page-header">
+                    <h2>Check In/Out</h2>
+                    <div class="search-container">
+                        <input type="text" id="person-search" placeholder="Search personnel..." class="search-input">
+                        <span class="material-icons search-icon">search</span>
+                    </div>
+                </div>
+                
+                <div class="checkin-actions">
+                    <button id="scan-qr-btn" class="action-button secondary">
+                        <span class="material-icons">qr_code_scanner</span>
+                        Scan QR Code
+                    </button>
+                    <button id="add-visitor-btn" class="action-button primary">
+                        <span class="material-icons">person_add</span>
+                        Add Visitor
+                    </button>
+                </div>
+                
+                <div id="personnel-list" class="personnel-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Personnel Management Page -->
+            <div id="personnel-page" class="page">
+                <div class="page-header">
+                    <h2>Personnel Management</h2>
+                    <div class="header-actions">
+                        <button id="export-personnel-btn" class="action-button secondary">
+                            <span class="material-icons">download</span>
+                            Export
+                        </button>
+                        <button id="add-personnel-btn" class="action-button primary">
+                            <span class="material-icons">person_add</span>
+                            Add Personnel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <select id="role-filter" class="filter-select">
+                        <option value="">All Roles</option>
+                        <option value="employee">Employee</option>
+                        <option value="contractor">Contractor</option>
+                        <option value="visitor">Visitor</option>
+                        <option value="vip">VIP</option>
+                    </select>
+                    <select id="status-filter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="checked-in">Checked In</option>
+                        <option value="checked-out">Checked Out</option>
+                    </select>
+                </div>
+                
+                <div id="all-personnel-list" class="personnel-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports-page" class="page">
+                <div class="page-header">
+                    <h2>Reports & Analytics</h2>
+                    <div class="header-actions">
+                        <button id="generate-report-btn" class="action-button primary">
+                            <span class="material-icons">description</span>
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="reports-grid">
+                    <div class="card">
+                        <h3>Occupancy Trends</h3>
+                        <canvas id="occupancy-chart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Visit Duration</h3>
+                        <canvas id="duration-chart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Export Options</h3>
+                        <div class="export-options">
+                            <button class="export-btn" data-format="csv">
+                                <span class="material-icons">description</span>
+                                CSV Export
+                            </button>
+                            <button class="export-btn" data-format="pdf">
+                                <span class="material-icons">picture_as_pdf</span>
+                                PDF Report
+                            </button>
+                            <button class="export-btn" data-format="json">
+                                <span class="material-icons">code</span>
+                                JSON Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Page -->
+            <div id="emergency-page" class="page">
+                <div class="page-header emergency-header">
+                    <h2>Emergency Mode</h2>
+                    <div class="emergency-status">
+                        <span class="material-icons">warning</span>
+                        Emergency protocols active
+                    </div>
+                </div>
+                
+                <div class="emergency-actions">
+                    <button id="evacuation-list-btn" class="emergency-action-btn">
+                        <span class="material-icons">list</span>
+                        Generate Evacuation List
+                    </button>
+                    <button id="missing-persons-btn" class="emergency-action-btn">
+                        <span class="material-icons">person_search</span>
+                        Missing Persons
+                    </button>
+                    <button id="bulk-checkout-emergency-btn" class="emergency-action-btn">
+                        <span class="material-icons">logout</span>
+                        Emergency Checkout All
+                    </button>
+                </div>
+                
+                <div id="emergency-content" class="emergency-content">
+                    <!-- Emergency content will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Help Page -->
+            <div id="help-page" class="page">
+                <div class="page-header">
+                    <h2>Help & Tutorial</h2>
+                    <button id="start-tutorial-btn" class="action-button primary">
+                        <span class="material-icons">school</span>
+                        Start Tutorial
+                    </button>
+                </div>
+                
+                <div class="help-content">
+                    <div class="help-section">
+                        <h3>Quick Start Guide</h3>
+                        <ol>
+                            <li>Add personnel to the system using the Personnel page</li>
+                            <li>Use the Check In/Out page for daily operations</li>
+                            <li>Monitor occupancy from the Dashboard</li>
+                            <li>Access Emergency mode when needed</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>Features</h3>
+                        <ul>
+                            <li>Touch-optimized interface</li>
+                            <li>Offline functionality</li>
+                            <li>Photo capture for personnel</li>
+                            <li>Real-time occupancy tracking</li>
+                            <li>Emergency evacuation tools</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div id="modal-content" class="modal-content">
+            <!-- Modal content will be dynamically loaded -->
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Fab Menu -->
+    <div class="fab-menu">
+        <button id="fab-main" class="fab primary">
+            <span class="material-icons">add</span>
+        </button>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div id="save-indicator" class="save-indicator hidden">
+        <span class="material-icons">cloud_done</span>
+        <span>Saved</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/emergency.js"></script>
+    <script src="js/tutorial.js"></script>
+    <script src="assets/sounds/notification.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

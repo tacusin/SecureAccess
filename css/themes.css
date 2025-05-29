@@ -1,0 +1,317 @@
+/* Security Access Manager - Theme System */
+
+/* Light theme (default) */
+:root {
+  /* Already defined in styles.css */
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  /* Colors for dark theme */
+  --primary: 25 79% 64%; /* #42A5F5 */
+  --primary-variant: 25 79% 54%; /* #1E88E5 */
+  --secondary: 45 100% 61%; /* #FFA726 */
+  --secondary-variant: 45 100% 51%; /* #FF9800 */
+  --background: 210 11% 6%; /* #0F172A */
+  --surface: 210 11% 9%; /* #1E293B */
+  --surface-variant: 210 11% 13%; /* #334155 */
+  --error: 4 90% 68%; /* #EF5350 */
+  --warning: 45 100% 61%; /* #FFA726 */
+  --success: 122 39% 59%; /* #66BB6A */
+  --on-primary: 0 0% 0%; /* #000000 */
+  --on-secondary: 0 0% 0%; /* #000000 */
+  --on-background: 210 11% 91%; /* #E2E8F0 */
+  --on-surface: 210 11% 91%; /* #E2E8F0 */
+  --on-surface-variant: 210 7% 64%; /* #94A3B8 */
+  --outline: 210 7% 36%; /* #475569 */
+  --outline-variant: 210 11% 21%; /* #475569 */
+  
+  /* Emergency colors for dark theme */
+  --emergency: 4 90% 68%; /* #EF5350 */
+  --emergency-bg: 4 90% 8%; /* #2D1B1B */
+}
+
+/* High contrast theme */
+[data-theme="high-contrast"] {
+  --primary: 220 100% 50%; /* #0066FF */
+  --primary-variant: 220 100% 40%; /* #0052CC */
+  --secondary: 45 100% 50%; /* #FF8000 */
+  --secondary-variant: 45 100% 40%; /* #CC6600 */
+  --background: 0 0% 100%; /* #FFFFFF */
+  --surface: 0 0% 100%; /* #FFFFFF */
+  --surface-variant: 0 0% 96%; /* #F5F5F5 */
+  --error: 0 100% 50%; /* #FF0000 */
+  --warning: 45 100% 50%; /* #FF8000 */
+  --success: 120 100% 25%; /* #008000 */
+  --on-primary: 0 0% 100%; /* #FFFFFF */
+  --on-secondary: 0 0% 0%; /* #000000 */
+  --on-background: 0 0% 0%; /* #000000 */
+  --on-surface: 0 0% 0%; /* #000000 */
+  --on-surface-variant: 0 0% 20%; /* #333333 */
+  --outline: 0 0% 0%; /* #000000 */
+  --outline-variant: 0 0% 60%; /* #999999 */
+  
+  /* Emergency colors for high contrast */
+  --emergency: 0 100% 50%; /* #FF0000 */
+  --emergency-bg: 0 100% 95%; /* #FFEBEB */
+}
+
+[data-theme="high-contrast"] .card,
+[data-theme="high-contrast"] .person-card,
+[data-theme="high-contrast"] .action-button.secondary {
+  border: 2px solid hsl(var(--outline));
+}
+
+[data-theme="high-contrast"] .search-input,
+[data-theme="high-contrast"] .filter-select {
+  border: 2px solid hsl(var(--outline));
+}
+
+[data-theme="high-contrast"] .search-input:focus,
+[data-theme="high-contrast"] .filter-select:focus {
+  border: 3px solid hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+}
+
+/* Security-focused color themes */
+[data-theme="security-blue"] {
+  --primary: 210 100% 45%; /* #0066CC */
+  --primary-variant: 210 100% 35%; /* #0052A3 */
+  --secondary: 195 100% 45%; /* #0099CC */
+  --secondary-variant: 195 100% 35%; /* #007AA3 */
+}
+
+[data-theme="security-green"] {
+  --primary: 150 100% 35%; /* #00B366 */
+  --primary-variant: 150 100% 25%; /* #008052 */
+  --secondary: 165 100% 35%; /* #00B399 */
+  --secondary-variant: 165 100% 25%; /* #008073 */
+}
+
+[data-theme="security-red"] {
+  --primary: 0 85% 50%; /* #D63031 */
+  --primary-variant: 0 85% 40%; /* #AB2627 */
+  --secondary: 15 85% 50%; /* #E17055 */
+  --secondary-variant: 15 85% 40%; /* #B4593F */
+}
+
+/* Night shift theme (darker, easier on eyes) */
+[data-theme="night-shift"] {
+  --primary: 25 79% 54%; /* #1E88E5 */
+  --primary-variant: 25 79% 44%; /* #1976D2 */
+  --secondary: 45 100% 51%; /* #FF9800 */
+  --secondary-variant: 45 100% 41%; /* #F57C00 */
+  --background: 220 13% 4%; /* #0A0E1A */
+  --surface: 220 13% 7%; /* #131827 */
+  --surface-variant: 220 13% 11%; /* #1F2937 */
+  --error: 4 90% 58%; /* #F44336 */
+  --warning: 45 100% 51%; /* #FF9800 */
+  --success: 122 39% 49%; /* #4CAF50 */
+  --on-primary: 0 0% 100%; /* #FFFFFF */
+  --on-secondary: 0 0% 0%; /* #000000 */
+  --on-background: 220 13% 91%; /* #E1E7EF */
+  --on-surface: 220 13% 91%; /* #E1E7EF */
+  --on-surface-variant: 220 9% 64%; /* #9CA3AF */
+  --outline: 220 9% 36%; /* #4B5563 */
+  --outline-variant: 220 13% 21%; /* #374151 */
+  
+  /* Night shift specific adjustments */
+  --emergency: 4 90% 68%; /* #EF5350 */
+  --emergency-bg: 4 90% 5%; /* #1A0B0B */
+}
+
+/* Theme transition animations */
+* {
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal),
+    color var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+/* Specific theme adjustments */
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .loading-screen {
+  background: hsl(var(--surface));
+  color: hsl(var(--on-surface));
+}
+
+[data-theme="dark"] .loading-spinner {
+  border-color: hsl(var(--on-surface) / 0.3);
+  border-top-color: hsl(var(--primary));
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Night shift specific adjustments */
+[data-theme="night-shift"] .loading-screen {
+  background: hsl(var(--surface));
+  color: hsl(var(--on-surface));
+}
+
+[data-theme="night-shift"] .loading-spinner {
+  border-color: hsl(var(--on-surface) / 0.3);
+  border-top-color: hsl(var(--primary));
+}
+
+[data-theme="night-shift"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* High contrast specific adjustments */
+[data-theme="high-contrast"] .icon-button:hover {
+  background: hsl(var(--primary) / 0.2);
+  border: 2px solid hsl(var(--primary));
+}
+
+[data-theme="high-contrast"] .nav-item:hover {
+  background: hsl(var(--primary) / 0.2);
+  border-left: 4px solid hsl(var(--primary));
+}
+
+[data-theme="high-contrast"] .nav-item.active {
+  background: hsl(var(--primary) / 0.3);
+  border-left: 4px solid hsl(var(--primary));
+}
+
+/* Theme-specific animations */
+[data-theme="dark"] .emergency-button,
+[data-theme="night-shift"] .emergency-button {
+  animation: pulseDark 2s infinite;
+}
+
+@keyframes pulseDark {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 20px hsl(var(--emergency) / 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 30px hsl(var(--emergency) / 0.5);
+  }
+}
+
+/* Auto theme detection based on system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* Apply dark theme colors when no theme is explicitly set */
+    --primary: 25 79% 64%;
+    --primary-variant: 25 79% 54%;
+    --secondary: 45 100% 61%;
+    --secondary-variant: 45 100% 51%;
+    --background: 210 11% 6%;
+    --surface: 210 11% 9%;
+    --surface-variant: 210 11% 13%;
+    --error: 4 90% 68%;
+    --warning: 45 100% 61%;
+    --success: 122 39% 59%;
+    --on-primary: 0 0% 0%;
+    --on-secondary: 0 0% 0%;
+    --on-background: 210 11% 91%;
+    --on-surface: 210 11% 91%;
+    --on-surface-variant: 210 7% 64%;
+    --outline: 210 7% 36%;
+    --outline-variant: 210 11% 21%;
+    --emergency: 4 90% 68%;
+    --emergency-bg: 4 90% 8%;
+  }
+}
+
+/* Theme selection indicator */
+.theme-indicator {
+  position: fixed;
+  top: 50%;
+  right: var(--spacing-lg);
+  transform: translateY(-50%);
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--outline));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  z-index: var(--z-dropdown);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition-normal);
+}
+
+.theme-indicator.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.theme-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.theme-option.light {
+  background: linear-gradient(135deg, #1976D2, #FFFFFF);
+}
+
+.theme-option.dark {
+  background: linear-gradient(135deg, #42A5F5, #0F172A);
+}
+
+.theme-option.high-contrast {
+  background: linear-gradient(135deg, #0066FF, #FFFFFF);
+}
+
+.theme-option.night-shift {
+  background: linear-gradient(135deg, #1E88E5, #0A0E1A);
+}
+
+.theme-option.security-blue {
+  background: linear-gradient(135deg, #0066CC, #0099CC);
+}
+
+.theme-option.security-green {
+  background: linear-gradient(135deg, #00B366, #00B399);
+}
+
+.theme-option.security-red {
+  background: linear-gradient(135deg, #D63031, #E17055);
+}
+
+.theme-option:hover {
+  transform: scale(1.1);
+  border-color: hsl(var(--primary));
+}
+
+.theme-option.active {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+}
+
+/* Accessibility improvements for themes */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme] * {
+    transition: none !important;
+  }
+}
+
+/* Focus indicators for all themes */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Theme-specific focus styles */
+[data-theme="high-contrast"] button:focus-visible,
+[data-theme="high-contrast"] input:focus-visible,
+[data-theme="high-contrast"] select:focus-visible,
+[data-theme="high-contrast"] a:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 3px;
+}

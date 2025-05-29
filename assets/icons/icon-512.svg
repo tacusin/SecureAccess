@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1976D2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shieldGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E3F2FD;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="64" ry="64" fill="url(#bgGradient512)"/>
+  
+  <!-- Subtle glow effect -->
+  <ellipse cx="256" cy="180" rx="120" ry="80" fill="url(#glowGradient)"/>
+  
+  <!-- Main Shield Shape -->
+  <path d="M256 86L172 118v86c0 54 22 102.4 59.2 136.8L256 384l24.8-43.2C318 306.4 340 258 340 204V118L256 86z" 
+        fill="url(#shieldGradient512)" 
+        stroke="#1976D2" 
+        stroke-width="4"/>
+  
+  <!-- Inner shield highlight -->
+  <path d="M256 102L188 126v78c0 48 18 90 50 120l18 20 18-20c32-30 50-72 50-120v-78L256 102z" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="2" 
+        opacity="0.5"/>
+  
+  <!-- Lock Icon in Shield -->
+  <rect x="230" y="204" width="52" height="42" rx="6" ry="6" fill="#1976D2"/>
+  <path d="M220 204v-16c0-19.9 16.1-36 36-36s36 16.1 36 36v16" 
+        stroke="#1976D2" 
+        stroke-width="8" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Lock details -->
+  <circle cx="256" cy="225" r="6" fill="#FFFFFF"/>
+  <rect x="253" y="231" width="6" height="10" fill="#FFFFFF" rx="1" ry="1"/>
+  
+  <!-- Access indicator dots with glow -->
+  <circle cx="200" cy="290" r="8" fill="#4CAF50" opacity="0.9"/>
+  <circle cx="200" cy="290" r="12" fill="#4CAF50" opacity="0.3"/>
+  
+  <circle cx="256" cy="300" r="8" fill="#FF9800" opacity="0.9"/>
+  <circle cx="256" cy="300" r="12" fill="#FF9800" opacity="0.3"/>
+  
+  <circle cx="312" cy="290" r="8" fill="#F44336" opacity="0.9"/>
+  <circle cx="312" cy="290" r="12" fill="#F44336" opacity="0.3"/>
+  
+  <!-- Building representation -->
+  <rect x="128" y="384" width="256" height="86" fill="#1976D2" opacity="0.15" rx="12" ry="12"/>
+  
+  <!-- Building windows -->
+  <rect x="140" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="170" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="200" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="292" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="322" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="352" y="396" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  
+  <rect x="140" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="170" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="200" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="292" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="322" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  <rect x="352" y="426" width="20" height="20" fill="#1976D2" opacity="0.4" rx="2" ry="2"/>
+  
+  <!-- Main entrance door -->
+  <rect x="236" y="426" width="40" height="44" fill="#FFFFFF" rx="6" ry="6"/>
+  <circle cx="266" cy="448" r="4" fill="#1976D2"/>
+  
+  <!-- Security badge/ID card element -->
+  <rect x="40" y="280" width="32" height="20" fill="#FFFFFF" rx="3" ry="3" opacity="0.9"/>
+  <rect x="42" y="282" width="28" height="4" fill="#1976D2" opacity="0.6"/>
+  <rect x="42" y="288" width="20" height="2" fill="#1976D2" opacity="0.4"/>
+  <rect x="42" y="292" width="16" height="2" fill="#1976D2" opacity="0.4"/>
+  <rect x="42" y="296" width="12" height="2" fill="#1976D2" opacity="0.4"/>
+  
+  <!-- Emergency indicator -->
+  <circle cx="440" cy="120" r="16" fill="#F44336" opacity="0.8"/>
+  <path d="M432 116l8 8 8-8M440 112v16" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Checkmark for verified access -->
+  <circle cx="80" cy="120" r="16" fill="#4CAF50" opacity="0.8"/>
+  <path d="M72 120l6 6 12-12" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>
