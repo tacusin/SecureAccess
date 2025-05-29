@@ -1,6 +1,6 @@
-const CACHE_NAME = 'security-access-manager-v1.0.0';
-const STATIC_CACHE = 'static-v1.0.0';
-const DYNAMIC_CACHE = 'dynamic-v1.0.0';
+const CACHE_NAME = 'secure-access-v1.1.0';
+const STATIC_CACHE = 'static-v1.1.0';
+const DYNAMIC_CACHE = 'dynamic-v1.1.0';
 
 // Files to cache on install
 const STATIC_FILES = [
