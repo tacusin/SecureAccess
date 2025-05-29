@@ -1,8 +1,26 @@
 /* Security Access Manager - Theme System */
 
-/* Light theme (default) */
+/* Secure Access theme (default) - Inspired by the logo */
 :root {
-  /* Already defined in styles.css */
+  --primary: 0 229 255;
+  --primary-variant: 0 188 212;
+  --secondary: 0 172 193;
+  --secondary-variant: 0 151 167;
+  --background: 13 27 42;
+  --surface: 27 42 65;
+  --surface-variant: 44 62 80;
+  --error: 244 67 54;
+  --warning: 255 193 7;
+  --success: 76 175 80;
+  --info: 0 229 255;
+  --on-primary: 13 27 42;
+  --on-secondary: 255 255 255;
+  --on-background: 0 229 255;
+  --on-surface: 224 247 250;
+  --on-surface-variant: 178 235 242;
+  --on-error: 255 255 255;
+  --outline: 0 172 193;
+  --outline-variant: 84 110 122;
 }
 
 /* Dark theme */
