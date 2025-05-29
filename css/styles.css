@@ -3,23 +3,23 @@
 /* CSS Custom Properties (Design System) */
 :root {
   /* Colors - Secure Access cyan/teal theme */
-  --primary: 0 229 255; /* #00E5FF */
-  --primary-variant: 0 188 212; /* #00BCD4 */
-  --secondary: 0 172 193; /* #00ACC1 */
-  --secondary-variant: 0 151 167; /* #0097A7 */
-  --background: 13 27 42; /* #0D1B2A */
-  --surface: 27 42 65; /* #1B2A41 */
-  --surface-variant: 44 62 80; /* #2C3E50 */
-  --error: 244 67 54; /* #F44336 */
-  --warning: 255 193 7; /* #FFC107 */
-  --success: 76 175 80; /* #4CAF50 */
-  --on-primary: 13 27 42; /* #0D1B2A */
-  --on-secondary: 255 255 255; /* #FFFFFF */
-  --on-background: 0 229 255; /* #00E5FF */
-  --on-surface: 224 247 250; /* #E0F7FA */
-  --on-surface-variant: 178 235 242; /* #B2EBF2 */
-  --outline: 0 172 193; /* #00ACC1 */
-  --outline-variant: 84 110 122; /* #546E7A */
+  --primary: 188 100% 50%; /* #00E5FF */
+  --primary-variant: 188 100% 42%; /* #00BCD4 */
+  --secondary: 184 100% 38%; /* #00ACC1 */
+  --secondary-variant: 184 100% 33%; /* #0097A7 */
+  --background: 212 51% 11%; /* #0D1B2A */
+  --surface: 212 41% 18%; /* #1B2A41 */
+  --surface-variant: 210 29% 24%; /* #2C3E50 */
+  --error: 4 90% 58%; /* #F44336 */
+  --warning: 45 100% 51%; /* #FFC107 */
+  --success: 122 39% 49%; /* #4CAF50 */
+  --on-primary: 212 51% 11%; /* #0D1B2A */
+  --on-secondary: 0 0% 100%; /* #FFFFFF */
+  --on-background: 188 100% 50%; /* #00E5FF */
+  --on-surface: 184 100% 93%; /* #E0F7FA */
+  --on-surface-variant: 184 100% 82%; /* #B2EBF2 */
+  --outline: 184 100% 38%; /* #00ACC1 */
+  --outline-variant: 200 18% 40%; /* #546E7A */
   
   /* Emergency colors */
   --emergency: 4 90% 58%; /* #F44336 */
