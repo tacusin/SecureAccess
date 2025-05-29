@@ -285,7 +285,7 @@ class TutorialManager {
       
       .tutorial-button.danger {
         background: hsl(var(--error));
-        color: hsl(var(--on-primary));
+        color: white;
       }
       
       .tutorial-button.danger:hover {

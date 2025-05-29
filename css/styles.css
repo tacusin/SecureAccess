@@ -371,7 +371,7 @@ body {
 
 .emergency-button {
   background: hsl(var(--emergency));
-  color: hsl(var(--on-primary));
+  color: white;
   border: none;
   border-radius: 50%;
   width: var(--touch-target);
