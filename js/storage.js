@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Storage Manager
+ * Secure Access - Storage Manager
  * Handles data persistence with localStorage and offline capabilities
  */
 

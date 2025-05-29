@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Emergency Manager
+ * Secure Access - Emergency Manager
  * Handles emergency operations, evacuation procedures, and crisis management
  */
 

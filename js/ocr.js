@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - OCR Manager
+ * Secure Access - OCR Manager
  * Handles optical character recognition for ID card scanning
  */
 

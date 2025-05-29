@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Tutorial Manager
+ * Secure Access - Tutorial Manager
  * Interactive tutorial system for first-time users
  */
 

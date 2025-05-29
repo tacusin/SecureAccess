@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Advanced Reports Manager
+ * Secure Access - Advanced Reports Manager
  * Handles comprehensive reporting and analytics
  */
 

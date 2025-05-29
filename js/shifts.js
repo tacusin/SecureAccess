@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Shift Management
+ * Secure Access - Shift Management
  * Handles shift transitions, handover documentation, and shift-related tracking
  */
 

@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Export Manager
+ * Secure Access - Export Manager
  * Handles data export in various formats (CSV, PDF, JSON)
  */
 

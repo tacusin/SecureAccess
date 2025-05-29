@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - QR Code Generator
+ * Secure Access - QR Code Generator
  * Handles QR code generation and scanning for personnel
  */
 
