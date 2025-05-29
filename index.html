@@ -11,8 +11,8 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="assets/icons/icon-192.svg">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+    <link rel="icon" type="image/png" href="generated-icon.png">
+    <link rel="apple-touch-icon" href="generated-icon.png">
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
@@ -29,6 +29,7 @@
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
+        <img src="generated-icon.png" alt="Secure Access" class="loading-logo">
         <div class="loading-spinner"></div>
         <h2>Secure Access</h2>
         <p>Loading...</p>
@@ -42,7 +43,10 @@
                 <button id="menu-btn" class="icon-button" aria-label="Menu">
                     <span class="material-icons">menu</span>
                 </button>
-                <h1 class="app-title">Secure Access</h1>
+                <div class="app-title">
+                    <img src="generated-icon.png" alt="Secure Access" class="app-logo">
+                    <h1>Secure Access</h1>
+                </div>
                 <div class="app-bar-actions">
                     <button id="emergency-btn" class="emergency-button" aria-label="Emergency Mode">
                         <span class="material-icons">warning</span>
