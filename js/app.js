@@ -8,7 +8,7 @@ class SecurityApp {
     this.currentPage = 'dashboard';
     this.isOffline = !navigator.onLine;
     this.lastSaveTime = null;
-    this.currentTheme = localStorage.getItem('theme') || 'light';
+    this.currentTheme = localStorage.getItem('theme') || 'dark';
     this.isNavOpen = false;
     
     // Initialize app
@@ -736,7 +736,7 @@ class SecurityApp {
 
   // Theme management
   toggleTheme() {
-    const themes = ['light', 'dark', 'high-contrast', 'night-shift'];
+    const themes = ['dark', 'light'];
     const currentIndex = themes.indexOf(this.currentTheme);
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     this.applyTheme(nextTheme);
@@ -744,18 +744,23 @@ class SecurityApp {
 
   applyTheme(theme) {
     this.currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Apply theme to document
+    if (theme === 'dark') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    
     localStorage.setItem('theme', theme);
     
     // Update theme toggle icon
     const themeIcon = document.querySelector('#theme-toggle .material-icons');
     const icons = {
       light: 'light_mode',
-      dark: 'dark_mode',
-      'high-contrast': 'contrast',
-      'night-shift': 'nights_stay'
+      dark: 'dark_mode'
     };
-    themeIcon.textContent = icons[theme] || 'light_mode';
+    themeIcon.textContent = icons[theme] || 'dark_mode';
     
     console.log(`[App] Theme changed to: ${theme}`);
   }
