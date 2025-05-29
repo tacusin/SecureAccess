@@ -15,7 +15,7 @@ class TutorialManager {
     this.steps = [
       {
         target: '.app-title',
-        title: 'Welcome to Security Manager',
+        title: 'Welcome to Secure Access',
         content: 'This is your security access management dashboard. Let\'s take a quick tour to get you started.',
         position: 'bottom',
         action: 'highlight'

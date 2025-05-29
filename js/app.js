@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Main Application
+ * Secure Access - Main Application
  * Enterprise-grade Progressive Web App for security officers
  */
 
@@ -17,7 +17,7 @@ class SecurityApp {
 
   async init() {
     try {
-      console.log('[App] Initializing Security Access Manager');
+      console.log('[App] Initializing Secure Access');
       
       // Register service worker
       await this.registerServiceWorker();

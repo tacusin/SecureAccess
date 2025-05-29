@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Camera Manager
+ * Secure Access - Camera Manager
  * Handles camera access, photo capture, and image processing
  */
 

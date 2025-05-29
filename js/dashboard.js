@@ -1,5 +1,5 @@
 /**
- * Security Access Manager - Dashboard Manager
+ * Secure Access - Dashboard Manager
  * Handles dashboard analytics, charts, and real-time updates
  */
 

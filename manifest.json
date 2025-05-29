@@ -1,6 +1,6 @@
 {
-  "name": "Security Access Manager",
-  "short_name": "SecManager",
+  "name": "Secure Access",
+  "short_name": "SecAccess",
   "description": "Enterprise-grade Progressive Web App for security officers to manage building access, personnel tracking, and emergency operations",
   "start_url": "/",
   "display": "standalone",
