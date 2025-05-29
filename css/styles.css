@@ -668,6 +668,42 @@ body {
   color: hsl(var(--primary));
 }
 
+/* Report options */
+.report-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.report-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: hsl(var(--surface-variant));
+  border: 1px solid hsl(var(--outline));
+  border-radius: var(--radius-md);
+  color: hsl(var(--on-surface));
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: center;
+  min-height: 80px;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+}
+
+.report-btn:hover {
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  transform: translateY(-2px);
+}
+
+.report-btn .material-icons {
+  font-size: 24px;
+}
+
 /* Modals */
 .modal-overlay {
   position: fixed;

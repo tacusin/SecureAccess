@@ -126,6 +126,10 @@ class SecurityApp {
     document.getElementById('add-personnel-btn')?.addEventListener('click', () => this.showAddPersonnelModal());
     document.getElementById('add-visitor-btn')?.addEventListener('click', () => this.showAddPersonnelModal('visitor'));
     
+    // OCR and QR functionality
+    document.getElementById('scan-id-btn')?.addEventListener('click', () => this.handleIDScan());
+    document.getElementById('scan-qr-btn')?.addEventListener('click', () => this.handleQRScan());
+    
     // Export buttons
     document.querySelectorAll('.export-btn').forEach(btn => {
       btn.addEventListener('click', (e) => this.handleExport(e));

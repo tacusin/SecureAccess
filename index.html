@@ -148,6 +148,10 @@
                         <span class="material-icons">qr_code_scanner</span>
                         Scan QR Code
                     </button>
+                    <button id="scan-id-btn" class="action-button secondary">
+                        <span class="material-icons">document_scanner</span>
+                        Scan ID Card
+                    </button>
                     <button id="add-visitor-btn" class="action-button primary">
                         <span class="material-icons">person_add</span>
                         Add Visitor
@@ -216,6 +220,36 @@
                     <div class="card">
                         <h3>Visit Duration</h3>
                         <canvas id="duration-chart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Advanced Reports</h3>
+                        <div class="report-options">
+                            <button class="report-btn" data-report="occupancy-summary">
+                                <span class="material-icons">analytics</span>
+                                Occupancy Summary
+                            </button>
+                            <button class="report-btn" data-report="personnel-activity">
+                                <span class="material-icons">people</span>
+                                Personnel Activity
+                            </button>
+                            <button class="report-btn" data-report="security-audit">
+                                <span class="material-icons">security</span>
+                                Security Audit
+                            </button>
+                            <button class="report-btn" data-report="visitor-analytics">
+                                <span class="material-icons">insights</span>
+                                Visitor Analytics
+                            </button>
+                            <button class="report-btn" data-report="time-tracking">
+                                <span class="material-icons">schedule</span>
+                                Time Tracking
+                            </button>
+                            <button class="report-btn" data-report="compliance">
+                                <span class="material-icons">verified</span>
+                                Compliance Report
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="card">
@@ -329,13 +363,17 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/export.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/emergency.js"></script>
     <script src="js/tutorial.js"></script>
-    <script src="assets/sounds/notification.js"></script>
+    <script src="js/ocr.js"></script>
+    <script src="js/qr-generator.js"></script>
+    <script src="js/reports.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
