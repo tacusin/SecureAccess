@@ -285,13 +285,14 @@ class SecurityApp {
       case 'checkin':
         await this.loadPersonnelList();
         break;
+      case 'shifts':
+        await this.updateShiftsPage();
+        break;
       case 'personnel':
         await this.loadAllPersonnel();
         break;
       case 'reports':
-        if (window.DashboardManager) {
-          await window.DashboardManager.updateCharts();
-        }
+        // Reports page content is static
         break;
       case 'emergency':
         if (window.EmergencyManager) {
@@ -299,6 +300,438 @@ class SecurityApp {
         }
         break;
     }
+  }
+
+  async updateShiftsPage() {
+    if (!window.ShiftManager || !window.ShiftManager.isAvailable()) return;
+
+    try {
+      const currentShift = window.ShiftManager.getCurrentShift();
+      const pendingHandovers = window.ShiftManager.getPendingHandovers();
+      const recentShifts = window.ShiftManager.getRecentShifts(5);
+
+      // Update current shift display
+      this.updateCurrentShiftDisplay(currentShift);
+      
+      // Update pending handovers
+      this.updatePendingHandovers(pendingHandovers);
+      
+      // Update shift history
+      this.updateShiftHistory(recentShifts);
+      
+    } catch (error) {
+      console.error('[App] Error updating shifts page:', error);
+    }
+  }
+
+  updateCurrentShiftDisplay(currentShift) {
+    const shiftStatus = document.getElementById('shift-status');
+    const shiftInfo = document.getElementById('current-shift-info');
+    
+    if (!currentShift || currentShift.status !== 'active') {
+      shiftStatus.textContent = 'No Active Shift';
+      shiftStatus.className = 'shift-status inactive';
+      shiftInfo.innerHTML = `
+        <div class="no-shift-message">
+          <span class="material-icons">schedule</span>
+          <p>No shift is currently active</p>
+          <button class="action-button primary" onclick="app.showStartShiftModal()">
+            Start New Shift
+          </button>
+        </div>
+      `;
+    } else {
+      shiftStatus.textContent = 'Active';
+      shiftStatus.className = 'shift-status active';
+      
+      const elapsed = Date.now() - currentShift.actualStartTime;
+      const remaining = currentShift.endTime - Date.now();
+      
+      shiftInfo.innerHTML = `
+        <div class="shift-info">
+          <div class="shift-detail">
+            <span class="shift-detail-label">Officer:</span>
+            <span class="shift-detail-value">${currentShift.officerName}</span>
+          </div>
+          <div class="shift-detail">
+            <span class="shift-detail-label">Shift Type:</span>
+            <span class="shift-type-indicator shift-type-${currentShift.shiftType}">${currentShift.shiftConfig.name}</span>
+          </div>
+          <div class="shift-detail">
+            <span class="shift-detail-label">Started:</span>
+            <span class="shift-detail-value">${this.formatTime(currentShift.actualStartTime)}</span>
+          </div>
+          <div class="shift-detail">
+            <span class="shift-detail-label">Ends:</span>
+            <span class="shift-detail-value">${this.formatTime(currentShift.endTime)}</span>
+          </div>
+          <div class="shift-timer">
+            Time Remaining: ${this.formatDuration(Math.max(0, remaining))}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  updatePendingHandovers(handovers) {
+    const countElement = document.getElementById('handover-count');
+    const listElement = document.getElementById('pending-handovers');
+    
+    countElement.textContent = handovers.length;
+    countElement.style.display = handovers.length > 0 ? 'flex' : 'none';
+    
+    if (handovers.length === 0) {
+      listElement.innerHTML = `
+        <div class="no-handovers-message">
+          <span class="material-icons">assignment_turned_in</span>
+          <p>No pending handovers</p>
+        </div>
+      `;
+    } else {
+      listElement.innerHTML = handovers.map(handover => `
+        <div class="handover-item">
+          <div class="handover-header">
+            <strong>From: ${handover.fromOfficer}</strong>
+            <span class="handover-meta">${this.formatTime(handover.timestamp)}</span>
+          </div>
+          <div class="handover-notes">${handover.notes}</div>
+          <div class="handover-actions">
+            <button class="action-button primary" onclick="app.acknowledgeHandover('${handover.id}')">
+              Acknowledge
+            </button>
+            <button class="action-button secondary" onclick="app.viewHandoverDetails('${handover.id}')">
+              View Details
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  updateShiftHistory(shifts) {
+    const historyElement = document.getElementById('shift-history');
+    
+    if (shifts.length === 0) {
+      historyElement.innerHTML = `
+        <div class="no-shift-message">
+          <span class="material-icons">history</span>
+          <p>No recent shifts</p>
+        </div>
+      `;
+    } else {
+      historyElement.innerHTML = shifts.map(shift => `
+        <div class="shift-item">
+          <div class="shift-header">
+            <strong>${shift.officerName}</strong>
+            <span class="shift-type-indicator shift-type-${shift.shiftType}">${shift.shiftConfig.name}</span>
+          </div>
+          <div class="shift-meta">
+            ${this.formatDate(shift.actualStartTime)} • 
+            Duration: ${shift.duration ? this.formatDuration(shift.duration) : 'In Progress'}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Shift Management Methods
+  showStartShiftModal() {
+    const shiftTypes = window.ShiftManager ? window.ShiftManager.getShiftTypes() : [];
+    
+    const modalContent = `
+      <div class="modal-header">
+        <h3>Start New Shift</h3>
+        <button class="icon-button" onclick="app.closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="start-shift-form" class="shift-form">
+          <div class="form-group">
+            <label for="officer-name">Officer Name *</label>
+            <input type="text" id="officer-name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="shift-type">Shift Type *</label>
+            <select id="shift-type" required>
+              ${shiftTypes.map(type => `
+                <option value="${type.id}">${type.name} (${type.start} - ${type.end})</option>
+              `).join('')}
+            </select>
+          </div>
+          
+          <div id="custom-times" class="form-group" style="display: none;">
+            <div class="time-inputs">
+              <div class="form-group">
+                <label for="custom-start">Start Time</label>
+                <input type="time" id="custom-start">
+              </div>
+              <div class="form-group">
+                <label for="custom-end">End Time</label>
+                <input type="time" id="custom-end">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="action-button secondary" onclick="app.closeModal()">
+              Cancel
+            </button>
+            <button type="submit" class="action-button primary">
+              <span class="material-icons">schedule</span>
+              Start Shift
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    this.showModal(modalContent);
+    
+    // Setup form submission
+    document.getElementById('start-shift-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleStartShift();
+    });
+    
+    // Show custom time inputs for custom shift
+    document.getElementById('shift-type').addEventListener('change', (e) => {
+      const customTimes = document.getElementById('custom-times');
+      customTimes.style.display = e.target.value === 'custom' ? 'block' : 'none';
+    });
+  }
+
+  async handleStartShift() {
+    try {
+      const form = document.getElementById('start-shift-form');
+      const formData = new FormData(form);
+      
+      const officerName = formData.get('officer-name') || document.getElementById('officer-name').value;
+      const shiftType = formData.get('shift-type') || document.getElementById('shift-type').value;
+      
+      let customStart = null;
+      let customEnd = null;
+      
+      if (shiftType === 'custom') {
+        customStart = document.getElementById('custom-start').value;
+        customEnd = document.getElementById('custom-end').value;
+        
+        if (!customStart || !customEnd) {
+          this.showError('Please specify start and end times for custom shift');
+          return;
+        }
+      }
+      
+      if (!window.ShiftManager) {
+        this.showError('Shift management system is not available');
+        return;
+      }
+      
+      const shift = await window.ShiftManager.startShift(officerName, shiftType, customStart, customEnd);
+      
+      this.closeModal();
+      this.showToast(`Shift started successfully for ${officerName}`, 'success');
+      
+      // Update shifts page if currently viewing
+      if (this.currentPage === 'shifts') {
+        await this.updateShiftsPage();
+      }
+      
+    } catch (error) {
+      console.error('[App] Error starting shift:', error);
+      this.showError('Failed to start shift: ' + error.message);
+    }
+  }
+
+  async handleEndShift() {
+    try {
+      if (!window.ShiftManager) {
+        this.showError('Shift management system is not available');
+        return;
+      }
+      
+      const currentShift = window.ShiftManager.getCurrentShift();
+      if (!currentShift || currentShift.status !== 'active') {
+        this.showToast('No active shift to end', 'info');
+        return;
+      }
+      
+      const confirmed = await this.showConfirmDialog(
+        'End Current Shift',
+        `Are you sure you want to end the current shift for ${currentShift.officerName}?`
+      );
+      
+      if (!confirmed) return;
+      
+      await window.ShiftManager.endShift(currentShift.id, 'Manual end by user');
+      
+      this.showToast('Shift ended successfully', 'success');
+      
+      // Update shifts page if currently viewing
+      if (this.currentPage === 'shifts') {
+        await this.updateShiftsPage();
+      }
+      
+    } catch (error) {
+      console.error('[App] Error ending shift:', error);
+      this.showError('Failed to end shift: ' + error.message);
+    }
+  }
+
+  showHandoverModal() {
+    if (!window.ShiftManager) {
+      this.showError('Shift management system is not available');
+      return;
+    }
+    
+    const currentShift = window.ShiftManager.getCurrentShift();
+    if (!currentShift || currentShift.status !== 'active') {
+      this.showToast('No active shift for handover', 'info');
+      return;
+    }
+    
+    const modalContent = `
+      <div class="modal-header">
+        <h3>Create Handover</h3>
+        <button class="icon-button" onclick="app.closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="handover-form" class="handover-form">
+          <div class="form-group">
+            <label for="from-officer">From Officer</label>
+            <input type="text" id="from-officer" value="${currentShift.officerName}" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label for="to-officer">To Officer *</label>
+            <input type="text" id="to-officer" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="handover-notes">Handover Notes *</label>
+            <textarea id="handover-notes" rows="4" required placeholder="Key information for the next officer..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="key-points">Key Points</label>
+            <textarea id="key-points" rows="3" placeholder="Important items to highlight..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="incidents">Incidents/Issues</label>
+            <textarea id="incidents" rows="3" placeholder="Any incidents or issues during the shift..."></textarea>
+          </div>
+          
+          <div class="handover-summary">
+            <h4>Current Status Summary</h4>
+            <div class="summary-item">
+              <span>Current Occupancy:</span>
+              <span id="handover-occupancy">${window.StorageManager.getCurrentOccupancy()}</span>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="action-button secondary" onclick="app.closeModal()">
+              Cancel
+            </button>
+            <button type="submit" class="action-button primary">
+              <span class="material-icons">assignment</span>
+              Create Handover
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    this.showModal(modalContent);
+    
+    // Setup form submission
+    document.getElementById('handover-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleCreateHandover();
+    });
+  }
+
+  async handleCreateHandover() {
+    try {
+      const fromOfficer = document.getElementById('from-officer').value;
+      const toOfficer = document.getElementById('to-officer').value;
+      const notes = document.getElementById('handover-notes').value;
+      const keyPoints = document.getElementById('key-points').value.split('\n').filter(p => p.trim());
+      const incidents = document.getElementById('incidents').value.split('\n').filter(i => i.trim());
+      
+      if (!window.ShiftManager) {
+        this.showError('Shift management system is not available');
+        return;
+      }
+      
+      const handover = await window.ShiftManager.createHandover(
+        fromOfficer,
+        toOfficer,
+        notes,
+        incidents,
+        keyPoints
+      );
+      
+      this.closeModal();
+      this.showToast(`Handover created for ${toOfficer}`, 'success');
+      
+      // Update shifts page if currently viewing
+      if (this.currentPage === 'shifts') {
+        await this.updateShiftsPage();
+      }
+      
+    } catch (error) {
+      console.error('[App] Error creating handover:', error);
+      this.showError('Failed to create handover: ' + error.message);
+    }
+  }
+
+  async acknowledgeHandover(handoverId) {
+    try {
+      if (!window.ShiftManager) {
+        this.showError('Shift management system is not available');
+        return;
+      }
+      
+      const handover = window.ShiftManager.handoverNotes.find(h => h.id === handoverId);
+      if (!handover) {
+        this.showError('Handover not found');
+        return;
+      }
+      
+      const notes = prompt('Add acknowledgment notes (optional):') || '';
+      
+      await window.ShiftManager.acknowledgeHandover(handoverId, notes);
+      
+      this.showToast('Handover acknowledged', 'success');
+      
+      // Update shifts page if currently viewing
+      if (this.currentPage === 'shifts') {
+        await this.updateShiftsPage();
+      }
+      
+    } catch (error) {
+      console.error('[App] Error acknowledging handover:', error);
+      this.showError('Failed to acknowledge handover: ' + error.message);
+    }
+  }
+
+  formatDuration(milliseconds) {
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  }
+
+  formatDate(timestamp) {
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   }
 
   // Theme management
