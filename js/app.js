@@ -1750,7 +1750,8 @@ class SecurityApp {
   // Activity Log Management
   async updateActivityPage() {
     try {
-      const activities = window.StorageManager.getActivityLog(1000);
+      // Load fewer activities for better performance
+      const activities = window.StorageManager.getActivityLog(100);
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       
@@ -1765,9 +1766,9 @@ class SecurityApp {
       // Update stats
       document.getElementById('today-activities-count').textContent = todayActivities.length;
       document.getElementById('undoable-actions-count').textContent = undoableActivities.length;
-      document.getElementById('total-activities-count').textContent = activities.length;
+      document.getElementById('total-activities-count').textContent = window.StorageManager.getActivityLog(10000).length;
 
-      // Load activity list
+      // Load activity list with pagination
       this.loadActivityList(activities);
 
     } catch (error) {
@@ -1781,7 +1782,7 @@ class SecurityApp {
     if (!container) return;
 
     if (!activities) {
-      activities = window.StorageManager.getActivityLog(1000);
+      activities = window.StorageManager.getActivityLog(100);
     }
 
     // Apply filters if any
@@ -1797,23 +1798,27 @@ class SecurityApp {
       return;
     }
 
-    container.innerHTML = activities.map(activity => 
-      this.createActivityItem(activity)
-    ).join('');
-
-    // Add event listeners for undo and delete buttons
-    container.querySelectorAll('.undo-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const activityId = e.target.dataset.activityId;
-        this.handleUndoActivity(activityId);
-      });
+    // Use document fragment for better performance
+    const fragment = document.createDocumentFragment();
+    
+    activities.forEach(activity => {
+      const activityElement = document.createElement('div');
+      activityElement.innerHTML = this.createActivityItem(activity);
+      fragment.appendChild(activityElement.firstElementChild);
     });
+    
+    container.innerHTML = '';
+    container.appendChild(fragment);
 
-    container.querySelectorAll('.delete-activity-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const activityId = e.target.dataset.activityId;
+    // Add event listeners for undo and delete buttons using event delegation
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('.undo-btn')) {
+        const activityId = e.target.closest('.undo-btn').dataset.activityId;
+        this.handleUndoActivity(activityId);
+      } else if (e.target.closest('.delete-activity-btn')) {
+        const activityId = e.target.closest('.delete-activity-btn').dataset.activityId;
         this.handleDeleteActivity(activityId);
-      });
+      }
     });
   }
 
@@ -2101,8 +2106,13 @@ class SecurityApp {
 
   async handleDeleteActivity(activityId) {
     try {
-      const activity = window.StorageManager.getActivityLog(1000).find(a => a.id === activityId);
+      console.log('[App] Attempting to delete activity ID:', activityId);
+      
+      const allActivities = window.StorageManager.getActivityLog(10000);
+      const activity = allActivities.find(a => a.id === activityId);
+      
       if (!activity) {
+        console.error('[App] Activity not found with ID:', activityId);
         this.showError('Activity not found');
         return;
       }
@@ -2116,20 +2126,26 @@ class SecurityApp {
       if (!confirmed) return;
 
       // Remove the activity from the log
-      const activities = window.StorageManager.getActivityLog(10000);
-      const updatedActivities = activities.filter(a => a.id !== activityId);
+      const originalCount = allActivities.length;
+      const updatedActivities = allActivities.filter(a => a.id !== activityId);
+      const newCount = updatedActivities.length;
       
-      // Update storage with filtered activities
+      console.log(`[App] Filtering: ${originalCount} -> ${newCount} activities`);
+      
+      if (originalCount === newCount) {
+        console.error('[App] No activity was removed - ID mismatch?');
+        this.showError('Failed to delete activity - ID not found');
+        return;
+      }
+      
+      // Update storage directly
       window.StorageManager.data.activityLog = updatedActivities;
       await window.StorageManager.saveToStorage();
       
-      console.log(`[App] Deleted activity ${activityId}, remaining activities:`, updatedActivities.length);
-
       this.showToast('Activity deleted successfully', 'success');
       
-      // Refresh the activity list immediately without logging the deletion
-      // (to avoid creating new entries when deleting)
-      await this.updateActivityPage();
+      // Refresh the activity list
+      this.loadActivityList();
 
     } catch (error) {
       console.error('[App] Error deleting activity:', error);
