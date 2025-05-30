@@ -1,0 +1,545 @@
+/**
+ * Secure Access - Network Sync Manager
+ * Handles real-time synchronization between devices on the local network
+ */
+
+class SyncManager {
+  constructor() {
+    this.socket = null;
+    this.isServer = false;
+    this.isConnected = false;
+    this.connectedDevices = new Map();
+    this.syncSettings = {
+      personnel: true,
+      activity: true,
+      shifts: true,
+      realtime: true
+    };
+    this.stats = {
+      dataSent: 0,
+      dataReceived: 0,
+      lastSync: null
+    };
+    this.server = null;
+  }
+
+  async init() {
+    try {
+      console.log('[Sync] Initializing Sync Manager');
+      
+      // Load saved settings
+      this.loadSettings();
+      
+      // Setup event listeners
+      this.setupEventListeners();
+      
+      // Update UI
+      this.updateSyncUI();
+      
+      console.log('[Sync] Sync Manager initialized successfully');
+      
+    } catch (error) {
+      console.error('[Sync] Error initializing sync manager:', error);
+      throw new Error('Failed to initialize sync manager');
+    }
+  }
+
+  setupEventListeners() {
+    // Server controls
+    document.getElementById('start-sync-server')?.addEventListener('click', () => this.startServer());
+    document.getElementById('connect-sync-client')?.addEventListener('click', () => this.connectToServer());
+    document.getElementById('disconnect-sync')?.addEventListener('click', () => this.disconnect());
+    
+    // Sync settings
+    document.getElementById('sync-personnel')?.addEventListener('change', (e) => {
+      this.syncSettings.personnel = e.target.checked;
+      this.saveSettings();
+    });
+    document.getElementById('sync-activity')?.addEventListener('change', (e) => {
+      this.syncSettings.activity = e.target.checked;
+      this.saveSettings();
+    });
+    document.getElementById('sync-shifts')?.addEventListener('change', (e) => {
+      this.syncSettings.shifts = e.target.checked;
+      this.saveSettings();
+    });
+    document.getElementById('sync-realtime')?.addEventListener('change', (e) => {
+      this.syncSettings.realtime = e.target.checked;
+      this.saveSettings();
+    });
+  }
+
+  async startServer() {
+    try {
+      const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
+      
+      this.updateStatus('connecting', 'Starting server...');
+      this.addLogEntry('info', `Starting WebSocket server on port ${port}`);
+      
+      // Create WebSocket server
+      this.server = new WebSocket(`ws://localhost:${port}`);
+      
+      this.server.onopen = () => {
+        this.isServer = true;
+        this.isConnected = true;
+        this.updateStatus('online', `Server running on port ${port}`);
+        this.addLogEntry('success', 'Server started successfully');
+        this.updateButtonStates();
+      };
+      
+      this.server.onmessage = (event) => {
+        this.handleMessage(JSON.parse(event.data));
+      };
+      
+      this.server.onclose = () => {
+        this.handleDisconnection();
+      };
+      
+      this.server.onerror = (error) => {
+        console.error('[Sync] Server error:', error);
+        this.addLogEntry('error', 'Failed to start server - check if port is available');
+        this.updateStatus('offline', 'Server failed to start');
+      };
+      
+    } catch (error) {
+      console.error('[Sync] Error starting server:', error);
+      this.addLogEntry('error', 'Failed to start server');
+      this.updateStatus('offline', 'Disconnected');
+    }
+  }
+
+  async connectToServer() {
+    try {
+      const host = document.getElementById('sync-server-host').value || 'localhost';
+      const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
+      const url = `ws://${host}:${port}`;
+      
+      this.updateStatus('connecting', 'Connecting...');
+      this.addLogEntry('info', `Connecting to ${host}:${port}`);
+      
+      this.socket = new WebSocket(url);
+      
+      this.socket.onopen = () => {
+        this.isConnected = true;
+        this.updateStatus('online', `Connected to ${host}:${port}`);
+        this.addLogEntry('success', 'Connected successfully');
+        this.updateButtonStates();
+        
+        // Send initial handshake
+        this.sendMessage({
+          type: 'handshake',
+          deviceName: this.getDeviceName(),
+          timestamp: Date.now()
+        });
+        
+        // Initial sync
+        this.performFullSync();
+      };
+      
+      this.socket.onmessage = (event) => {
+        this.handleMessage(JSON.parse(event.data));
+      };
+      
+      this.socket.onclose = () => {
+        this.handleDisconnection();
+      };
+      
+      this.socket.onerror = (error) => {
+        console.error('[Sync] Connection error:', error);
+        this.addLogEntry('error', 'Connection failed - check server address and port');
+        this.updateStatus('offline', 'Connection failed');
+      };
+      
+    } catch (error) {
+      console.error('[Sync] Error connecting to server:', error);
+      this.addLogEntry('error', 'Failed to connect to server');
+      this.updateStatus('offline', 'Disconnected');
+    }
+  }
+
+  disconnect() {
+    if (this.socket) {
+      this.socket.close();
+    }
+    if (this.server) {
+      this.server.close();
+    }
+    
+    this.handleDisconnection();
+  }
+
+  handleDisconnection() {
+    this.isConnected = false;
+    this.isServer = false;
+    this.socket = null;
+    this.server = null;
+    this.connectedDevices.clear();
+    
+    this.updateStatus('offline', 'Disconnected');
+    this.addLogEntry('warning', 'Disconnected from network');
+    this.updateButtonStates();
+    this.updateDeviceList();
+  }
+
+  handleMessage(message) {
+    try {
+      this.stats.dataReceived += JSON.stringify(message).length;
+      this.updateStats();
+      
+      switch (message.type) {
+        case 'handshake':
+          this.handleHandshake(message);
+          break;
+        case 'sync_request':
+          this.handleSyncRequest(message);
+          break;
+        case 'sync_data':
+          this.handleSyncData(message);
+          break;
+        case 'realtime_update':
+          this.handleRealtimeUpdate(message);
+          break;
+        default:
+          console.warn('[Sync] Unknown message type:', message.type);
+      }
+      
+    } catch (error) {
+      console.error('[Sync] Error handling message:', error);
+      this.addLogEntry('error', 'Failed to process incoming message');
+    }
+  }
+
+  handleHandshake(message) {
+    const deviceId = message.deviceId || this.generateDeviceId();
+    this.connectedDevices.set(deviceId, {
+      name: message.deviceName,
+      ip: 'Remote Device',
+      lastSeen: Date.now()
+    });
+    
+    this.addLogEntry('success', `Device connected: ${message.deviceName}`);
+    this.updateDeviceList();
+  }
+
+  handleSyncRequest(message) {
+    // Send requested data
+    const syncData = this.prepareSyncData(message.dataTypes);
+    this.sendMessage({
+      type: 'sync_data',
+      data: syncData,
+      timestamp: Date.now()
+    });
+    
+    this.addLogEntry('info', 'Sync data sent to requesting device');
+  }
+
+  handleSyncData(message) {
+    if (this.syncSettings.realtime) {
+      this.applySyncData(message.data);
+      this.addLogEntry('success', 'Received and applied sync data');
+      this.stats.lastSync = new Date().toLocaleString();
+      this.updateStats();
+    }
+  }
+
+  handleRealtimeUpdate(message) {
+    if (this.syncSettings.realtime) {
+      this.applyRealtimeUpdate(message.update);
+      this.addLogEntry('info', `Real-time update: ${message.update.type}`);
+    }
+  }
+
+  sendMessage(message) {
+    if (this.isConnected && (this.socket || this.server)) {
+      const connection = this.socket || this.server;
+      const messageStr = JSON.stringify(message);
+      
+      connection.send(messageStr);
+      this.stats.dataSent += messageStr.length;
+      this.updateStats();
+    }
+  }
+
+  performFullSync() {
+    if (!this.isConnected) return;
+    
+    const syncData = this.prepareSyncData(['personnel', 'activity', 'shifts']);
+    this.sendMessage({
+      type: 'sync_data',
+      data: syncData,
+      timestamp: Date.now()
+    });
+    
+    this.addLogEntry('info', 'Full sync performed');
+    this.stats.lastSync = new Date().toLocaleString();
+    this.updateStats();
+  }
+
+  prepareSyncData(dataTypes) {
+    const data = {};
+    
+    if (dataTypes.includes('personnel') && this.syncSettings.personnel) {
+      data.personnel = window.StorageManager.getAllPersonnel();
+    }
+    
+    if (dataTypes.includes('activity') && this.syncSettings.activity) {
+      data.activity = window.StorageManager.getActivityLog(1000);
+    }
+    
+    if (dataTypes.includes('shifts') && this.syncSettings.shifts) {
+      data.shifts = window.ShiftManager?.getRecentShifts(50) || [];
+    }
+    
+    return data;
+  }
+
+  applySyncData(data) {
+    // Merge incoming data with local data
+    if (data.personnel && this.syncSettings.personnel) {
+      this.mergePersonnelData(data.personnel);
+    }
+    
+    if (data.activity && this.syncSettings.activity) {
+      this.mergeActivityData(data.activity);
+    }
+    
+    if (data.shifts && this.syncSettings.shifts) {
+      this.mergeShiftData(data.shifts);
+    }
+    
+    // Refresh UI
+    if (window.app && window.app.currentPage) {
+      window.app.updatePageContent(window.app.currentPage);
+    }
+  }
+
+  mergePersonnelData(remotePersonnel) {
+    const localPersonnel = window.StorageManager.getAllPersonnel();
+    const merged = new Map();
+    
+    // Add local personnel
+    localPersonnel.forEach(person => merged.set(person.id, person));
+    
+    // Merge remote personnel (newer timestamps win)
+    remotePersonnel.forEach(remotePerson => {
+      const existing = merged.get(remotePerson.id);
+      if (!existing || remotePerson.lastModified > existing.lastModified) {
+        merged.set(remotePerson.id, remotePerson);
+      }
+    });
+    
+    // Update storage
+    window.StorageManager.data.personnel = Array.from(merged.values());
+    window.StorageManager.saveToStorage();
+  }
+
+  mergeActivityData(remoteActivity) {
+    const localActivity = window.StorageManager.getActivityLog(10000);
+    const merged = new Map();
+    
+    // Add local activities
+    localActivity.forEach(activity => merged.set(activity.id, activity));
+    
+    // Add remote activities
+    remoteActivity.forEach(activity => {
+      if (!merged.has(activity.id)) {
+        merged.set(activity.id, activity);
+      }
+    });
+    
+    // Update storage
+    window.StorageManager.data.activities = Array.from(merged.values());
+    window.StorageManager.saveToStorage();
+  }
+
+  mergeShiftData(remoteShifts) {
+    // Similar merging logic for shift data
+    if (window.ShiftManager) {
+      remoteShifts.forEach(shift => {
+        // Add shift if it doesn't exist locally
+        window.ShiftManager.addRemoteShift(shift);
+      });
+    }
+  }
+
+  applyRealtimeUpdate(update) {
+    switch (update.type) {
+      case 'personnel_update':
+        window.StorageManager.updatePersonnel(update.data.id, update.data);
+        break;
+      case 'checkin':
+      case 'checkout':
+        window.StorageManager.logActivity(update.type, update.data);
+        break;
+      case 'shift_change':
+        if (window.ShiftManager) {
+          window.ShiftManager.applyRemoteShiftChange(update.data);
+        }
+        break;
+    }
+  }
+
+  broadcastUpdate(type, data) {
+    if (this.isConnected && this.syncSettings.realtime) {
+      this.sendMessage({
+        type: 'realtime_update',
+        update: { type, data },
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  updateStatus(status, message) {
+    const indicator = document.getElementById('sync-status-indicator');
+    const text = document.getElementById('sync-status-text');
+    
+    if (indicator) {
+      indicator.className = `status-indicator ${status}`;
+      const icon = indicator.querySelector('.material-icons');
+      
+      switch (status) {
+        case 'online':
+          icon.textContent = 'sync';
+          break;
+        case 'connecting':
+          icon.textContent = 'sync';
+          break;
+        case 'offline':
+        default:
+          icon.textContent = 'sync_disabled';
+          break;
+      }
+    }
+    
+    if (text) {
+      text.textContent = message;
+    }
+  }
+
+  updateButtonStates() {
+    const startBtn = document.getElementById('start-sync-server');
+    const connectBtn = document.getElementById('connect-sync-client');
+    const disconnectBtn = document.getElementById('disconnect-sync');
+    
+    if (this.isConnected) {
+      startBtn.style.display = 'none';
+      connectBtn.style.display = 'none';
+      disconnectBtn.style.display = 'inline-flex';
+    } else {
+      startBtn.style.display = 'inline-flex';
+      connectBtn.style.display = 'inline-flex';
+      disconnectBtn.style.display = 'none';
+    }
+  }
+
+  updateDeviceList() {
+    const container = document.getElementById('connected-devices');
+    if (!container) return;
+    
+    if (this.connectedDevices.size === 0) {
+      container.innerHTML = `
+        <div class="no-devices">
+          <span class="material-icons">devices</span>
+          <p>No devices connected</p>
+        </div>
+      `;
+      return;
+    }
+    
+    let html = '';
+    this.connectedDevices.forEach((device, id) => {
+      html += `
+        <div class="device-item">
+          <div class="device-info">
+            <div class="device-name">${device.name}</div>
+            <div class="device-ip">${device.ip}</div>
+          </div>
+          <span class="material-icons">computer</span>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  }
+
+  addLogEntry(type, message) {
+    const log = document.getElementById('sync-log');
+    if (!log) return;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.innerHTML = `
+      <span class="timestamp">${timestamp}</span>
+      <span class="message">${message}</span>
+    `;
+    
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+    
+    // Keep only last 50 entries
+    while (log.children.length > 50) {
+      log.removeChild(log.firstChild);
+    }
+  }
+
+  updateStats() {
+    document.getElementById('last-sync-time').textContent = this.stats.lastSync || 'Never';
+    document.getElementById('data-sent').textContent = this.formatBytes(this.stats.dataSent);
+    document.getElementById('data-received').textContent = this.formatBytes(this.stats.dataReceived);
+  }
+
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  updateSyncUI() {
+    // Update checkbox states
+    document.getElementById('sync-personnel').checked = this.syncSettings.personnel;
+    document.getElementById('sync-activity').checked = this.syncSettings.activity;
+    document.getElementById('sync-shifts').checked = this.syncSettings.shifts;
+    document.getElementById('sync-realtime').checked = this.syncSettings.realtime;
+    
+    // Update stats
+    this.updateStats();
+    this.updateButtonStates();
+    this.updateDeviceList();
+  }
+
+  getDeviceName() {
+    return localStorage.getItem('deviceName') || `Device-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  generateDeviceId() {
+    return 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+  }
+
+  loadSettings() {
+    const saved = localStorage.getItem('syncSettings');
+    if (saved) {
+      this.syncSettings = { ...this.syncSettings, ...JSON.parse(saved) };
+    }
+  }
+
+  saveSettings() {
+    localStorage.setItem('syncSettings', JSON.stringify(this.syncSettings));
+  }
+
+  isAvailable() {
+    return typeof WebSocket !== 'undefined';
+  }
+
+  destroy() {
+    this.disconnect();
+  }
+}
+
+// Initialize when DOM is ready
+if (typeof window !== 'undefined') {
+  window.SyncManager = new SyncManager();
+  console.log('[Sync] Sync Manager loaded');
+}
