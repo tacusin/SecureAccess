@@ -163,6 +163,10 @@ class SecurityApp {
     document.getElementById('sync-upload-btn')?.addEventListener('click', () => this.handleSyncUpload());
     document.getElementById('sync-download-btn')?.addEventListener('click', () => this.handleSyncDownload());
     document.getElementById('auto-sync-toggle')?.addEventListener('change', (e) => this.handleAutoSyncToggle(e));
+
+    // Local backup buttons
+    document.getElementById('create-backup-btn')?.addEventListener('click', () => this.handleCreateLocalBackup());
+    document.getElementById('restore-backup-btn')?.addEventListener('click', () => this.handleRestoreLocalBackup());
     
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
@@ -466,6 +470,82 @@ class SecurityApp {
     if (sizeInBytes < 1024) return `${sizeInBytes} B`;
     if (sizeInBytes < 1024 * 1024) return `${Math.round(sizeInBytes / 1024)} KB`;
     return `${Math.round(sizeInBytes / (1024 * 1024))} MB`;
+  }
+
+  // Local Backup Methods
+  async handleCreateLocalBackup() {
+    try {
+      this.showToast('Creating backup file...', 'info');
+      
+      const data = {
+        personnel: window.StorageManager.data.personnel || [],
+        activities: window.StorageManager.data.activities || [],
+        settings: window.StorageManager.data.settings || {},
+        lastModified: Date.now(),
+        version: '1.0'
+      };
+
+      const dataString = JSON.stringify(data, null, 2);
+      const blob = new Blob([dataString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `secure_access_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      this.showToast('Backup file created successfully', 'success');
+    } catch (error) {
+      console.error('[App] Local backup error:', error);
+      this.showError('Failed to create backup file');
+    }
+  }
+
+  async handleRestoreLocalBackup() {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          this.showToast('Restoring data from backup...', 'info');
+          const text = await file.text();
+          const data = JSON.parse(text);
+          
+          // Validate backup file structure
+          if (!data.personnel || !data.activities) {
+            this.showError('Invalid backup file format');
+            return;
+          }
+
+          // Apply restored data
+          window.StorageManager.data = {
+            personnel: data.personnel || [],
+            activities: data.activities || [],
+            settings: { ...window.StorageManager.data.settings, ...data.settings }
+          };
+
+          await window.StorageManager.saveToStorage();
+          
+          this.showToast('Data successfully restored from backup', 'success');
+          await this.updateSyncPage();
+          await this.updatePageContent(this.currentPage);
+        } catch (error) {
+          console.error('[App] Restore error:', error);
+          this.showError('Invalid backup file or restore failed');
+        }
+      };
+      input.click();
+    } catch (error) {
+      console.error('[App] Local restore error:', error);
+      this.showError('Failed to restore from backup');
+    }
   }
 
   async updateShiftsPage() {
