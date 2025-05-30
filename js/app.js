@@ -340,15 +340,32 @@ class SecurityApp {
     const signinBtn = document.getElementById('sync-signin-btn');
     const signoutBtn = document.getElementById('sync-signout-btn');
     const syncControls = document.getElementById('sync-controls');
+    const uploadBtn = document.getElementById('sync-upload-btn');
+    const downloadBtn = document.getElementById('sync-download-btn');
     
     if (status.isSignedIn) {
-      statusIcon.textContent = 'cloud_done';
+      const isLocalMode = window.CloudSyncManager.fallbackMode;
+      
+      statusIcon.textContent = isLocalMode ? 'folder' : 'cloud_done';
       statusIcon.parentElement.classList.add('connected');
-      statusTitle.textContent = 'Connected';
-      statusSubtitle.textContent = 'Your data is synced with Google Drive';
+      statusTitle.textContent = isLocalMode ? 'Local Backup Mode' : 'Connected';
+      statusSubtitle.textContent = isLocalMode ? 
+        'Using local backup/restore functionality' : 
+        'Your data is synced with Google Drive';
+      
       signinBtn.style.display = 'none';
       signoutBtn.style.display = 'inline-flex';
       syncControls.style.display = 'block';
+      
+      // Update button labels for local mode
+      if (uploadBtn && downloadBtn) {
+        uploadBtn.innerHTML = isLocalMode ? 
+          '<span class="material-icons">download</span>Create Backup' :
+          '<span class="material-icons">cloud_upload</span>Upload to Cloud';
+        downloadBtn.innerHTML = isLocalMode ?
+          '<span class="material-icons">upload</span>Restore from Backup' :
+          '<span class="material-icons">cloud_download</span>Download from Cloud';
+      }
       
       document.getElementById('last-sync-time').textContent = window.CloudSyncManager.formatLastSyncTime();
       document.getElementById('data-size').textContent = this.calculateDataSize();
@@ -357,7 +374,7 @@ class SecurityApp {
       statusIcon.textContent = 'cloud_off';
       statusIcon.parentElement.classList.remove('connected');
       statusTitle.textContent = 'Not Connected';
-      statusSubtitle.textContent = 'Sign in to enable Google Drive backup';
+      statusSubtitle.textContent = 'Sign in to enable backup functionality';
       signinBtn.style.display = 'inline-flex';
       signoutBtn.style.display = 'none';
       syncControls.style.display = 'none';
@@ -394,36 +411,44 @@ class SecurityApp {
 
   async handleSyncUpload() {
     try {
-      this.showToast('Uploading data to Google Drive...', 'info');
+      const isLocalMode = window.CloudSyncManager.fallbackMode;
+      this.showToast(isLocalMode ? 'Creating backup file...' : 'Uploading data to Google Drive...', 'info');
       const result = await window.CloudSyncManager.syncToCloud();
       
       if (result.success) {
-        this.showToast('Data successfully uploaded to Google Drive', 'success');
+        const message = result.method === 'download' ? 
+          'Backup file downloaded successfully' : 
+          'Data successfully uploaded to Google Drive';
+        this.showToast(message, 'success');
         await this.updateSyncPage();
       } else {
-        this.showError('Upload failed - please try again');
+        this.showError('Backup failed - please try again');
       }
     } catch (error) {
       console.error('[App] Sync upload error:', error);
-      this.showError('Failed to upload data to Google Drive');
+      this.showError('Failed to create backup');
     }
   }
 
   async handleSyncDownload() {
     try {
-      this.showToast('Downloading data from Google Drive...', 'info');
+      const isLocalMode = window.CloudSyncManager.fallbackMode;
+      this.showToast(isLocalMode ? 'Select backup file to restore...' : 'Downloading data from Google Drive...', 'info');
       const result = await window.CloudSyncManager.syncFromCloud();
       
       if (result.success) {
-        this.showToast('Data successfully downloaded from Google Drive', 'success');
+        const message = result.method === 'restore' ? 
+          'Data successfully restored from backup' : 
+          'Data successfully downloaded from Google Drive';
+        this.showToast(message, 'success');
         await this.updateSyncPage();
         await this.updatePageContent(this.currentPage);
-      } else {
-        this.showError('Download failed - please try again');
+      } else if (result.message !== 'No file selected') {
+        this.showError('Restore failed - please try again');
       }
     } catch (error) {
       console.error('[App] Sync download error:', error);
-      this.showError('Failed to download data from Google Drive');
+      this.showError('Failed to restore data');
     }
   }
 

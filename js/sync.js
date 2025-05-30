@@ -13,6 +13,7 @@ class CloudSyncManager {
     this.syncConflictResolver = null;
     this.driveFileId = null;
     this.fileName = 'secure_access_backup.json';
+    this.fallbackMode = false;
   }
 
   async init() {
@@ -41,8 +42,10 @@ class CloudSyncManager {
       
     } catch (error) {
       console.error('[Sync] Error initializing cloud sync:', error);
-      // Gracefully fall back to local storage only
-      this.isInitialized = false;
+      // Gracefully fall back to local backup/restore functionality
+      this.isInitialized = true;
+      this.fallbackMode = true;
+      console.log('[Sync] Running in local backup mode');
     }
   }
 
@@ -97,12 +100,18 @@ class CloudSyncManager {
       throw new Error('Cloud sync not initialized');
     }
 
+    if (this.fallbackMode) {
+      // In fallback mode, provide local backup/restore functionality
+      this.isSignedIn = true;
+      return { success: true, fallback: true };
+    }
+
     try {
       const authInstance = window.gapi.auth2.getAuthInstance();
       const user = await authInstance.signIn();
       
       this.isSignedIn = true;
-      console.log('[Sync] Successfully signed in to Google Play Games');
+      console.log('[Sync] Successfully signed in to Google Drive');
       
       // Perform initial sync after sign-in
       await this.performInitialSync();
@@ -149,22 +158,48 @@ class CloudSyncManager {
         version: '1.0'
       };
 
-      // Save to cloud using Saved Games API
-      const saveResult = await this.saveToCloud(localData);
+      let saveResult;
+      if (this.fallbackMode) {
+        // Use local download as backup
+        saveResult = await this.downloadBackup(localData);
+      } else {
+        // Save to Google Drive
+        saveResult = await this.saveToCloud(localData);
+      }
       
       if (saveResult.success) {
         this.lastSyncTime = Date.now();
         localStorage.setItem('lastCloudSync', this.lastSyncTime.toString());
-        console.log('[Sync] Data successfully synced to cloud');
+        console.log('[Sync] Data successfully synced');
       }
 
       return saveResult;
 
     } catch (error) {
-      console.error('[Sync] Error syncing to cloud:', error);
+      console.error('[Sync] Error syncing:', error);
       return { success: false, error: error.message };
     } finally {
       this.syncInProgress = false;
+    }
+  }
+
+  async downloadBackup(data) {
+    try {
+      const dataString = JSON.stringify(data, null, 2);
+      const blob = new Blob([dataString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `secure_access_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      return { success: true, method: 'download' };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
   }
 
@@ -175,9 +210,14 @@ class CloudSyncManager {
 
     try {
       this.syncInProgress = true;
-      console.log('[Sync] Starting sync from cloud');
+      console.log('[Sync] Starting restore from backup');
 
-      // Load from cloud using Saved Games API
+      if (this.fallbackMode) {
+        // Trigger file upload for restore
+        return await this.uploadRestore();
+      }
+
+      // Load from Google Drive
       const loadResult = await this.loadFromCloud();
       
       if (loadResult.success && loadResult.data) {
@@ -208,6 +248,37 @@ class CloudSyncManager {
     } finally {
       this.syncInProgress = false;
     }
+  }
+
+  async uploadRestore() {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+          resolve({ success: false, message: 'No file selected' });
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          
+          // Apply restored data to local storage
+          await this.applyCloudData(data);
+          
+          this.lastSyncTime = Date.now();
+          localStorage.setItem('lastCloudSync', this.lastSyncTime.toString());
+          
+          resolve({ success: true, method: 'restore' });
+        } catch (error) {
+          resolve({ success: false, error: 'Invalid backup file' });
+        }
+      };
+      input.click();
+    });
   }
 
   async saveToCloud(data) {
