@@ -1488,8 +1488,8 @@ class SecurityApp {
       this.showReportModal(report);
 
     } catch (error) {
-      console.error('[App] Error generating advanced report:', error);
-      this.showError('Failed to generate report. Please try again.');
+      console.error('[App] Error generating advanced report:', error.message, error.stack);
+      this.showError(`Failed to generate report: ${error.message}`);
     }
   }
 
