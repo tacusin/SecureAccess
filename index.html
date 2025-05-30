@@ -87,9 +87,6 @@
                 <li><a href="#emergency" class="nav-item" data-page="emergency">
                     <span class="material-icons">warning</span>Emergency
                 </a></li>
-                <li><a href="#sync" class="nav-item" data-page="sync">
-                    <span class="material-icons">cloud_sync</span>Cloud Sync
-                </a></li>
                 <li><a href="#help" class="nav-item" data-page="help">
                     <span class="material-icons">help</span>Help
                 </a></li>
@@ -455,147 +452,6 @@
                 </div>
             </div>
 
-            <!-- Data Backup Page -->
-            <div id="sync-page" class="page">
-                <div class="page-header">
-                    <h2>Data Backup</h2>
-                    <p>Backup and restore your data using different methods</p>
-                </div>
-
-                <div class="sync-content">
-                    <!-- Google Drive Backup -->
-                    <div class="backup-method-card">
-                        <div class="backup-method-header">
-                            <span class="material-icons">cloud</span>
-                            <div>
-                                <h3>Google Drive Backup</h3>
-                                <p>Automatically sync your data with Google Drive for cross-device access</p>
-                            </div>
-                        </div>
-
-                        <div class="sync-status-card">
-                            <div class="sync-status-header">
-                                <span class="material-icons" id="sync-status-icon">cloud_off</span>
-                                <div>
-                                    <h4 id="sync-status-title">Not Connected</h4>
-                                    <p id="sync-status-subtitle">Sign in to enable Google Drive backup</p>
-                                </div>
-                            </div>
-                            
-                            <div class="sync-actions">
-                                <button id="sync-signin-btn" class="action-button primary">
-                                    <span class="material-icons">login</span>
-                                    Connect to Google Drive
-                                </button>
-                                <button id="sync-signout-btn" class="action-button secondary" style="display: none;">
-                                    <span class="material-icons">logout</span>
-                                    Disconnect
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="sync-controls" class="sync-controls" style="display: none;">
-                            <div class="sync-info">
-                                <div class="info-item">
-                                    <span class="material-icons">schedule</span>
-                                    <div>
-                                        <strong>Last Sync:</strong>
-                                        <span id="last-sync-time">Never</span>
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <span class="material-icons">storage</span>
-                                    <div>
-                                        <strong>Data Size:</strong>
-                                        <span id="data-size">Calculating...</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="sync-buttons">
-                                <button id="sync-upload-btn" class="action-button primary">
-                                    <span class="material-icons">cloud_upload</span>
-                                    Upload to Cloud
-                                </button>
-                                <button id="sync-download-btn" class="action-button secondary">
-                                    <span class="material-icons">cloud_download</span>
-                                    Download from Cloud
-                                </button>
-                            </div>
-
-                            <div class="sync-settings">
-                                <div class="setting-item">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="auto-sync-toggle" checked>
-                                        <span class="checkmark"></span>
-                                        Enable automatic sync
-                                    </label>
-                                    <p class="setting-description">Automatically sync data every 5 minutes and when app becomes active</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Local File Backup -->
-                    <div class="backup-method-card">
-                        <div class="backup-method-header">
-                            <span class="material-icons">folder</span>
-                            <div>
-                                <h3>Local File Backup</h3>
-                                <p>Create backup files on your device and restore data manually</p>
-                            </div>
-                        </div>
-
-                        <div class="local-backup-controls">
-                            <div class="backup-info">
-                                <div class="info-item">
-                                    <span class="material-icons">storage</span>
-                                    <div>
-                                        <strong>Current Data Size:</strong>
-                                        <span id="local-data-size">Calculating...</span>
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <span class="material-icons">people</span>
-                                    <div>
-                                        <strong>Personnel Records:</strong>
-                                        <span id="personnel-count">0</span>
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <span class="material-icons">history</span>
-                                    <div>
-                                        <strong>Activity Log:</strong>
-                                        <span id="activities-count">0 entries</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="local-backup-buttons">
-                                <button id="create-backup-btn" class="action-button primary">
-                                    <span class="material-icons">download</span>
-                                    Create Backup File
-                                </button>
-                                <button id="restore-backup-btn" class="action-button secondary">
-                                    <span class="material-icons">upload</span>
-                                    Restore from File
-                                </button>
-                            </div>
-
-                            <div class="backup-tips">
-                                <h4>Backup Tips:</h4>
-                                <ul>
-                                    <li>Create regular backups to prevent data loss</li>
-                                    <li>Store backup files in a safe location</li>
-                                    <li>Use descriptive filenames with dates</li>
-                                    <li>Test restore functionality periodically</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Help Page -->
             <div id="help-page" class="page">
                 <div class="page-header">
@@ -655,13 +511,6 @@
         <span>Saved</span>
     </div>
 
-    <!-- Environment Variables -->
-    <script>
-        // Make environment variables available to client-side scripts
-        window.GOOGLE_DRIVE_API_KEY = process.env.GOOGLE_DRIVE_API_KEY;
-        window.GOOGLE_DRIVE_CLIENT_ID = process.env.GOOGLE_DRIVE_CLIENT_ID;
-    </script>
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
@@ -676,8 +525,6 @@
     <script src="js/qr-generator.js"></script>
     <script src="js/reports.js"></script>
     <script src="js/shifts.js"></script>
-    <script src="js/sync.js"></script>
-    <script src="js/lan-sync.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
