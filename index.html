@@ -162,84 +162,6 @@
                     </div>
                 </div>
 
-                <!-- Shift Summary Dashboard -->
-                <div class="shift-dashboard">
-                    <!-- Key Metrics Row -->
-                    <div class="metrics-row">
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <span class="material-icons">schedule</span>
-                            </div>
-                            <div class="metric-content">
-                                <span class="metric-value" id="total-shifts">0</span>
-                                <span class="metric-label">Total Shifts</span>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <span class="material-icons">timer</span>
-                            </div>
-                            <div class="metric-content">
-                                <span class="metric-value" id="avg-shift-duration">0h</span>
-                                <span class="metric-label">Avg Duration</span>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <span class="material-icons">assignment</span>
-                            </div>
-                            <div class="metric-content">
-                                <span class="metric-value" id="total-handovers">0</span>
-                                <span class="metric-label">Handovers</span>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <span class="material-icons">people</span>
-                            </div>
-                            <div class="metric-content">
-                                <span class="metric-value" id="active-officers">0</span>
-                                <span class="metric-label">Active Officers</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Row -->
-                    <div class="charts-row">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h3>Shift Distribution</h3>
-                                <div class="chart-controls">
-                                    <select id="shift-period-filter">
-                                        <option value="week">This Week</option>
-                                        <option value="month">This Month</option>
-                                        <option value="quarter">This Quarter</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="shift-distribution-chart" width="400" height="300"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h3>Shift Performance</h3>
-                                <div class="chart-controls">
-                                    <button class="chart-toggle active" data-metric="duration">Duration</button>
-                                    <button class="chart-toggle" data-metric="coverage">Coverage</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="shift-performance-chart" width="400" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="shifts-grid">
                     <!-- Current Shift Card -->
                     <div class="card">
@@ -258,32 +180,33 @@
                         </div>
                     </div>
 
-                    <!-- Officer Performance Card -->
+                    <!-- Pending Handovers Card -->
                     <div class="card">
                         <div class="card-header">
-                            <h3>Officer Performance</h3>
-                            <button class="icon-button" onclick="app.showOfficerDetails()">
-                                <span class="material-icons">person</span>
-                            </button>
+                            <h3>Pending Handovers</h3>
+                            <span class="handover-count" id="handover-count">0</span>
                         </div>
                         <div class="card-body">
-                            <div id="officer-performance" class="officer-list">
-                                <!-- Officer performance will be populated here -->
+                            <div id="pending-handovers" class="handover-list">
+                                <div class="no-handovers-message">
+                                    <span class="material-icons">assignment_turned_in</span>
+                                    <p>No pending handovers</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Shift Trends Card -->
+                    <!-- Shift History Card -->
                     <div class="card">
                         <div class="card-header">
-                            <h3>Recent Trends</h3>
-                            <button class="icon-button" onclick="app.exportShiftSummary()">
-                                <span class="material-icons">download</span>
+                            <h3>Recent Shifts</h3>
+                            <button class="icon-button" onclick="app.showShiftHistory()">
+                                <span class="material-icons">history</span>
                             </button>
                         </div>
                         <div class="card-body">
-                            <div id="shift-trends" class="trends-list">
-                                <!-- Shift trends will be populated here -->
+                            <div id="shift-history" class="shift-list">
+                                <!-- Shift history will be populated here -->
                             </div>
                         </div>
                     </div>
