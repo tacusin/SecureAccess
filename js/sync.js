@@ -194,8 +194,17 @@ class SyncManager {
       this.updateStats();
       
       switch (message.type) {
-        case 'handshake':
-          this.handleHandshake(message);
+        case 'connected':
+          this.handleServerConnected(message);
+          break;
+        case 'client_list':
+          this.handleClientList(message);
+          break;
+        case 'client_connected':
+          this.handleClientConnected(message);
+          break;
+        case 'client_disconnected':
+          this.handleClientDisconnected(message);
           break;
         case 'sync_request':
           this.handleSyncRequest(message);
@@ -205,6 +214,9 @@ class SyncManager {
           break;
         case 'realtime_update':
           this.handleRealtimeUpdate(message);
+          break;
+        case 'pong':
+          // Keep-alive response
           break;
         default:
           console.warn('[Sync] Unknown message type:', message.type);
@@ -216,16 +228,44 @@ class SyncManager {
     }
   }
 
-  handleHandshake(message) {
-    const deviceId = message.deviceId || this.generateDeviceId();
-    this.connectedDevices.set(deviceId, {
-      name: message.deviceName,
-      ip: 'Remote Device',
-      lastSeen: Date.now()
+  handleServerConnected(message) {
+    this.addLogEntry('success', `Connected to server (Client ID: ${message.clientId})`);
+    this.clientId = message.clientId;
+  }
+
+  handleClientList(message) {
+    this.connectedDevices.clear();
+    message.clients.forEach(client => {
+      if (client.id !== this.clientId) {
+        this.connectedDevices.set(client.id, {
+          name: client.deviceName,
+          ip: client.ip,
+          lastSeen: new Date(client.connectedAt)
+        });
+      }
     });
-    
-    this.addLogEntry('success', `Device connected: ${message.deviceName}`);
     this.updateDeviceList();
+    this.addLogEntry('info', `${message.clients.length} devices connected`);
+  }
+
+  handleClientConnected(message) {
+    if (message.clientId !== this.clientId) {
+      this.connectedDevices.set(message.clientId, {
+        name: 'Remote Device',
+        ip: message.clientInfo.ip,
+        lastSeen: new Date(message.clientInfo.connectedAt)
+      });
+      this.updateDeviceList();
+      this.addLogEntry('success', `New device connected`);
+    }
+  }
+
+  handleClientDisconnected(message) {
+    if (this.connectedDevices.has(message.clientId)) {
+      this.connectedDevices.delete(message.clientId);
+      this.updateDeviceList();
+      this.addLogEntry('warning', `Device disconnected`);
+    }
   }
 
   handleSyncRequest(message) {
