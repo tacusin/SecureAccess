@@ -81,17 +81,32 @@ class QRGenerator {
         version: '1.0'
       };
 
-      // Use QR code API service
+      // Use QR code API service to get image
       const qrText = JSON.stringify(qrData);
-      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+      const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+      
+      // Convert to proper image data URL
+      const response = await fetch(qrCodeURL);
+      const blob = await response.blob();
+      const dataURL = await this.blobToDataURL(blob);
 
       console.log('[QR] QR code generated successfully');
-      return qrCodeDataURL;
+      return dataURL;
 
     } catch (error) {
       console.error('[QR] Error generating QR code:', error);
       throw new Error('Failed to generate QR code');
     }
+  }
+
+  // Helper function to convert blob to data URL
+  blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   async generateBulkQRCodes(personnelList) {
