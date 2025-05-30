@@ -2455,10 +2455,14 @@ SecurityApp.prototype.connectToSyncServer = async function() {
     return;
   }
   
-  if (window.P2PSync) {
+  if (window.MeshSync) {
     this.showToast('Connecting to coordinator...', 'info');
-    const success = await window.P2PSync.connectToPeer(serverAddress);
+    const success = await window.MeshSync.connectToCoordinator(serverAddress);
     this.updateSyncPage();
+    
+    if (success) {
+      this.showToast('Connected to coordinator!', 'success');
+    }
   }
 };
 
@@ -2503,6 +2507,12 @@ SecurityApp.prototype.scanSyncQR = async function() {
     }
   } else {
     this.showError('Camera not available for QR scanning');
+  }
+};
+
+SecurityApp.prototype.showMeshConnectionQR = function() {
+  if (window.MeshSync) {
+    window.MeshSync.showConnectionInfo();
   }
 };
 
