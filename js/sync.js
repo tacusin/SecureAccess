@@ -116,52 +116,108 @@ class SyncManager {
     try {
       const host = document.getElementById('sync-server-host').value || 'localhost';
       const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
-      const url = `ws://${host}:${port}/sync`;
+      
+      // Try different connection URLs based on the host
+      let urls = [];
+      if (host === 'localhost' || host === '127.0.0.1') {
+        urls = [`ws://localhost:${port}/sync`, `ws://127.0.0.1:${port}/sync`];
+      } else {
+        urls = [`ws://${host}:${port}/sync`];
+      }
       
       this.updateStatus('connecting', 'Connecting...');
       this.addLogEntry('info', `Connecting to ${host}:${port}`);
       
-      this.socket = new WebSocket(url);
+      // Try each URL until one works
+      for (const url of urls) {
+        try {
+          await this.attemptConnection(url);
+          return; // Success, exit the function
+        } catch (error) {
+          console.log(`[Sync] Failed to connect to ${url}:`, error);
+        }
+      }
       
-      this.socket.onopen = () => {
-        this.isConnected = true;
-        this.updateStatus('online', `Connected to ${host}:${port}`);
-        this.addLogEntry('success', 'Connected successfully');
-        this.updateButtonStates();
-        
-        // Send initial handshake
-        this.sendMessage({
-          type: 'handshake',
-          deviceName: this.getDeviceName(),
-          deviceInfo: {
-            userAgent: navigator.userAgent,
-            timestamp: Date.now()
-          }
-        });
-        
-        // Request initial sync after connection
-        setTimeout(() => this.requestFullSync(), 1000);
-      };
-      
-      this.socket.onmessage = (event) => {
-        this.handleMessage(JSON.parse(event.data));
-      };
-      
-      this.socket.onclose = () => {
-        this.handleDisconnection();
-      };
-      
-      this.socket.onerror = (error) => {
-        console.error('[Sync] Connection error:', error);
-        this.addLogEntry('error', 'Connection failed - check server address and port');
-        this.updateStatus('offline', 'Connection failed');
-      };
+      // If we get here, all connection attempts failed
+      throw new Error('All connection attempts failed');
       
     } catch (error) {
       console.error('[Sync] Error connecting to server:', error);
       this.addLogEntry('error', 'Failed to connect to server');
-      this.updateStatus('offline', 'Disconnected');
+      this.updateStatus('offline', 'Connection failed');
     }
+  }
+
+  attemptConnection(url) {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+      let resolved = false;
+      
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          ws.close();
+          reject(new Error('Connection timeout'));
+        }
+      }, 5000);
+      
+      ws.onopen = () => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          
+          this.socket = ws;
+          this.isConnected = true;
+          this.updateStatus('online', `Connected to ${url.replace('/sync', '')}`);
+          this.addLogEntry('success', `Connected successfully to ${url}`);
+          this.updateButtonStates();
+          
+          // Setup permanent event handlers
+          this.socket.onmessage = (event) => {
+            this.handleMessage(JSON.parse(event.data));
+          };
+          
+          this.socket.onclose = () => {
+            this.handleDisconnection();
+          };
+          
+          this.socket.onerror = (error) => {
+            console.error('[Sync] Socket error:', error);
+          };
+          
+          // Send initial handshake
+          this.sendMessage({
+            type: 'handshake',
+            deviceName: this.getDeviceName(),
+            deviceInfo: {
+              userAgent: navigator.userAgent,
+              timestamp: Date.now()
+            }
+          });
+          
+          // Request initial sync after connection
+          setTimeout(() => this.requestFullSync(), 1000);
+          
+          resolve();
+        }
+      };
+      
+      ws.onerror = (error) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          reject(error);
+        }
+      };
+      
+      ws.onclose = () => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          reject(new Error('Connection closed'));
+        }
+      };
+    });
   }
 
   disconnect() {
