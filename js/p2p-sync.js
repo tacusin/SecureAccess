@@ -167,22 +167,43 @@ class P2PSync {
 
   async connectToPeer(coordinatorUrl) {
     try {
-      console.log('[P2PSync] Connecting to coordinator:', coordinatorUrl);
-      this.coordinatorUrl = coordinatorUrl;
+      // Clean URL and support mesh network URLs
+      const cleanUrl = coordinatorUrl.replace(/\/+$/, ''); // Remove trailing slashes
+      console.log('[P2PSync] Connecting to coordinator:', cleanUrl);
+      this.coordinatorUrl = cleanUrl;
       this.isCoordinator = false;
 
+      // Test basic connectivity first for mesh network compatibility
+      console.log('[P2PSync] Testing connectivity...');
+      const testResponse = await fetch(cleanUrl, { 
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'text/html,application/json,*/*'
+        }
+      });
+      
+      if (!testResponse.ok && testResponse.status !== 404) {
+        throw new Error(`Coordinator unreachable (${testResponse.status})`);
+      }
+      
       // Register with coordinator using correct endpoint
-      const registerUrl = `${coordinatorUrl}/p2p-sync/register`;
+      const registerUrl = `${cleanUrl}/p2p-sync/register`;
       console.log('[P2PSync] Registering at:', registerUrl);
       
       const response = await fetch(registerUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           deviceId: this.deviceId,
           deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
-          ip: 'auto-detect',
-          timestamp: Date.now()
+          ip: 'mesh-network',
+          timestamp: Date.now(),
+          userAgent: navigator.userAgent.substring(0, 100) // Truncate for security
         })
       });
 
@@ -369,6 +390,25 @@ class P2PSync {
     this.showStatus('P2P sync enabled', 'success');
   }
 
+  stopCoordinator() {
+    if (this.isCoordinator) {
+      this.isCoordinator = false;
+      this.connectedPeers.clear();
+      
+      localStorage.removeItem('p2p_coordinator');
+      localStorage.removeItem('p2p_coordinator_url');
+      
+      // Remove header indicator
+      const headerIndicator = document.getElementById('sync-status-indicator');
+      if (headerIndicator) {
+        headerIndicator.remove();
+      }
+      
+      this.showStatus('Coordinator stopped', 'info');
+      this.updateUI();
+    }
+  }
+
   disable() {
     this.syncEnabled = false;
     localStorage.setItem('p2p_sync_enabled', 'false');
@@ -378,12 +418,14 @@ class P2PSync {
       this.syncInterval = null;
     }
     
-    this.isCoordinator = false;
+    this.stopCoordinator();
     this.coordinatorUrl = null;
-    this.connectedPeers.clear();
     
-    localStorage.removeItem('p2p_coordinator');
-    localStorage.removeItem('p2p_coordinator_url');
+    // Remove header indicator
+    const headerIndicator = document.getElementById('sync-status-indicator');
+    if (headerIndicator) {
+      headerIndicator.remove();
+    }
     
     this.showStatus('P2P sync disabled', 'info');
     this.updateUI();

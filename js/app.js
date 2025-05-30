@@ -2361,13 +2361,17 @@ SecurityApp.prototype.updateSyncUI = function(status) {
     clientControls.style.display = 'none';
   }
 
-  if (status.isServer) {
+  // Show/hide coordinator buttons based on status
+  if (status.isCoordinator) {
     startServerBtn.style.display = 'none';
     stopServerBtn.style.display = 'inline-flex';
     clientControls.style.display = 'none';
   } else {
     startServerBtn.style.display = 'inline-flex';
     stopServerBtn.style.display = 'none';
+    if (status.enabled) {
+      clientControls.style.display = 'block';
+    }
   }
 };
 
@@ -2414,9 +2418,25 @@ SecurityApp.prototype.startSyncServer = async function() {
 };
 
 SecurityApp.prototype.stopSyncServer = function() {
-  if (window.P2PSync) {
-    window.P2PSync.disable();
+  if (window.P2PSync && window.P2PSync.isCoordinator) {
+    window.P2PSync.stopCoordinator();
+    
+    // Reset button to original state
+    const startServerBtn = document.getElementById('start-server-btn');
+    const stopServerBtn = document.getElementById('stop-server-btn');
+    
+    if (startServerBtn) {
+      startServerBtn.innerHTML = `
+        <span class="material-icons">router</span>
+        Start as Server
+      `;
+      startServerBtn.classList.remove('success');
+      startServerBtn.classList.add('primary');
+      startServerBtn.disabled = false;
+    }
+    
     this.updateSyncPage();
+    this.showToast('Coordinator stopped', 'info');
   }
 };
 
