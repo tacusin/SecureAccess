@@ -157,6 +157,13 @@ class SecurityApp {
     document.getElementById('end-shift-btn')?.addEventListener('click', () => this.handleEndShift());
     document.getElementById('handover-btn')?.addEventListener('click', () => this.showHandoverModal());
     
+    // Cloud sync buttons
+    document.getElementById('sync-signin-btn')?.addEventListener('click', () => this.handleSyncSignIn());
+    document.getElementById('sync-signout-btn')?.addEventListener('click', () => this.handleSyncSignOut());
+    document.getElementById('sync-upload-btn')?.addEventListener('click', () => this.handleSyncUpload());
+    document.getElementById('sync-download-btn')?.addEventListener('click', () => this.handleSyncDownload());
+    document.getElementById('auto-sync-toggle')?.addEventListener('change', (e) => this.handleAutoSyncToggle(e));
+    
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('touchstart', (e) => {
@@ -202,6 +209,11 @@ class SecurityApp {
     // Initialize shift manager
     if (window.ShiftManager) {
       await window.ShiftManager.init();
+    }
+    
+    // Initialize cloud sync manager
+    if (window.CloudSyncManager) {
+      await window.CloudSyncManager.init();
     }
     
     // Load initial data
