@@ -1,8 +1,8 @@
 {
   "metadata": {
     "lastUpdated": "2025-05-30",
-    "version": "1.0.0",
-    "description": "High-level system summary and quick reference guide"
+    "version": "1.1.0",
+    "description": "High-level system summary and quick reference guide - Updated with sync improvements"
   },
   "projectOverview": {
     "name": "Security Access Management System",
@@ -122,8 +122,13 @@
     ],
     "lowPriority": [
       "UI theme customization",
-      "Export format options",
-      "Sync optimization"
+      "Export format options"
+    ],
+    "recentlyFixed": [
+      "Sync feature device ID persistence",
+      "Local IP detection timeout handling",
+      "Client-side sync coordination fallbacks",
+      "WebSocket server startup errors"
     ]
   },
   "commonModificationPoints": {
