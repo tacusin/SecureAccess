@@ -83,7 +83,7 @@ class QRGenerator {
 
       // Use QR code API service
       const qrText = JSON.stringify(qrData);
-      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=00E5FF&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
 
       console.log('[QR] QR code generated successfully');
       return qrCodeDataURL;
@@ -163,7 +163,7 @@ class QRGenerator {
         <div class="qr-modal">
           <div class="modal-header">
             <h3>QR Code - ${person.name}</h3>
-            <button class="icon-button" onclick="qrGenerator.closeQRModal()">
+            <button class="icon-button" onclick="window.QRGenerator.closeQRModal()">
               <span class="material-icons">close</span>
             </button>
           </div>
@@ -183,15 +183,15 @@ class QRGenerator {
               </div>
             </div>
             <div class="qr-actions">
-              <button class="action-button secondary" onclick="qrGenerator.downloadQR('${person.id}')">
+              <button class="action-button secondary" onclick="window.QRGenerator.downloadQR('${person.id}')">
                 <span class="material-icons">download</span>
                 Download QR
               </button>
-              <button class="action-button secondary" onclick="qrGenerator.printQR('${person.id}')">
+              <button class="action-button secondary" onclick="window.QRGenerator.printQR('${person.id}')">
                 <span class="material-icons">print</span>
                 Print QR
               </button>
-              <button class="action-button primary" onclick="qrGenerator.shareQR('${person.id}')">
+              <button class="action-button primary" onclick="window.QRGenerator.shareQR('${person.id}')">
                 <span class="material-icons">share</span>
                 Share QR
               </button>
