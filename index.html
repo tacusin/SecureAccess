@@ -87,6 +87,9 @@
                 <li><a href="#emergency" class="nav-item" data-page="emergency">
                     <span class="material-icons">warning</span>Emergency
                 </a></li>
+                <li><a href="#sync" class="nav-item" data-page="sync">
+                    <span class="material-icons">cloud_sync</span>Cloud Sync
+                </a></li>
                 <li><a href="#help" class="nav-item" data-page="help">
                     <span class="material-icons">help</span>Help
                 </a></li>
@@ -452,6 +455,88 @@
                 </div>
             </div>
 
+            <!-- Cloud Sync Page -->
+            <div id="sync-page" class="page">
+                <div class="page-header">
+                    <h2>Cloud Sync</h2>
+                    <p>Sync your data with Google Play Games Services</p>
+                </div>
+
+                <div class="sync-content">
+                    <div class="sync-status-card">
+                        <div class="sync-status-header">
+                            <span class="material-icons" id="sync-status-icon">cloud_off</span>
+                            <div>
+                                <h3 id="sync-status-title">Not Connected</h3>
+                                <p id="sync-status-subtitle">Sign in to enable cloud sync</p>
+                            </div>
+                        </div>
+                        
+                        <div class="sync-actions">
+                            <button id="sync-signin-btn" class="action-button primary">
+                                <span class="material-icons">login</span>
+                                Sign In to Google Play
+                            </button>
+                            <button id="sync-signout-btn" class="action-button secondary" style="display: none;">
+                                <span class="material-icons">logout</span>
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sync-controls" id="sync-controls" style="display: none;">
+                        <div class="sync-info">
+                            <div class="info-item">
+                                <span class="material-icons">schedule</span>
+                                <div>
+                                    <strong>Last Sync:</strong>
+                                    <span id="last-sync-time">Never</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="material-icons">storage</span>
+                                <div>
+                                    <strong>Data Size:</strong>
+                                    <span id="data-size">Calculating...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sync-buttons">
+                            <button id="sync-upload-btn" class="action-button primary">
+                                <span class="material-icons">cloud_upload</span>
+                                Upload to Cloud
+                            </button>
+                            <button id="sync-download-btn" class="action-button secondary">
+                                <span class="material-icons">cloud_download</span>
+                                Download from Cloud
+                            </button>
+                        </div>
+
+                        <div class="sync-settings">
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="auto-sync-toggle" checked>
+                                    <span class="checkmark"></span>
+                                    Enable automatic sync
+                                </label>
+                                <p class="setting-description">Automatically sync data every 5 minutes and when app becomes active</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sync-help">
+                        <h3>About Cloud Sync</h3>
+                        <ul>
+                            <li>Securely backup your personnel records and activity logs</li>
+                            <li>Access your data across multiple devices</li>
+                            <li>Automatic conflict resolution when data differs</li>
+                            <li>Uses Google Play Games Services for authentication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Help Page -->
             <div id="help-page" class="page">
                 <div class="page-header">
@@ -525,6 +610,7 @@
     <script src="js/qr-generator.js"></script>
     <script src="js/reports.js"></script>
     <script src="js/shifts.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
