@@ -1565,6 +1565,7 @@ body {
   justify-content: center;
   z-index: var(--z-modal);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-content {
@@ -1972,29 +1973,29 @@ body {
 }
 
 .setting-group .btn.btn-primary {
-  background: linear-gradient(135deg, #00E5FF, #00BCD4);
-  color: white;
-  border: 2px solid #00E5FF;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-variant)));
+  color: hsl(var(--on-primary));
+  border: 2px solid hsl(var(--primary));
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .setting-group .btn.btn-primary:hover {
-  background: linear-gradient(135deg, #00BCD4, #0097A7);
-  border-color: #00BCD4;
-  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4);
+  background: linear-gradient(135deg, hsl(var(--primary-variant)), hsl(var(--secondary)));
+  border-color: hsl(var(--primary-variant));
+  box-shadow: 0 8px 25px hsl(var(--primary) / 0.4);
 }
 
 .setting-group .btn.btn-secondary {
-  background: linear-gradient(135deg, #37474F, #455A64);
-  color: #E0F2F1;
-  border: 2px solid #546E7A;
+  background: linear-gradient(135deg, hsl(var(--surface-variant)), hsl(var(--outline)));
+  color: hsl(var(--on-surface));
+  border: 2px solid hsl(var(--outline));
 }
 
 .setting-group .btn.btn-secondary:hover {
-  background: linear-gradient(135deg, #455A64, #546E7A);
-  border-color: #00E5FF;
-  color: #00E5FF;
-  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.2);
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  box-shadow: 0 8px 25px hsl(var(--primary) / 0.2);
 }
 
 .setting-group .btn .material-icons {
@@ -2004,6 +2005,7 @@ body {
   padding: 8px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .setting-group .btn:hover .material-icons {
@@ -2034,16 +2036,16 @@ body {
 }
 
 .debug-section .btn-danger {
-  background: linear-gradient(135deg, #F44336, #D32F2F);
-  color: white;
-  border: 2px solid #F44336;
+  background: linear-gradient(135deg, hsl(var(--error)), hsl(var(--error) / 0.9));
+  color: hsl(var(--on-error));
+  border: 2px solid hsl(var(--error));
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .debug-section .btn-danger:hover {
-  background: linear-gradient(135deg, #D32F2F, #B71C1C);
-  border-color: #D32F2F;
-  box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+  background: linear-gradient(135deg, hsl(var(--error) / 0.9), hsl(var(--error) / 0.8));
+  border-color: hsl(var(--error) / 0.9);
+  box-shadow: 0 8px 25px hsl(var(--error) / 0.4);
   transform: translateY(-3px);
 }
 
