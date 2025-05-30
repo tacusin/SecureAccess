@@ -615,13 +615,23 @@ class SecurityApp {
       <div class="modal-body">
         <form id="handover-form" class="handover-form">
           <div class="form-group">
-            <label for="from-officer">From Officer</label>
-            <input type="text" id="from-officer" value="${currentShift.officerName}" readonly>
+            <label for="from-officer1">From Officer 1</label>
+            <input type="text" id="from-officer1" value="${currentShift.officer1Name || currentShift.officerName || ''}" readonly>
           </div>
           
           <div class="form-group">
-            <label for="to-officer">To Officer *</label>
-            <input type="text" id="to-officer" required>
+            <label for="from-officer2">From Officer 2</label>
+            <input type="text" id="from-officer2" value="${currentShift.officer2Name || ''}" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label for="to-officer1">To Officer 1 *</label>
+            <input type="text" id="to-officer1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="to-officer2">To Officer 2 *</label>
+            <input type="text" id="to-officer2" required>
           </div>
           
           <div class="form-group">
@@ -671,11 +681,18 @@ class SecurityApp {
 
   async handleCreateHandover() {
     try {
-      const fromOfficer = document.getElementById('from-officer').value;
-      const toOfficer = document.getElementById('to-officer').value;
+      const fromOfficer1 = document.getElementById('from-officer1').value;
+      const fromOfficer2 = document.getElementById('from-officer2').value;
+      const toOfficer1 = document.getElementById('to-officer1').value;
+      const toOfficer2 = document.getElementById('to-officer2').value;
       const notes = document.getElementById('handover-notes').value;
       const keyPoints = document.getElementById('key-points').value.split('\n').filter(p => p.trim());
       const incidents = document.getElementById('incidents').value.split('\n').filter(i => i.trim());
+      
+      if (!toOfficer1 || !toOfficer2) {
+        this.showError('Both incoming officer names are required');
+        return;
+      }
       
       if (!window.ShiftManager) {
         this.showError('Shift management system is not available');
@@ -683,15 +700,17 @@ class SecurityApp {
       }
       
       const handover = await window.ShiftManager.createHandover(
-        fromOfficer,
-        toOfficer,
+        fromOfficer1,
+        fromOfficer2,
+        toOfficer1,
+        toOfficer2,
         notes,
         incidents,
         keyPoints
       );
       
       this.closeModal();
-      this.showToast(`Handover created for ${toOfficer}`, 'success');
+      this.showToast(`Handover created for ${toOfficer1} and ${toOfficer2}`, 'success');
       
       // Update shifts page if currently viewing
       if (this.currentPage === 'shifts') {
