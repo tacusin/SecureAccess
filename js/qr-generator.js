@@ -14,15 +14,20 @@ class QRGenerator {
     try {
       console.log('[QR] Initializing QR Generator');
       
-      // Check if QRCode library is available
+      // Check if QRCode library is available, if not load it
       if (typeof QRCode === 'undefined') {
-        console.warn('[QR] QRCode.js not loaded');
-        return false;
+        console.log('[QR] Loading QRCode.js library...');
+        await this.loadQRLibrary();
       }
 
-      this.isInitialized = true;
-      console.log('[QR] QR Generator initialized successfully');
-      return true;
+      if (typeof QRCode !== 'undefined') {
+        this.isInitialized = true;
+        console.log('[QR] QR Generator initialized successfully');
+        return true;
+      } else {
+        console.warn('[QR] QRCode.js could not be loaded');
+        return false;
+      }
       
     } catch (error) {
       console.error('[QR] Error initializing QR generator:', error);
@@ -30,7 +35,31 @@ class QRGenerator {
     }
   }
 
+  async loadQRLibrary() {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+      script.onload = () => {
+        console.log('[QR] QRCode.js library loaded successfully');
+        resolve();
+      };
+      script.onerror = () => {
+        console.error('[QR] Failed to load QRCode.js library');
+        reject(new Error('Failed to load QR library'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
   async generatePersonQR(person) {
+    if (!this.isInitialized) {
+      await this.init();
+    }
+
+    if (!this.isInitialized) {
+      throw new Error('QR Code system not available');
+    }
+
     try {
       console.log('[QR] Generating QR code for person:', person.name);
 

@@ -1448,15 +1448,26 @@ class SecurityApp {
         return;
       }
 
-      if (!window.QRGenerator || !window.QRGenerator.isAvailable()) {
-        this.showToast('QR code generation is loading. Please try again in a moment.', 'info');
+      if (!window.QRGenerator) {
+        this.showError('QR code generation system is not available');
+        return;
+      }
+
+      // Initialize QR generator if needed
+      if (!window.QRGenerator.isInitialized) {
+        this.showToast('Initializing QR code generator...', 'info');
+        await window.QRGenerator.init();
+      }
+
+      if (!window.QRGenerator.isInitialized) {
+        this.showError('QR code generation is currently unavailable');
         return;
       }
 
       await window.QRGenerator.showQRModal(person);
     } catch (error) {
       console.error('[App] Error showing QR code:', error);
-      this.showError('Failed to generate QR code');
+      this.showError('Failed to generate QR code: ' + error.message);
     }
   }
 
