@@ -354,8 +354,8 @@ class SecurityApp {
       shiftInfo.innerHTML = `
         <div class="shift-info">
           <div class="shift-detail">
-            <span class="shift-detail-label">Officer:</span>
-            <span class="shift-detail-value">${currentShift.officerName}</span>
+            <span class="shift-detail-label">Officers:</span>
+            <span class="shift-detail-value">${currentShift.officer1Name || currentShift.officerName || 'Unknown'} & ${currentShift.officer2Name || 'Unknown'}</span>
           </div>
           <div class="shift-detail">
             <span class="shift-detail-label">Shift Type:</span>
@@ -452,8 +452,13 @@ class SecurityApp {
       <div class="modal-body">
         <form id="start-shift-form" class="shift-form">
           <div class="form-group">
-            <label for="officer-name">Officer Name *</label>
-            <input type="text" id="officer-name" required>
+            <label for="officer1-name">Officer 1 Name *</label>
+            <input type="text" id="officer1-name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="officer2-name">Officer 2 Name *</label>
+            <input type="text" id="officer2-name" required>
           </div>
           
           <div class="form-group">
@@ -509,10 +514,15 @@ class SecurityApp {
   async handleStartShift() {
     try {
       const form = document.getElementById('start-shift-form');
-      const formData = new FormData(form);
       
-      const officerName = formData.get('officer-name') || document.getElementById('officer-name').value;
-      const shiftType = formData.get('shift-type') || document.getElementById('shift-type').value;
+      const officer1Name = document.getElementById('officer1-name').value;
+      const officer2Name = document.getElementById('officer2-name').value;
+      const shiftType = document.getElementById('shift-type').value;
+      
+      if (!officer1Name || !officer2Name) {
+        this.showError('Both officer names are required');
+        return;
+      }
       
       let customStart = null;
       let customEnd = null;
@@ -532,10 +542,10 @@ class SecurityApp {
         return;
       }
       
-      const shift = await window.ShiftManager.startShift(officerName, shiftType, customStart, customEnd);
+      const shift = await window.ShiftManager.startShift(officer1Name, officer2Name, shiftType, customStart, customEnd);
       
       this.closeModal();
-      this.showToast(`Shift started successfully for ${officerName}`, 'success');
+      this.showToast(`Shift started successfully for ${officer1Name} and ${officer2Name}`, 'success');
       
       // Update shifts page if currently viewing
       if (this.currentPage === 'shifts') {

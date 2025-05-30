@@ -94,11 +94,15 @@ class ShiftManager {
     }
   }
 
-  async startShift(officerName, shiftType, customStart = null, customEnd = null) {
+  async startShift(officer1Name, officer2Name, shiftType, customStart = null, customEnd = null) {
     try {
       const shiftConfig = this.shiftTypes.find(type => type.id === shiftType);
       if (!shiftConfig) {
         throw new Error('Invalid shift type');
+      }
+
+      if (!officer1Name || !officer2Name) {
+        throw new Error('Both officers are required for a shift');
       }
 
       // End current shift if exists
@@ -143,7 +147,8 @@ class ShiftManager {
 
       const shift = {
         id: this.generateShiftId(),
-        officerName,
+        officer1Name,
+        officer2Name,
         shiftType,
         shiftConfig,
         startTime: startTime.getTime(),
@@ -212,12 +217,14 @@ class ShiftManager {
     }
   }
 
-  async createHandover(fromOfficer, toOfficer, notes, incidents = [], keyPoints = []) {
+  async createHandover(fromOfficer1, fromOfficer2, toOfficer1, toOfficer2, notes, incidents = [], keyPoints = []) {
     try {
       const handover = {
         id: this.generateHandoverId(),
-        fromOfficer,
-        toOfficer,
+        fromOfficer1,
+        fromOfficer2,
+        toOfficer1,
+        toOfficer2,
         timestamp: Date.now(),
         notes,
         incidents,
