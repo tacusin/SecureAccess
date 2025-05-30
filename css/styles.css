@@ -617,6 +617,13 @@ body {
   flex-wrap: wrap;
 }
 
+/* Page actions */
+.page-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
 /* Filters */
 .filters {
   display: flex;
