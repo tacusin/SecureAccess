@@ -1507,19 +1507,13 @@ class SecurityApp {
 
       this.showToast('Generating sync QR code...', 'info');
 
-      // Always try to initialize to ensure it's ready
-      try {
-        await window.QRGenerator.init();
-      } catch (initError) {
-        console.warn('[App] QR Generator init warning:', initError);
-      }
-
-      // Show sync host QR modal directly
+      // Show sync host QR modal directly - simplified approach
       await window.QRGenerator.showSyncHostQRModal();
       
       console.log('[App] Sync QR generation completed');
     } catch (error) {
       console.error('[App] Error generating sync QR code:', error);
+      console.error('[App] Error stack:', error.stack);
       this.showError('Failed to generate sync QR code. Please try again.');
     }
   }
