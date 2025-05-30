@@ -48,13 +48,8 @@ class SecurityApp {
       
       console.log('[App] Application initialized successfully');
       
-      // Add global debug function for localStorage clearing
-      window.debugClearStorage = () => {
-        if (confirm('Clear all localStorage data? This will reset the entire application.')) {
-          localStorage.clear();
-          location.reload();
-        }
-      };
+      // Clean up any temporary debug functions
+      delete window.debugClearStorage;
       
     } catch (error) {
       console.error('[App] Error initializing application:', error);

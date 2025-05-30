@@ -1868,6 +1868,141 @@ body {
   }
 }
 
+/* Settings Modal Styles */
+.settings-menu {
+  width: 90vw;
+  max-width: 500px;
+  background: hsl(var(--surface));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: hsl(var(--surface-variant));
+  border-bottom: 1px solid hsl(var(--outline-variant));
+}
+
+.settings-header h3 {
+  margin: 0;
+  color: hsl(var(--on-surface));
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+}
+
+.settings-header .close-btn {
+  background: none;
+  border: none;
+  color: hsl(var(--on-surface-variant));
+  font-size: 24px;
+  font-weight: normal;
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-header .close-btn:hover {
+  background: hsl(var(--outline-variant) / 0.2);
+  color: hsl(var(--on-surface));
+}
+
+.settings-content {
+  padding: var(--spacing-lg);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.setting-group {
+  margin-bottom: var(--spacing-xl);
+}
+
+.setting-group:last-child {
+  margin-bottom: 0;
+}
+
+.setting-group h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: hsl(var(--primary));
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  border-bottom: 1px solid hsl(var(--outline-variant));
+  padding-bottom: var(--spacing-sm);
+}
+
+.setting-group .btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.setting-group .btn .material-icons {
+  font-size: 20px;
+}
+
+.setting-description {
+  margin: var(--spacing-sm) 0 0 0;
+  color: hsl(var(--on-surface-variant));
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  padding: var(--spacing-sm);
+  background: hsl(var(--surface-variant));
+  border-radius: var(--radius-sm);
+  border-left: 3px solid hsl(var(--warning));
+}
+
+.debug-section {
+  border-top: 2px solid hsl(var(--outline-variant));
+  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.debug-section h4 {
+  color: hsl(var(--warning));
+  border-bottom-color: hsl(var(--warning));
+}
+
+.debug-section .btn-danger {
+  background: hsl(var(--error));
+  color: white;
+  border-color: hsl(var(--error));
+}
+
+.debug-section .btn-danger:hover {
+  background: hsl(var(--error) / 0.9);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .settings-menu {
+    width: 95vw;
+    max-height: 85vh;
+  }
+  
+  .settings-header {
+    padding: var(--spacing-md);
+  }
+  
+  .settings-content {
+    padding: var(--spacing-md);
+  }
+  
+  .setting-group {
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
 /* Print styles */
 @media print {
   .app-bar,
