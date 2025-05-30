@@ -680,6 +680,64 @@ class ReportsManager {
       .slice(0, 3)
       .map(([hour, count]) => ({ hour: parseInt(hour), count }));
   }
+
+  // Helper functions for personnel activity reports
+  generatePersonnelInsights(personnelStats, activities) {
+    const insights = [];
+    
+    if (personnelStats.length === 0) {
+      insights.push('No personnel activity data available for this period');
+      return insights;
+    }
+    
+    const totalVisits = personnelStats.reduce((sum, p) => sum + p.totalVisits, 0);
+    const averageVisits = totalVisits / personnelStats.length;
+    
+    insights.push(`Average ${averageVisits.toFixed(1)} visits per person during this period`);
+    
+    const mostActivePersonnel = personnelStats
+      .sort((a, b) => b.totalVisits - a.totalVisits)[0];
+    
+    if (mostActivePersonnel && mostActivePersonnel.totalVisits > 0) {
+      insights.push(`Most active: ${mostActivePersonnel.name} with ${mostActivePersonnel.totalVisits} visits`);
+    }
+    
+    return insights;
+  }
+
+  // Helper functions for time tracking reports
+  generateTimeTrackingInsights(activities) {
+    const insights = [];
+    
+    if (activities.length === 0) {
+      insights.push('No time tracking data available for this period');
+      return insights;
+    }
+    
+    const checkOuts = activities.filter(a => a.action === 'check_out' && a.data.duration);
+    const totalDuration = checkOuts.reduce((sum, a) => sum + (a.data.duration || 0), 0);
+    const averageDuration = checkOuts.length > 0 ? totalDuration / checkOuts.length : 0;
+    
+    insights.push(`Average visit duration: ${this.formatDuration(averageDuration)}`);
+    
+    return insights;
+  }
+
+  // Helper functions for compliance reports
+  generateComplianceInsights(activities, personnel) {
+    const insights = [];
+    
+    const totalPersonnel = personnel.length;
+    const activePersonnel = personnel.filter(p => p.status === 'checked_in').length;
+    
+    insights.push(`${activePersonnel} of ${totalPersonnel} personnel currently on-site`);
+    
+    if (activities.length > 0) {
+      insights.push(`${activities.length} compliance events recorded during this period`);
+    }
+    
+    return insights;
+  }
 }
 
 // Create global instance
