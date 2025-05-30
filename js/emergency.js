@@ -520,7 +520,7 @@ class EmergencyManager {
           <p><strong>Missing Persons Count:</strong> ${this.missingPersons.length}</p>
           <p><strong>Building Address:</strong> [Configure in settings]</p>
           <div class="form-actions">
-            <button class="action-button secondary" onclick="app.closeModal()">
+            <button class="action-button secondary" onclick="window.app.closeModal()">
               Cancel
             </button>
             <button class="action-button danger" onclick="emergencyManager.confirmEmergencyAlert()">

@@ -339,7 +339,7 @@ class SecurityApp {
         <div class="no-shift-message">
           <span class="material-icons">schedule</span>
           <p>No shift is currently active</p>
-          <button class="action-button primary" onclick="app.showStartShiftModal()">
+          <button class="action-button primary" onclick="window.app.showStartShiftModal()">
             Start New Shift
           </button>
         </div>
@@ -400,10 +400,10 @@ class SecurityApp {
           </div>
           <div class="handover-notes">${handover.notes}</div>
           <div class="handover-actions">
-            <button class="action-button primary" onclick="app.acknowledgeHandover('${handover.id}')">
+            <button class="action-button primary" onclick="window.app.acknowledgeHandover('${handover.id}')">
               Acknowledge
             </button>
-            <button class="action-button secondary" onclick="app.viewHandoverDetails('${handover.id}')">
+            <button class="action-button secondary" onclick="window.app.viewHandoverDetails('${handover.id}')">
               View Details
             </button>
           </div>
@@ -445,7 +445,7 @@ class SecurityApp {
     const modalContent = `
       <div class="modal-header">
         <h3>Start New Shift</h3>
-        <button class="icon-button" onclick="app.closeModal()">
+        <button class="icon-button" onclick="window.app.closeModal()">
           <span class="material-icons">close</span>
         </button>
       </div>
@@ -484,7 +484,7 @@ class SecurityApp {
           </div>
           
           <div class="form-actions">
-            <button type="button" class="action-button secondary" onclick="app.closeModal()">
+            <button type="button" class="action-button secondary" onclick="window.app.closeModal()">
               Cancel
             </button>
             <button type="submit" class="action-button primary">
@@ -608,7 +608,7 @@ class SecurityApp {
     const modalContent = `
       <div class="modal-header">
         <h3>Create Handover</h3>
-        <button class="icon-button" onclick="app.closeModal()">
+        <button class="icon-button" onclick="window.app.closeModal()">
           <span class="material-icons">close</span>
         </button>
       </div>
@@ -658,7 +658,7 @@ class SecurityApp {
           </div>
           
           <div class="form-actions">
-            <button type="button" class="action-button secondary" onclick="app.closeModal()">
+            <button type="button" class="action-button secondary" onclick="window.app.closeModal()">
               Cancel
             </button>
             <button type="submit" class="action-button primary">
@@ -870,7 +870,7 @@ class SecurityApp {
             <span class="material-icons" style="font-size: 64px; color: var(--on-surface-variant);">people</span>
             <h3>No Personnel Added</h3>
             <p>Add personnel to start managing check-ins and check-outs.</p>
-            <button class="action-button primary" onclick="app.showAddPersonnelModal()">
+            <button class="action-button primary" onclick="window.app.showAddPersonnelModal()">
               <span class="material-icons">person_add</span>
               Add First Person
             </button>
@@ -1081,7 +1081,7 @@ class SecurityApp {
     const modalContent = `
       <div class="modal-header">
         <h3>Add Personnel</h3>
-        <button class="icon-button" onclick="app.closeModal()">
+        <button class="icon-button" onclick="window.app.closeModal()">
           <span class="material-icons">close</span>
         </button>
       </div>
@@ -1125,11 +1125,11 @@ class SecurityApp {
                 <span>No photo</span>
               </div>
               <div class="photo-actions">
-                <button type="button" class="action-button secondary" onclick="app.capturePhoto()">
+                <button type="button" class="action-button secondary" onclick="window.app.capturePhoto()">
                   <span class="material-icons">camera_alt</span>
                   Take Photo
                 </button>
-                <button type="button" class="action-button secondary" onclick="app.uploadPhoto()">
+                <button type="button" class="action-button secondary" onclick="window.app.uploadPhoto()">
                   <span class="material-icons">upload</span>
                   Upload
                 </button>
@@ -1143,7 +1143,7 @@ class SecurityApp {
           </div>
           
           <div class="form-actions">
-            <button type="button" class="action-button secondary" onclick="app.closeModal()">
+            <button type="button" class="action-button secondary" onclick="window.app.closeModal()">
               Cancel
             </button>
             <button type="submit" class="action-button primary">
@@ -1525,10 +1525,10 @@ class SecurityApp {
         <div class="modal-body">
           <p>${message}</p>
           <div class="form-actions">
-            <button class="action-button secondary" onclick="app.resolveConfirm(false)">
+            <button class="action-button secondary" onclick="window.app.resolveConfirm(false)">
               Cancel
             </button>
-            <button class="action-button primary" onclick="app.resolveConfirm(true)">
+            <button class="action-button primary" onclick="window.app.resolveConfirm(true)">
               Confirm
             </button>
           </div>
