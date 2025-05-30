@@ -167,7 +167,16 @@ class SecurityApp {
     document.getElementById('clear-sync-log-btn')?.addEventListener('click', () => this.clearSyncLog());
     
     // Settings button
-    document.getElementById('settings-btn')?.addEventListener('click', () => this.showSettingsMenu());
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) {
+      console.log('[App] Settings button found, adding event listener');
+      settingsBtn.addEventListener('click', () => {
+        console.log('[App] Settings button clicked');
+        this.showSettingsMenu();
+      });
+    } else {
+      console.warn('[App] Settings button not found');
+    }
     
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
