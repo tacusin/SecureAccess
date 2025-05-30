@@ -2078,7 +2078,7 @@ class SecurityApp {
       const toKeep = activities.filter(a => a.timestamp > cutoffDate);
       
       // Update storage with filtered activities
-      window.StorageManager.data.activityLog = toKeep;
+      window.StorageManager.data.activities = toKeep;
       await window.StorageManager.saveToStorage();
 
       this.showToast('Old activity logs cleared successfully', 'success');
@@ -2138,8 +2138,8 @@ class SecurityApp {
         return;
       }
       
-      // Update storage directly
-      window.StorageManager.data.activityLog = updatedActivities;
+      // Update storage directly - fix the property name
+      window.StorageManager.data.activities = updatedActivities;
       await window.StorageManager.saveToStorage();
       
       // Remove the item from DOM immediately for instant feedback
