@@ -23,7 +23,12 @@ class MeshSync {
   }
 
   generateDeviceId() {
-    return 'device-' + Math.random().toString(36).substr(2, 9);
+    let deviceId = localStorage.getItem('mesh_device_id');
+    if (!deviceId) {
+      deviceId = 'mesh-device-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('mesh_device_id', deviceId);
+    }
+    return deviceId;
   }
 
   async getLocalIP() {
@@ -37,12 +42,23 @@ class MeshSync {
       const offer = await connection.createOffer();
       await connection.setLocalDescription(offer);
       
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        let resolved = false;
+        const timeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            connection.close();
+            resolve('192.168.1.100'); // Fallback for local networks
+          }
+        }, 3000);
+        
         connection.onicecandidate = (event) => {
-          if (event.candidate) {
+          if (event.candidate && !resolved) {
             const candidate = event.candidate.candidate;
             const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-            if (ipMatch) {
+            if (ipMatch && (ipMatch[1].startsWith('192.168.') || ipMatch[1].startsWith('10.') || ipMatch[1].startsWith('172.'))) {
+              resolved = true;
+              clearTimeout(timeout);
               connection.close();
               resolve(ipMatch[1]);
             }

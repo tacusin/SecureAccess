@@ -21,14 +21,22 @@ class P2PSync {
   getDeviceId() {
     let deviceId = localStorage.getItem('p2p_device_id');
     if (!deviceId) {
-      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      deviceId = 'p2p-device-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('p2p_device_id', deviceId);
     }
     return deviceId;
   }
 
   async getLocalIP() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      let resolved = false;
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve('192.168.1.100'); // Fallback IP
+        }
+      }, 3000);
+      
       // Create a dummy peer connection to get local IP
       const pc = new RTCPeerConnection({
         iceServers: []
@@ -38,7 +46,7 @@ class P2PSync {
       pc.createOffer().then(offer => pc.setLocalDescription(offer));
       
       pc.onicecandidate = (ice) => {
-        if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+        if (!ice || !ice.candidate || !ice.candidate.candidate || resolved) return;
         const candidate = ice.candidate.candidate;
         const ip = candidate.split(' ')[4];
         
@@ -48,6 +56,8 @@ class P2PSync {
           ip.startsWith('10.') || 
           (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)
         )) {
+          resolved = true;
+          clearTimeout(timeout);
           pc.close();
           resolve(ip);
         }
