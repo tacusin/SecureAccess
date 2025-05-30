@@ -2570,27 +2570,46 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
         
         // Check if QRCode library is available
         if (typeof QRCode !== 'undefined') {
-          new QRCode(qrContainer, {
+          const qr = new QRCode(qrContainer, {
             text: connectionAddress,
             width: 200,
             height: 200,
             colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+            colorLight: "#ffffff"
           });
-          console.log('[App] QR code generated successfully');
+          console.log('[App] QR code generated successfully for:', connectionAddress);
+        } else if (typeof window.QRCode !== 'undefined') {
+          const qr = new window.QRCode(qrContainer, {
+            text: connectionAddress,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff"
+          });
+          console.log('[App] QR code generated successfully for:', connectionAddress);
         } else {
+          console.error('[App] QRCode library not found');
           throw new Error('QRCode library not loaded');
         }
       } catch (error) {
         console.error('QR generation error:', error);
-        qrContainer.innerHTML = `
-          <div style="text-align: center; padding: 40px;">
-            <span class="material-icons" style="font-size: 48px; color: #666;">qr_code</span>
-            <p style="margin: 10px 0; color: #666;">QR code generation failed</p>
-            <p style="font-size: 12px; color: #999;">Use the IP:port above to connect</p>
-          </div>
-        `;
+        // Fallback to Google Charts QR API
+        try {
+          const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(connectionAddress)}`;
+          qrContainer.innerHTML = `
+            <img src="${qrApiUrl}" alt="QR Code" style="width: 200px; height: 200px; border: 1px solid #ccc;" />
+          `;
+          console.log('[App] QR code generated using Google Charts API');
+        } catch (fallbackError) {
+          console.error('Fallback QR generation failed:', fallbackError);
+          qrContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+              <span class="material-icons" style="font-size: 48px; color: #666;">qr_code</span>
+              <p style="margin: 10px 0; color: #666;">QR code generation failed</p>
+              <p style="font-size: 12px; color: #999;">Use the IP:port above to connect</p>
+            </div>
+          `;
+        }
       }
     }
   }, 500);
