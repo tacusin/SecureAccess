@@ -26,13 +26,21 @@
             document.getElementById('details').innerHTML += '<br>' + detail;
         }
         
-        // Load Google API
+        // Load Google API with new Google Identity Services
         function loadGoogleAPI() {
-            const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
-            script.onload = initializeAPI;
-            script.onerror = () => updateStatus('Failed to load Google API script');
-            document.head.appendChild(script);
+            updateStatus('Loading Google Identity Services...');
+            
+            const gisScript = document.createElement('script');
+            gisScript.src = 'https://accounts.google.com/gsi/client';
+            gisScript.onload = () => {
+                const apiScript = document.createElement('script');
+                apiScript.src = 'https://apis.google.com/js/api.js';
+                apiScript.onload = initializeAPI;
+                apiScript.onerror = () => updateStatus('Failed to load Google API script');
+                document.head.appendChild(apiScript);
+            };
+            gisScript.onerror = () => updateStatus('Failed to load Google Identity Services');
+            document.head.appendChild(gisScript);
         }
         
         function initializeAPI() {
@@ -45,12 +53,10 @@
                 return;
             }
             
-            gapi.load('client:auth2', () => {
+            gapi.load('client', () => {
                 gapi.client.init({
                     apiKey: API_KEY,
-                    clientId: CLIENT_ID,
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-                    scope: 'https://www.googleapis.com/auth/drive.file'
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 }).then(() => {
                     updateStatus('SUCCESS: Google Drive API initialized');
                     document.getElementById('test-btn').disabled = false;
