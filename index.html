@@ -81,6 +81,9 @@
                 <li><a href="#activity" class="nav-item" data-page="activity">
                     <span class="material-icons">history</span>Activity Log
                 </a></li>
+                <li><a href="#sync" class="nav-item" data-page="sync">
+                    <span class="material-icons">sync</span>Network Sync
+                </a></li>
                 <li><a href="#reports" class="nav-item" data-page="reports">
                     <span class="material-icons">analytics</span>Reports
                 </a></li>
@@ -389,6 +392,97 @@
                 </div>
             </div>
 
+            <!-- Network Sync Page -->
+            <div id="sync-page" class="page">
+                <div class="page-header">
+                    <h2>Network Sync</h2>
+                    <div class="sync-status-bar">
+                        <div class="sync-info">
+                            <span class="sync-status" id="sync-status">Disabled</span>
+                            <span class="device-count">Devices: <span id="connected-devices-count">0</span></span>
+                            <span class="sync-latency">Latency: <span id="sync-latency">--</span></span>
+                        </div>
+                        <div class="sync-indicator" id="sync-indicator">
+                            <span class="material-icons">sync</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sync-controls">
+                    <div class="control-group">
+                        <h3>Sync Mode</h3>
+                        <div class="sync-mode-buttons">
+                            <button id="enable-sync-btn" class="action-button primary">
+                                <span class="material-icons">sync</span>
+                                Enable Sync
+                            </button>
+                            <button id="disable-sync-btn" class="action-button secondary" style="display: none;">
+                                <span class="material-icons">sync_disabled</span>
+                                Disable Sync
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group" id="server-controls" style="display: none;">
+                        <h3>Server Mode</h3>
+                        <div class="server-buttons">
+                            <button id="start-server-btn" class="action-button primary">
+                                <span class="material-icons">router</span>
+                                Start as Server
+                            </button>
+                            <button id="stop-server-btn" class="action-button danger" style="display: none;">
+                                <span class="material-icons">stop</span>
+                                Stop Server
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group" id="client-controls" style="display: none;">
+                        <h3>Connect to Server</h3>
+                        <div class="connection-form">
+                            <div class="input-group">
+                                <input type="text" id="server-ip-input" placeholder="Enter server IP (e.g., 192.168.1.100:8080)" class="form-input">
+                                <button id="connect-btn" class="action-button primary">
+                                    <span class="material-icons">link</span>
+                                    Connect
+                                </button>
+                            </div>
+                            <button id="scan-qr-connect-btn" class="action-button secondary">
+                                <span class="material-icons">qr_code_scanner</span>
+                                Scan QR Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group" id="discovered-devices" style="display: none;">
+                        <h3>Discovered Devices</h3>
+                        <div id="device-list" class="device-list">
+                            <!-- Discovered devices will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sync-activity">
+                    <h3>Sync Activity</h3>
+                    <div class="activity-filters">
+                        <select id="sync-activity-filter" class="form-select">
+                            <option value="all">All Events</option>
+                            <option value="check-in">Check-ins</option>
+                            <option value="check-out">Check-outs</option>
+                            <option value="personnel">Personnel Updates</option>
+                            <option value="emergency">Emergency Events</option>
+                        </select>
+                        <button id="clear-sync-log-btn" class="action-button secondary">
+                            <span class="material-icons">clear_all</span>
+                            Clear Log
+                        </button>
+                    </div>
+                    <div id="sync-activity-log" class="sync-log">
+                        <!-- Sync activity will appear here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Activity Log Page -->
             <div id="activity-page" class="page">
                 <div class="page-header">
@@ -525,6 +619,8 @@
     <script src="js/qr-generator.js"></script>
     <script src="js/reports.js"></script>
     <script src="js/shifts.js"></script>
+    <script src="js/sync-server.js"></script>
+    <script src="js/sync-client.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
