@@ -48,10 +48,13 @@ class P2PSync {
       this.startPeerCleanup();
       
       localStorage.setItem('p2p_coordinator', 'true');
-      localStorage.setItem('p2p_coordinator_url', `${window.location.origin}/p2p-sync`);
+      localStorage.setItem('p2p_coordinator_url', window.location.origin);
       
-      this.showStatus('Running as coordinator', 'success');
+      this.showStatus('Coordinator started - ready for connections', 'success');
       console.log('[P2PSync] Coordinator started successfully');
+      
+      // Add a visual indicator to the main interface
+      this.addSyncIndicatorToHeader();
       
       return true;
     } catch (error) {
@@ -397,6 +400,30 @@ class P2PSync {
     }
   }
 
+  addSyncIndicatorToHeader() {
+    const header = document.querySelector('.top-bar');
+    if (header && !document.getElementById('sync-status-indicator')) {
+      const indicator = document.createElement('div');
+      indicator.id = 'sync-status-indicator';
+      indicator.innerHTML = `
+        <span class="material-icons sync-icon">sync</span>
+        <span class="sync-text">Coordinator</span>
+      `;
+      indicator.style.cssText = `
+        display: flex; 
+        align-items: center; 
+        gap: 4px; 
+        color: var(--success); 
+        font-size: 12px;
+        background: rgba(76, 175, 80, 0.1);
+        padding: 4px 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+      `;
+      header.appendChild(indicator);
+    }
+  }
+
   updateUI() {
     // Update sync status in UI
     const statusElement = document.getElementById('sync-status');
@@ -420,6 +447,30 @@ class P2PSync {
 
     if (deviceCountElement) {
       deviceCountElement.textContent = this.connectedPeers.size;
+    }
+
+    // Update header indicator
+    const headerIndicator = document.getElementById('sync-status-indicator');
+    if (headerIndicator) {
+      if (!this.syncEnabled) {
+        headerIndicator.style.display = 'none';
+      } else {
+        headerIndicator.style.display = 'flex';
+        const syncText = headerIndicator.querySelector('.sync-text');
+        if (this.isCoordinator) {
+          syncText.textContent = `Coordinator (${this.connectedPeers.size})`;
+          headerIndicator.style.color = 'var(--success)';
+          headerIndicator.style.background = 'rgba(76, 175, 80, 0.1)';
+        } else if (this.coordinatorUrl) {
+          syncText.textContent = 'Connected';
+          headerIndicator.style.color = 'var(--primary)';
+          headerIndicator.style.background = 'rgba(33, 150, 243, 0.1)';
+        } else {
+          syncText.textContent = 'Disconnected';
+          headerIndicator.style.color = 'var(--warning)';
+          headerIndicator.style.background = 'rgba(255, 152, 0, 0.1)';
+        }
+      }
     }
   }
 

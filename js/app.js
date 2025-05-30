@@ -2471,33 +2471,61 @@ SecurityApp.prototype.updateP2PConnectionInfo = function() {
 SecurityApp.prototype.showP2PConnectionQR = function() {
   if (!window.P2PSync || !window.P2PSync.isCoordinator) return;
   
-  const connectionUrl = window.P2PSync.generateConnectionUrl();
-  if (connectionUrl && window.QRGenerator) {
-    this.showModal(`
-      <div class="modal-header">
-        <h3>Connection QR Code</h3>
-        <button class="icon-button" onclick="window.app.closeModal()">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div style="text-align: center;">
-          <p>Scan this QR code with other devices to connect:</p>
-          <div id="connection-qr" style="margin: 20px 0;"></div>
-          <p style="font-family: monospace; word-break: break-all; font-size: 12px;">${connectionUrl}</p>
+  const connectionUrl = window.location.origin; // Use current page URL for connection
+  
+  this.showModal(`
+    <div class="modal-header">
+      <h3>Connection Information</h3>
+      <button class="icon-button" onclick="window.app.closeModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align: center;">
+        <p>Other devices can connect using this URL:</p>
+        <div id="connection-qr" style="margin: 20px 0; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 1px dashed #ccc;">
+          <span style="color: #666;">Generating QR code...</span>
+        </div>
+        <p style="font-family: monospace; word-break: break-all; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 4px;">${connectionUrl}</p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
           <button class="action-button secondary" onclick="navigator.clipboard.writeText('${connectionUrl}'); window.app.showToast('URL copied to clipboard', 'success');">
             <span class="material-icons">content_copy</span>
             Copy URL
           </button>
+          <button class="action-button secondary" onclick="navigator.share ? navigator.share({title: 'Secure Access Sync', url: '${connectionUrl}'}) : window.app.showToast('Sharing not supported', 'info');">
+            <span class="material-icons">share</span>
+            Share
+          </button>
         </div>
       </div>
-    `);
-    
-    // Generate QR code
-    setTimeout(() => {
-      window.QRGenerator.generateQRCode(connectionUrl, 'connection-qr');
-    }, 100);
-  }
+    </div>
+  `);
+  
+  // Generate QR code using the external library
+  setTimeout(() => {
+    const qrContainer = document.getElementById('connection-qr');
+    if (qrContainer && window.QRCode) {
+      try {
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+          text: connectionUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#000000",
+          colorLight: "#ffffff"
+        });
+      } catch (error) {
+        console.error('QR generation error:', error);
+        qrContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px;">
+            <span class="material-icons" style="font-size: 48px; color: #666;">qr_code</span>
+            <p style="margin: 10px 0; color: #666;">QR code generation failed</p>
+            <p style="font-size: 12px; color: #999;">Use the URL above to connect</p>
+          </div>
+        `;
+      }
+    }
+  }, 100);
 };
 
 SecurityApp.prototype.clearSyncLog = function() {
