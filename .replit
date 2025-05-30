@@ -15,10 +15,6 @@ author = "agent"
 task = "workflow.run"
 args = "Security Access Manager"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Sync Server"
-
 [[workflows.workflow]]
 name = "Security Access Manager"
 author = "agent"
@@ -28,24 +24,10 @@ task = "shell.exec"
 args = "python -m http.server 5000"
 waitForPort = 5000
 
-[[workflows.workflow]]
-name = "Sync Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node sync-server.js 8080"
-waitForPort = 8080
-
 [deployment]
 deploymentTarget = "static"
 publicDir = "/"
-run = ["sh", "-c", "node sync-server.js 8080"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
