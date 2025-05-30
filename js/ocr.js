@@ -250,21 +250,21 @@ class OCRManager {
         <div class="scan-id-modal">
           <div class="modal-header">
             <h3>Scan ID Card</h3>
-            <button class="icon-button" onclick="ocrManager.closeScanModal(false)">
+            <button class="icon-button" onclick="window.OCRManager.closeScanModal(false)">
               <span class="material-icons">close</span>
             </button>
           </div>
           <div class="modal-body">
             <div class="scan-options">
-              <button class="scan-option-btn" onclick="ocrManager.startIDScan('id-card')">
+              <button class="scan-option-btn" onclick="window.OCRManager.startIDScan('id-card')">
                 <span class="material-icons">badge</span>
                 <span>ID Card</span>
               </button>
-              <button class="scan-option-btn" onclick="ocrManager.startIDScan('drivers-license')">
+              <button class="scan-option-btn" onclick="window.OCRManager.startIDScan('drivers-license')">
                 <span class="material-icons">credit_card</span>
                 <span>Driver's License</span>
               </button>
-              <button class="scan-option-btn" onclick="ocrManager.startIDScan('business-card')">
+              <button class="scan-option-btn" onclick="window.OCRManager.startIDScan('business-card')">
                 <span class="material-icons">business_center</span>
                 <span>Business Card</span>
               </button>
