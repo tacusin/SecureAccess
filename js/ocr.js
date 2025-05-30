@@ -445,4 +445,13 @@ class OCRManager {
 // Create global instance
 window.OCRManager = new OCRManager();
 
+// Make methods available globally for HTML onclick handlers
+window.ocrManager = {
+  startIDScan: (type) => window.OCRManager.startIDScan(type),
+  closeScanModal: (success, data) => window.OCRManager.closeScanModal(success, data),
+  scanIDCard: (imageData) => window.OCRManager.scanIDCard(imageData),
+  scanDriversLicense: (imageData) => window.OCRManager.scanDriversLicense(imageData),
+  showScanIDModal: () => window.OCRManager.showScanIDModal()
+};
+
 console.log('[OCR] OCR Manager loaded');

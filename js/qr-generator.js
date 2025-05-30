@@ -637,4 +637,15 @@ class QRGenerator {
 // Create global instance
 window.QRGenerator = new QRGenerator();
 
+// Make methods available globally for HTML onclick handlers
+window.qrGenerator = {
+  generatePersonQR: (person) => window.QRGenerator.generatePersonQR(person),
+  showQRModal: (person) => window.QRGenerator.showQRModal(person),
+  closeQRModal: () => window.QRGenerator.closeQRModal(),
+  downloadQR: (personId) => window.QRGenerator.downloadQR(personId),
+  printQR: (personId) => window.QRGenerator.printQR(personId),
+  shareQR: (personId) => window.QRGenerator.shareQR(personId),
+  generateBulkQRCodes: (personnelList) => window.QRGenerator.generateBulkQRCodes(personnelList)
+};
+
 console.log('[QR] QR Generator loaded');
