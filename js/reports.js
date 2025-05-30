@@ -576,6 +576,110 @@ class ReportsManager {
   getSupportedReportTypes() {
     return [...this.reportTypes];
   }
+
+  // Helper functions for security audit reports
+  generateSecurityRecommendations(securityEvents, unusualPatterns, accessViolations) {
+    const recommendations = [];
+    
+    if (securityEvents.length > 0) {
+      recommendations.push('Review emergency procedures and response times');
+    }
+    
+    if (unusualPatterns.length > 0) {
+      recommendations.push('Investigate unusual access patterns for potential security risks');
+    }
+    
+    if (accessViolations.length > 0) {
+      recommendations.push('Strengthen access control policies and enforcement');
+    }
+    
+    if (recommendations.length === 0) {
+      recommendations.push('Continue current security practices - no issues detected');
+    }
+    
+    return recommendations;
+  }
+
+  generateSecurityInsights(activities) {
+    const insights = [];
+    
+    const totalEvents = activities.length;
+    const uniquePersonnel = new Set(activities.map(a => a.data.personnelId)).size;
+    
+    insights.push(`Total ${totalEvents} security events involving ${uniquePersonnel} personnel`);
+    
+    if (activities.length > 0) {
+      const hourCounts = {};
+      activities.forEach(a => {
+        const hour = new Date(a.timestamp).getHours();
+        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+      });
+      
+      const peakHour = Object.keys(hourCounts).reduce((a, b) => 
+        hourCounts[a] > hourCounts[b] ? a : b
+      );
+      
+      insights.push(`Peak activity occurs at ${peakHour}:00 with ${hourCounts[peakHour]} events`);
+    }
+    
+    return insights;
+  }
+
+  // Helper functions for visitor analytics reports
+  generateCompanyStats(visitors, visitorActivities) {
+    const companies = {};
+    
+    visitors.forEach(visitor => {
+      const company = visitor.company || 'Unknown';
+      if (!companies[company]) {
+        companies[company] = {
+          name: company,
+          visitorCount: 0,
+          totalVisits: 0,
+          averageStayTime: 0
+        };
+      }
+      companies[company].visitorCount++;
+    });
+    
+    visitorActivities.forEach(activity => {
+      const person = window.StorageManager.getPersonnel(activity.data.personnelId);
+      if (person) {
+        const company = person.company || 'Unknown';
+        if (companies[company]) {
+          companies[company].totalVisits++;
+        }
+      }
+    });
+    
+    return Object.values(companies);
+  }
+
+  generateVisitorFlow(visitorActivities) {
+    const flow = {
+      checkIns: visitorActivities.filter(a => a.action === 'check_in').length,
+      checkOuts: visitorActivities.filter(a => a.action === 'check_out').length,
+      currentlyInside: 0
+    };
+    
+    flow.currentlyInside = flow.checkIns - flow.checkOuts;
+    
+    return flow;
+  }
+
+  calculatePeakVisitorTimes(visitorActivities) {
+    const hourCounts = {};
+    
+    visitorActivities.forEach(activity => {
+      const hour = new Date(activity.timestamp).getHours();
+      hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+    });
+    
+    return Object.entries(hourCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([hour, count]) => ({ hour: parseInt(hour), count }));
+  }
 }
 
 // Create global instance
