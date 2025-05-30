@@ -2144,10 +2144,14 @@ class SecurityApp {
   }
 
   toggleActivitySelection(activityId) {
+    const activityElement = document.querySelector(`[data-activity-id="${activityId}"]`);
+    
     if (this.selectedActivityIds.has(activityId)) {
       this.selectedActivityIds.delete(activityId);
+      activityElement?.classList.remove('selected');
     } else {
       this.selectedActivityIds.add(activityId);
+      activityElement?.classList.add('selected');
     }
     
     // Update the delete button text with count
@@ -2158,6 +2162,10 @@ class SecurityApp {
       deleteBtn.textContent = '';
       deleteBtn.appendChild(deleteIcon);
       deleteBtn.append(` Delete Selected (${count})`);
+      
+      // Enable/disable the button based on selection count
+      deleteBtn.disabled = count === 0;
+      deleteBtn.style.opacity = count === 0 ? '0.5' : '1';
     }
   }
 

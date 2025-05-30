@@ -881,21 +881,7 @@ body {
   overflow-y: auto;
 }
 
-.activity-item {
-  display: flex;
-  align-items: center;
-  padding: var(--spacing-md);
-  border-bottom: 1px solid hsl(var(--outline-variant));
-  transition: background-color 0.2s ease;
-}
-
-.activity-item:hover {
-  background: hsl(var(--surface-variant));
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
+/* Removed - using updated styles below */
 
 .activity-icon {
   display: flex;
@@ -1027,19 +1013,46 @@ body {
   margin-right: var(--spacing-md);
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .activity-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin: 0;
   cursor: pointer;
   accent-color: hsl(var(--primary));
+  border: 2px solid hsl(var(--outline));
+  border-radius: 4px;
+  position: relative;
 }
 
 .activity-checkbox input[type="checkbox"]:checked {
   background-color: hsl(var(--primary));
   border-color: hsl(var(--primary));
+}
+
+.activity-checkbox input[type="checkbox"]:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid hsl(var(--outline-variant));
+  transition: background-color 0.2s ease;
+  min-height: 80px;
+}
+
+.activity-item:hover {
+  background: hsl(var(--surface-variant));
+}
+
+.activity-item.selected {
+  background: hsl(var(--primary) / 0.08);
+  border-left: 3px solid hsl(var(--primary));
 }
 
 .danger-btn, .action-button.danger {
@@ -1049,6 +1062,45 @@ body {
 
 .danger-btn:hover, .action-button.danger:hover {
   background: hsl(var(--error) / 0.8);
+}
+
+.danger-btn:disabled, .action-button.danger:disabled {
+  background: hsl(var(--outline));
+  color: hsl(var(--on-surface-variant));
+  cursor: not-allowed;
+}
+
+/* Header actions spacing */
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.header-actions .action-button {
+  min-width: 120px;
+  justify-content: center;
+}
+
+/* Activity item selected state improvements */
+.activity-item.selected .activity-details {
+  opacity: 0.9;
+}
+
+.activity-item.selected .activity-icon {
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+/* Better visual hierarchy in bulk select mode */
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+/* Improve checkbox alignment */
+.activity-checkbox {
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 @media (max-width: 768px) {
