@@ -879,6 +879,10 @@ class SecurityApp {
         return;
       }
       
+      // Clear existing content and event listeners
+      personnelList.innerHTML = '';
+      
+      // Add new content
       personnelList.innerHTML = personnel.map(person => this.createPersonCard(person)).join('');
       
       // Add event listeners to person cards
@@ -922,6 +926,10 @@ class SecurityApp {
         return;
       }
       
+      // Clear existing content and event listeners
+      personnelGrid.innerHTML = '';
+      
+      // Add new content
       personnelGrid.innerHTML = filteredPersonnel.map(person => this.createPersonCard(person, true)).join('');
       
       // Add event listeners
