@@ -88,20 +88,32 @@ class CSSValidator {
   }
 
   analyzeCSSContent(content, filePath) {
+    console.log(`    🔍 Analyzing ${filePath} (${content.split('\n').length} lines)`);
     const lines = content.split('\n');
+    let variablesFound = 0;
+    let classesFound = 0;
+    let issuesFound = 0;
     
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
       
       // Check for CSS variable usage
+      const varsBefore = this.usedVariables.size;
       this.validateCSSVariables(line, lineNumber, filePath);
+      if (this.usedVariables.size > varsBefore) variablesFound++;
       
       // Check for class definitions
+      const classesBefore = this.definedClasses.size;
       this.validateClassDefinitions(line, lineNumber, filePath);
+      if (this.definedClasses.size > classesBefore) classesFound++;
       
       // Check for potential issues
+      const issuesBefore = this.warnings.length;
       this.checkForCommonIssues(line, lineNumber, filePath);
+      if (this.warnings.length > issuesBefore) issuesFound++;
     });
+    
+    console.log(`    📊 Found: ${classesFound} classes, ${variablesFound} variables, ${issuesFound} potential issues`);
   }
 
   validateCSSVariables(line, lineNumber, filePath) {

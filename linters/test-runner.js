@@ -20,6 +20,7 @@ class CodebaseTestRunner {
       this.validators.set('css', new CSSValidator());
       this.validators.set('data', new DataIntegrityValidator());
       this.validators.set('architecture', new ArchitectureValidator());
+      this.validators.set('accuracy', new AccuracyChecker());
       
       console.log('✅ All validators loaded successfully\n');
       return true;
@@ -37,6 +38,7 @@ class CodebaseTestRunner {
       skipCSS = false,
       skipData = false,
       skipArchitecture = false,
+      skipAccuracy = false,
       verbose = true
     } = options;
 
@@ -272,8 +274,8 @@ class CodebaseTestRunner {
     });
   }
 
-  async runFullTest() {
-    console.log('🔍 Running Full Validation (All checks)...\n');
+  async runTacuCheck() {
+    console.log('🔍 Running TACU Check (Total Accuracy Codebase Update)...\n');
     
     return await this.runAllTests({
       verbose: true
@@ -309,7 +311,7 @@ async function runQuickValidation() {
   return await runner.runQuickTest();
 }
 
-async function runFullValidation() {
+async function runTacuCheck() {
   const runner = new CodebaseTestRunner();
   
   if (!(await runner.initialize())) {
@@ -317,7 +319,7 @@ async function runFullValidation() {
     return;
   }
   
-  return await runner.runFullTest();
+  return await runner.runTacuCheck();
 }
 
 async function runCustomValidation(options) {
@@ -336,7 +338,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     CodebaseTestRunner,
     runQuickValidation,
-    runFullValidation,
+    runTacuCheck,
     runCustomValidation
   };
 }
@@ -345,6 +347,6 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.CodebaseTestRunner = CodebaseTestRunner;
   window.runQuickValidation = runQuickValidation;
-  window.runFullValidation = runFullValidation;
+  window.runTacuCheck = runTacuCheck;
   window.runCustomValidation = runCustomValidation;
 }

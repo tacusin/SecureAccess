@@ -33,10 +33,20 @@ class FunctionValidator {
   }
 
   validateContent(content, filePath) {
+    console.log(`    🔍 Analyzing ${filePath} (${content.split('\n').length} lines)`);
     const lines = content.split('\n');
+    
+    console.log(`    📋 Checking function definitions...`);
     this.validateFunctionDefinitions(lines, filePath);
+    
+    console.log(`    📞 Validating function calls...`);
     this.validateFunctionCalls(lines, filePath);
+    
+    console.log(`    ⚡ Checking event handlers...`);
     this.validateEventHandlers(lines, filePath);
+    
+    const functionsFound = this.countFunctionsInFile(lines);
+    console.log(`    ✨ Found ${functionsFound} function definitions`);
     
     return this.errors.length === 0;
   }
@@ -44,20 +54,34 @@ class FunctionValidator {
   validateFunctionDefinitions(lines, filePath) {
     const functionRegex = /^\s*(async\s+)?(\w+)\s*\([^)]*\)\s*\{/;
     const methodRegex = /^\s*(async\s+)?(\w+)\s*\([^)]*\)\s*\{/;
+    let foundFunctions = 0;
+    let undocumentedFunctions = 0;
     
     lines.forEach((line, index) => {
       const match = line.match(functionRegex) || line.match(methodRegex);
       if (match) {
         const functionName = match[2];
         const lineNumber = index + 1;
+        foundFunctions++;
         
         if (!this.isFunctionInRegistry(functionName, filePath)) {
+          undocumentedFunctions++;
+          console.log(`      ❓ Undocumented function: ${functionName} (line ${lineNumber})`);
           this.warnings.push(
             `Function '${functionName}' at line ${lineNumber} in ${filePath} not found in registry`
           );
+        } else {
+          console.log(`      ✅ Documented function: ${functionName}`);
         }
       }
     });
+    
+    console.log(`      📊 Functions: ${foundFunctions} total, ${undocumentedFunctions} undocumented`);
+  }
+
+  countFunctionsInFile(lines) {
+    const functionRegex = /^\s*(async\s+)?(\w+)\s*\([^)]*\)\s*\{/;
+    return lines.filter(line => functionRegex.test(line)).length;
   }
 
   validateFunctionCalls(lines, filePath) {
