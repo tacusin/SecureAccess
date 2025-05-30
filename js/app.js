@@ -166,6 +166,9 @@ class SecurityApp {
     document.getElementById('scan-qr-connect-btn')?.addEventListener('click', () => this.scanSyncQR());
     document.getElementById('clear-sync-log-btn')?.addEventListener('click', () => this.clearSyncLog());
     
+    // Settings button
+    document.getElementById('settings-btn')?.addEventListener('click', () => this.showSettingsMenu());
+    
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('touchstart', (e) => {
@@ -2561,6 +2564,106 @@ SecurityApp.prototype.loadSyncActivityLog = function() {
       <span class="log-message">Mesh sync system ready</span>
     </div>
   `;
+};
+
+SecurityApp.prototype.showSettingsMenu = function() {
+  const settingsContent = `
+    <div class="settings-menu">
+      <div class="settings-header">
+        <h3>Settings</h3>
+        <button class="close-btn" onclick="app.closeModal()">×</button>
+      </div>
+      <div class="settings-content">
+        <div class="setting-group">
+          <h4>Theme</h4>
+          <button onclick="app.toggleTheme()" class="btn btn-secondary">
+            <span class="material-icons">palette</span>
+            Toggle Theme
+          </button>
+        </div>
+        
+        <div class="setting-group">
+          <h4>Data Management</h4>
+          <button onclick="app.exportAllData()" class="btn btn-primary">
+            <span class="material-icons">download</span>
+            Export All Data
+          </button>
+        </div>
+        
+        <div class="setting-group debug-section">
+          <h4>Debug Options</h4>
+          <button onclick="app.clearAllLocalStorage()" class="btn btn-danger">
+            <span class="material-icons">delete_forever</span>
+            Clear All Data
+          </button>
+          <p class="setting-description">This will permanently delete all app data including personnel, activities, and settings.</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  this.showModal(settingsContent);
+};
+
+SecurityApp.prototype.clearAllLocalStorage = async function() {
+  const confirmed = await this.showConfirmDialog(
+    'Clear All Data',
+    'This will permanently delete all app data including personnel, activities, sync settings, and preferences. This action cannot be undone. Are you sure?'
+  );
+  
+  if (confirmed) {
+    try {
+      // Clear all localStorage
+      localStorage.clear();
+      
+      // Show success message
+      this.showToast('All data cleared successfully', 'success');
+      
+      // Close modal
+      this.closeModal();
+      
+      // Refresh the page to reset the app state
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('[App] Error clearing localStorage:', error);
+      this.showError('Failed to clear data: ' + error.message);
+    }
+  }
+};
+
+SecurityApp.prototype.exportAllData = function() {
+  try {
+    const allData = {
+      personnel: window.StorageManager.getAllPersonnel(),
+      activities: window.StorageManager.getActivityLog(1000),
+      settings: window.StorageManager.getAllSettings(),
+      timestamp: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(allData, null, 2);
+    const filename = `secure-access-backup-${new Date().toISOString().split('T')[0]}.json`;
+    
+    // Download the data
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    this.showToast('Data exported successfully', 'success');
+    
+  } catch (error) {
+    console.error('[App] Error exporting data:', error);
+    this.showError('Failed to export data: ' + error.message);
+  }
 };
 
 SecurityApp.prototype.updateP2PConnectionInfo = function() {
