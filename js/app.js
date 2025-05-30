@@ -2333,11 +2333,12 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Network Sync Management Methods
 SecurityApp.prototype.updateSyncPage = async function() {
-  if (!window.SyncClient) return;
+  if (!window.P2PSync) return;
   
-  const status = window.SyncClient.getStatus();
+  const status = window.P2PSync.getStatus();
   this.updateSyncUI(status);
   this.loadSyncActivityLog();
+  this.updateP2PConnectionInfo();
 };
 
 SecurityApp.prototype.updateSyncUI = function(status) {
@@ -2371,54 +2372,55 @@ SecurityApp.prototype.updateSyncUI = function(status) {
 };
 
 SecurityApp.prototype.enableSync = function() {
-  if (window.SyncClient) {
-    window.SyncClient.enableSync();
-    this.showToast('Network sync enabled', 'success');
+  if (window.P2PSync) {
+    window.P2PSync.enable();
     this.updateSyncPage();
   }
 };
 
 SecurityApp.prototype.disableSync = function() {
-  if (window.SyncClient) {
-    window.SyncClient.disableSync();
-    this.showToast('Network sync disabled', 'info');
+  if (window.P2PSync) {
+    window.P2PSync.disable();
     this.updateSyncPage();
   }
 };
 
 SecurityApp.prototype.startSyncServer = async function() {
-  if (window.SyncClient) {
+  if (window.P2PSync) {
     try {
-      await window.SyncClient.startAsServer();
+      const success = await window.P2PSync.startAsCoordinator();
       this.updateSyncPage();
+      if (success) {
+        this.showP2PConnectionQR();
+      }
     } catch (error) {
-      this.showError('Failed to start sync server: ' + error.message);
+      this.showError('Failed to start coordinator: ' + error.message);
     }
   }
 };
 
 SecurityApp.prototype.stopSyncServer = function() {
-  if (window.SyncClient) {
-    window.SyncClient.disconnect();
-    this.showToast('Sync server stopped', 'info');
+  if (window.P2PSync) {
+    window.P2PSync.disable();
     this.updateSyncPage();
   }
 };
 
-SecurityApp.prototype.connectToSyncServer = function() {
+SecurityApp.prototype.connectToSyncServer = async function() {
   const serverIpInput = document.getElementById('server-ip-input');
   const serverUrl = serverIpInput.value.trim();
   
   if (!serverUrl) {
-    this.showError('Please enter a server IP address');
+    this.showError('Please enter coordinator URL');
     return;
   }
 
-  const wsUrl = serverUrl.startsWith('ws://') ? serverUrl : `ws://${serverUrl}`;
+  const coordinatorUrl = serverUrl.startsWith('http') ? serverUrl : `${window.location.protocol}//${serverUrl}`;
   
-  if (window.SyncClient) {
-    window.SyncClient.connectToServer(wsUrl);
-    this.showToast('Connecting to sync server...', 'info');
+  if (window.P2PSync) {
+    this.showToast('Connecting to coordinator...', 'info');
+    const success = await window.P2PSync.connectToPeer(coordinatorUrl);
+    this.updateSyncPage();
   }
 };
 
@@ -2426,7 +2428,7 @@ SecurityApp.prototype.scanSyncQR = async function() {
   if (window.CameraManager) {
     try {
       const qrData = await window.CameraManager.scanQRCode();
-      if (qrData && qrData.startsWith('ws://')) {
+      if (qrData && (qrData.startsWith('http://') || qrData.startsWith('https://'))) {
         document.getElementById('server-ip-input').value = qrData;
         this.connectToSyncServer();
       } else {
@@ -2435,6 +2437,66 @@ SecurityApp.prototype.scanSyncQR = async function() {
     } catch (error) {
       this.showError('Failed to scan QR code: ' + error.message);
     }
+  }
+};
+
+SecurityApp.prototype.updateP2PConnectionInfo = function() {
+  if (!window.P2PSync) return;
+  
+  const status = window.P2PSync.getStatus();
+  const deviceListContainer = document.getElementById('device-list');
+  
+  if (deviceListContainer && status.connectedPeers) {
+    if (status.connectedPeers.length === 0) {
+      deviceListContainer.innerHTML = '<div class="device-item">No connected devices</div>';
+    } else {
+      const devicesHtml = status.connectedPeers.map(peer => `
+        <div class="device-item">
+          <div class="device-info">
+            <div class="device-name">${peer.name || peer.id}</div>
+            <div class="device-details">ID: ${peer.id} • Last seen: ${new Date(peer.lastSeen).toLocaleTimeString()}</div>
+          </div>
+          <div class="device-status">
+            <span class="material-icons" style="color: var(--success);">check_circle</span>
+          </div>
+        </div>
+      `).join('');
+      deviceListContainer.innerHTML = devicesHtml;
+    }
+    
+    document.getElementById('discovered-devices').style.display = 'block';
+  }
+};
+
+SecurityApp.prototype.showP2PConnectionQR = function() {
+  if (!window.P2PSync || !window.P2PSync.isCoordinator) return;
+  
+  const connectionUrl = window.P2PSync.generateConnectionUrl();
+  if (connectionUrl && window.QRGenerator) {
+    this.showModal(`
+      <div class="modal-header">
+        <h3>Connection QR Code</h3>
+        <button class="icon-button" onclick="window.app.closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center;">
+          <p>Scan this QR code with other devices to connect:</p>
+          <div id="connection-qr" style="margin: 20px 0;"></div>
+          <p style="font-family: monospace; word-break: break-all; font-size: 12px;">${connectionUrl}</p>
+          <button class="action-button secondary" onclick="navigator.clipboard.writeText('${connectionUrl}'); window.app.showToast('URL copied to clipboard', 'success');">
+            <span class="material-icons">content_copy</span>
+            Copy URL
+          </button>
+        </div>
+      </div>
+    `);
+    
+    // Generate QR code
+    setTimeout(() => {
+      window.QRGenerator.generateQRCode(connectionUrl, 'connection-qr');
+    }, 100);
   }
 };
 

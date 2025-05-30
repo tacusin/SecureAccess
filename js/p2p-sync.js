@@ -1,0 +1,440 @@
+/**
+ * Secure Access - Peer-to-Peer Sync Manager
+ * Hybrid approach: One device acts as coordinator, others sync via HTTP
+ */
+
+class P2PSync {
+  constructor() {
+    this.isCoordinator = false;
+    this.coordinatorUrl = null;
+    this.syncEnabled = localStorage.getItem('p2p_sync_enabled') === 'true';
+    this.deviceId = this.getDeviceId();
+    this.syncInterval = null;
+    this.httpServer = null;
+    this.connectedPeers = new Map();
+    this.lastSyncTime = 0;
+    this.syncPort = 8081;
+    
+    this.setupEventListeners();
+  }
+
+  getDeviceId() {
+    let deviceId = localStorage.getItem('p2p_device_id');
+    if (!deviceId) {
+      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('p2p_device_id', deviceId);
+    }
+    return deviceId;
+  }
+
+  setupEventListeners() {
+    // Listen for data changes to broadcast
+    window.addEventListener('personnel-added', (e) => this.broadcastUpdate('personnel-added', e.detail));
+    window.addEventListener('personnel-updated', (e) => this.broadcastUpdate('personnel-updated', e.detail));
+    window.addEventListener('check-in', (e) => this.broadcastUpdate('check-in', e.detail));
+    window.addEventListener('check-out', (e) => this.broadcastUpdate('check-out', e.detail));
+    window.addEventListener('emergency-activated', (e) => this.broadcastUpdate('emergency-activated', e.detail));
+  }
+
+  async startAsCoordinator() {
+    try {
+      console.log('[P2PSync] Starting as coordinator...');
+      this.isCoordinator = true;
+      
+      // Create a simple HTTP endpoint using Service Worker
+      this.setupCoordinatorEndpoints();
+      
+      // Start periodic cleanup of stale connections
+      this.startPeerCleanup();
+      
+      localStorage.setItem('p2p_coordinator', 'true');
+      localStorage.setItem('p2p_coordinator_url', `${window.location.origin}/p2p-sync`);
+      
+      this.showStatus('Running as coordinator', 'success');
+      console.log('[P2PSync] Coordinator started successfully');
+      
+      return true;
+    } catch (error) {
+      console.error('[P2PSync] Error starting coordinator:', error);
+      this.showStatus('Failed to start coordinator: ' + error.message, 'error');
+      return false;
+    }
+  }
+
+  setupCoordinatorEndpoints() {
+    // Register service worker message handler for P2P requests
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'p2p-sync-request') {
+          this.handleSyncRequest(event.data.requestData, event.ports[0]);
+        }
+      });
+    }
+
+    // Setup in-memory endpoints using fetch interception
+    this.setupFetchInterception();
+  }
+
+  setupFetchInterception() {
+    // Store original fetch
+    const originalFetch = window.fetch;
+    
+    // Override fetch for our P2P endpoints
+    window.fetch = async (url, options) => {
+      if (typeof url === 'string' && url.includes('/p2p-sync')) {
+        return this.handleP2PRequest(url, options);
+      }
+      return originalFetch(url, options);
+    };
+  }
+
+  async handleP2PRequest(url, options) {
+    const method = options?.method || 'GET';
+    const body = options?.body ? JSON.parse(options.body) : null;
+
+    if (url.endsWith('/register')) {
+      return this.handlePeerRegister(body);
+    } else if (url.endsWith('/sync')) {
+      return this.handleSyncRequest(body);
+    } else if (url.endsWith('/broadcast')) {
+      return this.handleBroadcast(body);
+    } else if (url.endsWith('/status')) {
+      return this.handleStatusRequest();
+    }
+
+    return new Response(JSON.stringify({ error: 'Not found' }), { 
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async handlePeerRegister(data) {
+    const peerId = data.deviceId;
+    this.connectedPeers.set(peerId, {
+      id: peerId,
+      name: data.deviceName || peerId,
+      lastSeen: Date.now(),
+      ip: data.ip || 'unknown'
+    });
+
+    console.log('[P2PSync] Peer registered:', peerId);
+    this.updateUI();
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      coordinatorId: this.deviceId,
+      syncData: this.getFullSyncData()
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async handleSyncRequest(data) {
+    if (data && data.updates) {
+      await this.processIncomingUpdates(data.updates);
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      updates: this.getRecentUpdates(data.lastSyncTime || 0)
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async handleBroadcast(data) {
+    if (data && data.event) {
+      await this.processBroadcastEvent(data.event);
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async handleStatusRequest() {
+    return new Response(JSON.stringify({
+      coordinatorId: this.deviceId,
+      peerCount: this.connectedPeers.size,
+      peers: Array.from(this.connectedPeers.values())
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  async connectToPeer(coordinatorUrl) {
+    try {
+      console.log('[P2PSync] Connecting to coordinator:', coordinatorUrl);
+      this.coordinatorUrl = coordinatorUrl;
+      this.isCoordinator = false;
+
+      // Register with coordinator
+      const response = await fetch(`${coordinatorUrl}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId: this.deviceId,
+          deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
+          ip: 'auto-detect'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.syncData) {
+          await this.applySyncData(result.syncData);
+        }
+
+        // Start periodic sync
+        this.startPeriodicSync();
+        
+        localStorage.setItem('p2p_coordinator_url', coordinatorUrl);
+        this.showStatus('Connected to coordinator', 'success');
+        console.log('[P2PSync] Connected to coordinator successfully');
+        
+        return true;
+      } else {
+        throw new Error('Failed to register with coordinator');
+      }
+    } catch (error) {
+      console.error('[P2PSync] Error connecting to coordinator:', error);
+      this.showStatus('Failed to connect: ' + error.message, 'error');
+      return false;
+    }
+  }
+
+  startPeriodicSync() {
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+    }
+
+    this.syncInterval = setInterval(async () => {
+      await this.performSync();
+    }, 5000); // Sync every 5 seconds
+  }
+
+  async performSync() {
+    if (!this.coordinatorUrl || this.isCoordinator) return;
+
+    try {
+      const response = await fetch(`${this.coordinatorUrl}/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId: this.deviceId,
+          lastSyncTime: this.lastSyncTime,
+          updates: this.getLocalUpdates()
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.updates && result.updates.length > 0) {
+          await this.applyRemoteUpdates(result.updates);
+          this.showSyncActivity(`Received ${result.updates.length} updates`);
+        }
+        this.lastSyncTime = Date.now();
+      }
+    } catch (error) {
+      console.error('[P2PSync] Sync error:', error);
+      this.showStatus('Sync error: ' + error.message, 'warning');
+    }
+  }
+
+  async broadcastUpdate(eventType, data) {
+    if (!this.syncEnabled) return;
+
+    const update = {
+      type: eventType,
+      data: data,
+      timestamp: Date.now(),
+      deviceId: this.deviceId
+    };
+
+    if (this.isCoordinator) {
+      // Broadcast to all connected peers (not implemented in browser)
+      console.log('[P2PSync] Broadcasting update:', eventType);
+    } else if (this.coordinatorUrl) {
+      // Send to coordinator
+      try {
+        await fetch(`${this.coordinatorUrl}/broadcast`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: update })
+        });
+      } catch (error) {
+        console.error('[P2PSync] Broadcast error:', error);
+      }
+    }
+  }
+
+  getFullSyncData() {
+    return {
+      personnel: window.StorageManager.getAllPersonnel(),
+      activities: window.StorageManager.getActivityLog(1000),
+      settings: window.StorageManager.getAllSettings(),
+      timestamp: Date.now()
+    };
+  }
+
+  getRecentUpdates(since) {
+    const activities = window.StorageManager.getActivityLog(1000);
+    return activities.filter(activity => 
+      new Date(activity.timestamp).getTime() > since
+    );
+  }
+
+  getLocalUpdates() {
+    // Get recent local changes (simplified)
+    return this.getRecentUpdates(this.lastSyncTime);
+  }
+
+  async applySyncData(syncData) {
+    // Apply full sync data from coordinator
+    if (syncData.personnel) {
+      for (const person of syncData.personnel) {
+        const existing = window.StorageManager.getPersonnel(person.id);
+        if (!existing || person.lastModified > existing.lastModified) {
+          await window.StorageManager.updatePersonnel(person.id, person);
+        }
+      }
+    }
+    console.log('[P2PSync] Full sync data applied');
+  }
+
+  async applyRemoteUpdates(updates) {
+    for (const update of updates) {
+      await this.processRemoteUpdate(update);
+    }
+  }
+
+  async processRemoteUpdate(update) {
+    switch (update.action) {
+      case 'check_in':
+        if (update.data.personnelId) {
+          const person = window.StorageManager.getPersonnel(update.data.personnelId);
+          if (person) {
+            person.status = 'checked-in';
+            person.lastCheckIn = update.timestamp;
+            await window.StorageManager.updatePersonnel(person.id, person);
+          }
+        }
+        break;
+      case 'check_out':
+        if (update.data.personnelId) {
+          const person = window.StorageManager.getPersonnel(update.data.personnelId);
+          if (person) {
+            person.status = 'checked-out';
+            person.lastCheckOut = update.timestamp;
+            await window.StorageManager.updatePersonnel(person.id, person);
+          }
+        }
+        break;
+      case 'personnel_added':
+        if (update.data.id) {
+          await window.StorageManager.addPersonnel(update.data);
+        }
+        break;
+    }
+  }
+
+  startPeerCleanup() {
+    setInterval(() => {
+      const now = Date.now();
+      for (const [peerId, peer] of this.connectedPeers) {
+        if (now - peer.lastSeen > 60000) { // 1 minute timeout
+          this.connectedPeers.delete(peerId);
+          console.log('[P2PSync] Removed stale peer:', peerId);
+        }
+      }
+      this.updateUI();
+    }, 30000); // Check every 30 seconds
+  }
+
+  enable() {
+    this.syncEnabled = true;
+    localStorage.setItem('p2p_sync_enabled', 'true');
+    this.showStatus('P2P sync enabled', 'success');
+  }
+
+  disable() {
+    this.syncEnabled = false;
+    localStorage.setItem('p2p_sync_enabled', 'false');
+    
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
+    }
+    
+    this.isCoordinator = false;
+    this.coordinatorUrl = null;
+    this.connectedPeers.clear();
+    
+    localStorage.removeItem('p2p_coordinator');
+    localStorage.removeItem('p2p_coordinator_url');
+    
+    this.showStatus('P2P sync disabled', 'info');
+    this.updateUI();
+  }
+
+  generateConnectionUrl() {
+    if (this.isCoordinator) {
+      return `${window.location.origin}/p2p-sync`;
+    }
+    return null;
+  }
+
+  showStatus(message, type) {
+    if (window.app) {
+      window.app.showToast(message, type);
+    }
+    console.log(`[P2PSync] ${message}`);
+  }
+
+  showSyncActivity(message) {
+    if (window.app) {
+      window.app.showToast(message, 'info');
+    }
+  }
+
+  updateUI() {
+    // Update sync status in UI
+    const statusElement = document.getElementById('sync-status');
+    const deviceCountElement = document.getElementById('connected-devices-count');
+
+    if (statusElement) {
+      if (!this.syncEnabled) {
+        statusElement.textContent = 'Disabled';
+        statusElement.className = 'sync-status disabled';
+      } else if (this.isCoordinator) {
+        statusElement.textContent = 'Coordinator';
+        statusElement.className = 'sync-status server';
+      } else if (this.coordinatorUrl) {
+        statusElement.textContent = 'Connected';
+        statusElement.className = 'sync-status connected';
+      } else {
+        statusElement.textContent = 'Disconnected';
+        statusElement.className = 'sync-status disconnected';
+      }
+    }
+
+    if (deviceCountElement) {
+      deviceCountElement.textContent = this.connectedPeers.size;
+    }
+  }
+
+  getStatus() {
+    return {
+      enabled: this.syncEnabled,
+      isCoordinator: this.isCoordinator,
+      coordinatorUrl: this.coordinatorUrl,
+      deviceId: this.deviceId,
+      connectedPeers: Array.from(this.connectedPeers.values()),
+      lastSyncTime: this.lastSyncTime
+    };
+  }
+}
+
+// Initialize P2P sync
+window.P2PSync = new P2PSync();
+console.log('[P2PSync] P2P Sync Manager loaded');
