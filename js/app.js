@@ -1559,17 +1559,18 @@ class SecurityApp {
         break;
 
       case 'visitor-analytics':
+        const visitorsForAnalytics = personnel.filter(p => p.role === 'visitor');
         const visitorActivities = activities.filter(a => {
           const person = personnel.find(p => p.id === a.data.personnelId);
           return person && person.role === 'visitor';
         });
         report.summary = {
-          totalVisitors: visitors.length,
+          totalVisitors: visitorsForAnalytics.length,
           visitorActivities: visitorActivities.length,
           currentVisitors: checkedIn.filter(p => p.role === 'visitor').length
         };
         report.insights = [
-          `${visitors.length} total visitors registered`,
+          `${visitorsForAnalytics.length} total visitors registered`,
           `${visitorActivities.length} visitor activities recorded`,
           `${checkedIn.filter(p => p.role === 'visitor').length} visitors currently on-site`
         ];
