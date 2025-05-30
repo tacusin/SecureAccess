@@ -383,6 +383,20 @@ class SecurityApp {
       signoutBtn.style.display = 'none';
       syncControls.style.display = 'none';
     }
+
+    // Update local backup info
+    this.updateLocalBackupInfo();
+  }
+
+  updateLocalBackupInfo() {
+    const data = window.StorageManager.data;
+    const localDataSize = document.getElementById('local-data-size');
+    const personnelCount = document.getElementById('personnel-count');
+    const activitiesCount = document.getElementById('activities-count');
+
+    if (localDataSize) localDataSize.textContent = this.calculateDataSize();
+    if (personnelCount) personnelCount.textContent = (data.personnel || []).length;
+    if (activitiesCount) activitiesCount.textContent = `${(data.activities || []).length} entries`;
   }
 
   async handleSyncSignIn() {
