@@ -2386,16 +2386,30 @@ SecurityApp.prototype.disableSync = function() {
 };
 
 SecurityApp.prototype.startSyncServer = async function() {
-  if (window.P2PSync) {
+  if (window.P2PSync && window.P2PSync.syncEnabled) {
     try {
+      this.showToast('Starting coordinator...', 'info');
       const success = await window.P2PSync.startAsCoordinator();
       this.updateSyncPage();
       if (success) {
+        // Update button to show active state
+        const startServerBtn = document.getElementById('start-server-btn');
+        if (startServerBtn) {
+          startServerBtn.innerHTML = `
+            <span class="material-icons">wifi_tethering</span>
+            Coordinator Active
+          `;
+          startServerBtn.classList.remove('primary');
+          startServerBtn.classList.add('success');
+        }
         this.showP2PConnectionQR();
+        this.showToast('Coordinator started successfully!', 'success');
       }
     } catch (error) {
       this.showError('Failed to start coordinator: ' + error.message);
     }
+  } else {
+    this.showToast('Please enable sync first', 'warning');
   }
 };
 
@@ -2504,16 +2518,24 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
   // Generate QR code using the external library
   setTimeout(() => {
     const qrContainer = document.getElementById('connection-qr');
-    if (qrContainer && window.QRCode) {
+    if (qrContainer) {
       try {
         qrContainer.innerHTML = '';
-        new QRCode(qrContainer, {
-          text: connectionUrl,
-          width: 200,
-          height: 200,
-          colorDark: "#000000",
-          colorLight: "#ffffff"
-        });
+        
+        // Check if QRCode library is available
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(qrContainer, {
+            text: connectionUrl,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          console.log('[App] QR code generated successfully');
+        } else {
+          throw new Error('QRCode library not loaded');
+        }
       } catch (error) {
         console.error('QR generation error:', error);
         qrContainer.innerHTML = `
@@ -2525,7 +2547,7 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
         `;
       }
     }
-  }, 100);
+  }, 500);
 };
 
 SecurityApp.prototype.clearSyncLog = function() {

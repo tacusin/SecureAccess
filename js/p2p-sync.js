@@ -171,19 +171,25 @@ class P2PSync {
       this.coordinatorUrl = coordinatorUrl;
       this.isCoordinator = false;
 
-      // Register with coordinator
-      const response = await fetch(`${coordinatorUrl}/register`, {
+      // Register with coordinator using correct endpoint
+      const registerUrl = `${coordinatorUrl}/p2p-sync/register`;
+      console.log('[P2PSync] Registering at:', registerUrl);
+      
+      const response = await fetch(registerUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deviceId: this.deviceId,
           deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
-          ip: 'auto-detect'
+          ip: 'auto-detect',
+          timestamp: Date.now()
         })
       });
 
       if (response.ok) {
         const result = await response.json();
+        console.log('[P2PSync] Registration result:', result);
+        
         if (result.syncData) {
           await this.applySyncData(result.syncData);
         }
@@ -194,10 +200,12 @@ class P2PSync {
         localStorage.setItem('p2p_coordinator_url', coordinatorUrl);
         this.showStatus('Connected to coordinator', 'success');
         console.log('[P2PSync] Connected to coordinator successfully');
+        this.updateUI();
         
         return true;
       } else {
-        throw new Error('Failed to register with coordinator');
+        const errorText = await response.text();
+        throw new Error(`Registration failed (${response.status}): ${errorText}`);
       }
     } catch (error) {
       console.error('[P2PSync] Error connecting to coordinator:', error);
@@ -220,7 +228,8 @@ class P2PSync {
     if (!this.coordinatorUrl || this.isCoordinator) return;
 
     try {
-      const response = await fetch(`${this.coordinatorUrl}/sync`, {
+      const syncUrl = `${this.coordinatorUrl}/p2p-sync/sync`;
+      const response = await fetch(syncUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
