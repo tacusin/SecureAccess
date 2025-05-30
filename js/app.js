@@ -323,7 +323,124 @@ class SecurityApp {
           await window.EmergencyManager.updateContent();
         }
         break;
+      case 'sync':
+        await this.updateSyncPage();
+        break;
     }
+  }
+
+  // Cloud Sync Management Methods
+  async updateSyncPage() {
+    if (!window.CloudSyncManager) return;
+    
+    const status = window.CloudSyncManager.getSyncStatus();
+    const statusIcon = document.getElementById('sync-status-icon');
+    const statusTitle = document.getElementById('sync-status-title');
+    const statusSubtitle = document.getElementById('sync-status-subtitle');
+    const signinBtn = document.getElementById('sync-signin-btn');
+    const signoutBtn = document.getElementById('sync-signout-btn');
+    const syncControls = document.getElementById('sync-controls');
+    
+    if (status.isSignedIn) {
+      statusIcon.textContent = 'cloud_done';
+      statusIcon.parentElement.classList.add('connected');
+      statusTitle.textContent = 'Connected';
+      statusSubtitle.textContent = 'Your data is synced with Google Drive';
+      signinBtn.style.display = 'none';
+      signoutBtn.style.display = 'inline-flex';
+      syncControls.style.display = 'block';
+      
+      document.getElementById('last-sync-time').textContent = window.CloudSyncManager.formatLastSyncTime();
+      document.getElementById('data-size').textContent = this.calculateDataSize();
+      document.getElementById('auto-sync-toggle').checked = status.autoSyncEnabled;
+    } else {
+      statusIcon.textContent = 'cloud_off';
+      statusIcon.parentElement.classList.remove('connected');
+      statusTitle.textContent = 'Not Connected';
+      statusSubtitle.textContent = 'Sign in to enable Google Drive backup';
+      signinBtn.style.display = 'inline-flex';
+      signoutBtn.style.display = 'none';
+      syncControls.style.display = 'none';
+    }
+  }
+
+  async handleSyncSignIn() {
+    try {
+      this.showToast('Connecting to Google Drive...', 'info');
+      const result = await window.CloudSyncManager.signIn();
+      
+      if (result.success) {
+        this.showToast('Successfully connected to Google Drive', 'success');
+        await this.updateSyncPage();
+      } else {
+        this.showError('Failed to connect to Google Drive');
+      }
+    } catch (error) {
+      console.error('[App] Sync sign-in error:', error);
+      this.showError('Failed to connect to Google Drive');
+    }
+  }
+
+  async handleSyncSignOut() {
+    try {
+      await window.CloudSyncManager.signOut();
+      this.showToast('Disconnected from Google Drive', 'info');
+      await this.updateSyncPage();
+    } catch (error) {
+      console.error('[App] Sync sign-out error:', error);
+      this.showError('Failed to disconnect');
+    }
+  }
+
+  async handleSyncUpload() {
+    try {
+      this.showToast('Uploading data to Google Drive...', 'info');
+      const result = await window.CloudSyncManager.syncToCloud();
+      
+      if (result.success) {
+        this.showToast('Data successfully uploaded to Google Drive', 'success');
+        await this.updateSyncPage();
+      } else {
+        this.showError('Upload failed - please try again');
+      }
+    } catch (error) {
+      console.error('[App] Sync upload error:', error);
+      this.showError('Failed to upload data to Google Drive');
+    }
+  }
+
+  async handleSyncDownload() {
+    try {
+      this.showToast('Downloading data from Google Drive...', 'info');
+      const result = await window.CloudSyncManager.syncFromCloud();
+      
+      if (result.success) {
+        this.showToast('Data successfully downloaded from Google Drive', 'success');
+        await this.updateSyncPage();
+        await this.updatePageContent(this.currentPage);
+      } else {
+        this.showError('Download failed - please try again');
+      }
+    } catch (error) {
+      console.error('[App] Sync download error:', error);
+      this.showError('Failed to download data from Google Drive');
+    }
+  }
+
+  handleAutoSyncToggle(e) {
+    const enabled = e.target.checked;
+    window.CloudSyncManager.toggleAutoSync(enabled);
+    this.showToast(`Auto-sync ${enabled ? 'enabled' : 'disabled'}`, 'info');
+  }
+
+  calculateDataSize() {
+    const data = window.StorageManager.data;
+    const dataString = JSON.stringify(data);
+    const sizeInBytes = new Blob([dataString]).size;
+    
+    if (sizeInBytes < 1024) return `${sizeInBytes} B`;
+    if (sizeInBytes < 1024 * 1024) return `${Math.round(sizeInBytes / 1024)} KB`;
+    return `${Math.round(sizeInBytes / (1024 * 1024))} MB`;
   }
 
   async updateShiftsPage() {
