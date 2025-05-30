@@ -21,6 +21,10 @@ class SyncManager {
       lastSync: null
     };
     this.server = null;
+    this.serverHost = null;
+    this.serverPort = null;
+    this.httpSyncInterval = null;
+    this.lastSyncTimestamp = 0;
   }
 
   async init() {
@@ -132,18 +136,25 @@ class SyncManager {
       this.updateStatus('connecting', 'Connecting...');
       this.addLogEntry('info', `Connecting to ${host}:${port}`);
       
-      // Try each URL until one works
+      // Try WebSocket first, fall back to HTTP sync
       for (const url of urls) {
         try {
           await this.attemptConnection(url);
-          return; // Success, exit the function
+          return; // WebSocket success
         } catch (error) {
-          console.log(`[Sync] Failed to connect to ${url}:`, error);
+          console.log(`[Sync] WebSocket failed for ${url}:`, error);
         }
       }
       
-      // If we get here, all connection attempts failed
-      throw new Error('All connection attempts failed');
+      // WebSocket failed, use HTTP sync instead
+      this.addLogEntry('info', 'WebSocket unavailable, using HTTP sync');
+      this.serverHost = host;
+      this.serverPort = port;
+      this.isConnected = true;
+      this.updateStatus('online', `HTTP sync to ${host}:${port}`);
+      this.updateButtonStates();
+      this.startHttpSync();
+      this.addLogEntry('success', 'Connected via HTTP sync');
       
     } catch (error) {
       console.error('[Sync] Error connecting to server:', error);
@@ -353,6 +364,49 @@ class SyncManager {
     if (this.syncSettings.realtime) {
       this.applyRealtimeUpdate(message.update);
       this.addLogEntry('info', `Real-time update: ${message.update.type}`);
+    }
+  }
+
+  startHttpSync() {
+    if (this.httpSyncInterval) {
+      clearInterval(this.httpSyncInterval);
+    }
+    
+    this.addLogEntry('info', 'Starting HTTP-based sync');
+    this.httpSyncInterval = setInterval(() => {
+      this.performHttpSync();
+    }, 5000); // Sync every 5 seconds
+  }
+
+  async performHttpSync() {
+    if (!this.serverHost || !this.serverPort) return;
+    
+    try {
+      // Send our data to the server
+      const syncData = this.prepareSyncData(['personnel', 'activity', 'shifts']);
+      const response = await fetch(`http://${this.serverHost}:${this.serverPort}/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(syncData)
+      });
+
+      if (response.ok) {
+        // Get latest data from server
+        const getResponse = await fetch(`http://${this.serverHost}:${this.serverPort}/sync`);
+        if (getResponse.ok) {
+          const serverData = await getResponse.json();
+          if (serverData.data && serverData.timestamp > this.lastSyncTimestamp) {
+            this.applySyncData(serverData.data);
+            this.lastSyncTimestamp = serverData.timestamp;
+            this.stats.lastSync = new Date().toLocaleString();
+            this.updateStats();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Sync] HTTP sync error:', error);
     }
   }
 
