@@ -2144,8 +2144,8 @@ class SecurityApp {
       
       this.showToast('Activity deleted successfully', 'success');
       
-      // Refresh the activity list
-      this.loadActivityList();
+      // Force refresh the entire activity page to ensure display updates
+      await this.updateActivityPage();
 
     } catch (error) {
       console.error('[App] Error deleting activity:', error);
