@@ -73,38 +73,42 @@ class SyncManager {
     try {
       const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
       
-      this.updateStatus('connecting', 'Checking server...');
-      this.addLogEntry('info', `Checking sync server on port ${port}`);
+      this.updateStatus('connecting', 'Starting server...');
+      this.addLogEntry('info', `Starting WebSocket server on port ${port}`);
+      
+      // Check if server is running by making HTTP request
+      const response = await fetch(`http://localhost:${port}/status`).catch(() => null);
+      
+      if (response && response.ok) {
+        this.addLogEntry('error', 'Server already running on this port');
+        this.updateStatus('offline', 'Port already in use');
+        return;
+      }
       
       // Check if our sync server is already running
+      this.addLogEntry('info', 'Checking if sync server is running...');
       try {
-        const response = await Promise.race([
-          fetch(`/sync/status`),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-          )
-        ]);
-        
+        const response = await fetch(`http://localhost:${port}/status`);
         if (response.ok) {
           const data = await response.json();
           this.addLogEntry('success', `Sync server is running with ${data.clients} connected clients`);
           this.addLogEntry('info', 'Use "Connect to Server" to join the network');
           this.updateStatus('offline', 'Server available - Click Connect');
         } else {
-          this.addLogEntry('info', 'Server not responding properly');
-          this.updateStatus('offline', 'Server not available');
+          this.addLogEntry('info', 'No sync server running on this port');
+          this.addLogEntry('info', 'Server is available as a background service');
+          this.updateStatus('offline', 'Server not running');
         }
       } catch (error) {
-        console.log('[Sync] Server check failed:', error.message);
         this.addLogEntry('info', 'No sync server running on this port');
         this.addLogEntry('info', 'Server is available as a background service');
         this.updateStatus('offline', 'Server not running');
       }
       
     } catch (error) {
-      console.error('[Sync] Error checking server:', error);
-      this.addLogEntry('error', 'Failed to check server status');
-      this.updateStatus('offline', 'Error checking server');
+      console.error('[Sync] Error starting server:', error);
+      this.addLogEntry('error', 'Failed to start server');
+      this.updateStatus('offline', 'Disconnected');
     }
   }
 
@@ -112,45 +116,17 @@ class SyncManager {
     try {
       const host = document.getElementById('sync-server-host').value || 'localhost';
       const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
+      const url = `ws://${host}:${port}/sync`;
       
-      // First check if server is accessible
-      this.updateStatus('connecting', 'Checking server...');
-      this.addLogEntry('info', `Checking server at ${host}:${port}`);
-      
-      try {
-        const response = await Promise.race([
-          fetch(`/sync/status`, {
-            method: 'GET'
-          }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          )
-        ]);
-        
-        if (!response.ok) {
-          throw new Error('Server not responding');
-        }
-        
-        const serverInfo = await response.json();
-        this.addLogEntry('success', `Server found with ${serverInfo.clients} connected clients`);
-      } catch (fetchError) {
-        console.log('[Sync] Server check failed:', fetchError.message);
-        this.addLogEntry('error', 'Cannot reach server - check host and port');
-        this.updateStatus('offline', 'Server unreachable');
-        return;
-      }
-      
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const url = `${protocol}//${window.location.host}/sync`;
-      this.updateStatus('connecting', 'Connecting to WebSocket...');
-      this.addLogEntry('info', `Connecting to WebSocket at ${url}`);
+      this.updateStatus('connecting', 'Connecting...');
+      this.addLogEntry('info', `Connecting to ${host}:${port}`);
       
       this.socket = new WebSocket(url);
       
       this.socket.onopen = () => {
         this.isConnected = true;
         this.updateStatus('online', `Connected to ${host}:${port}`);
-        this.addLogEntry('success', 'WebSocket connected successfully');
+        this.addLogEntry('success', 'Connected successfully');
         this.updateButtonStates();
         
         // Send initial handshake
@@ -168,31 +144,23 @@ class SyncManager {
       };
       
       this.socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          this.handleMessage(message);
-        } catch (parseError) {
-          console.error('[Sync] Error parsing message:', parseError);
-          this.addLogEntry('error', 'Failed to parse incoming message');
-        }
+        this.handleMessage(JSON.parse(event.data));
       };
       
-      this.socket.onclose = (event) => {
-        console.log('[Sync] WebSocket closed:', event.code, event.reason);
+      this.socket.onclose = () => {
         this.handleDisconnection();
       };
       
       this.socket.onerror = (error) => {
-        console.error('[Sync] WebSocket error:', error);
-        this.addLogEntry('error', 'WebSocket connection failed');
+        console.error('[Sync] Connection error:', error);
+        this.addLogEntry('error', 'Connection failed - check server address and port');
         this.updateStatus('offline', 'Connection failed');
-        this.handleDisconnection();
       };
       
     } catch (error) {
-      console.error('[Sync] Error in connectToServer:', error);
+      console.error('[Sync] Error connecting to server:', error);
       this.addLogEntry('error', 'Failed to connect to server');
-      this.updateStatus('offline', 'Connection error');
+      this.updateStatus('offline', 'Disconnected');
     }
   }
 

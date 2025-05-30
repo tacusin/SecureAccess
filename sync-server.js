@@ -34,9 +34,8 @@ class SyncServer {
 
     this.server.listen(this.port, '0.0.0.0', () => {
       console.log(`[Sync Server] Running on port ${this.port}`);
-      console.log(`[Sync Server] WebSocket endpoint: ws://0.0.0.0:${this.port}/sync`);
-      console.log(`[Sync Server] HTTP status endpoint: http://0.0.0.0:${this.port}/status`);
-      console.log(`[Sync Server] Server accessible on local network`);
+      console.log(`[Sync Server] WebSocket endpoint: ws://localhost:${this.port}/sync`);
+      console.log(`[Sync Server] HTTP status endpoint: http://localhost:${this.port}/status`);
     });
   }
 
