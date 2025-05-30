@@ -21,6 +21,14 @@ class SecurityApp {
     try {
       console.log('[App] Initializing Secure Access');
       
+      // Unregister any existing service worker to prevent 404 errors
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
       console.log('[App] Service worker registration disabled for development');
       
       // Initialize storage
