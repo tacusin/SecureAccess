@@ -129,14 +129,23 @@ class CloudSyncManager {
     }
 
     try {
+      if (this.fallbackMode) {
+        // In fallback mode, just reset the connection state
+        this.isSignedIn = false;
+        console.log('[Sync] Disconnected from local backup mode');
+        return;
+      }
+
       const authInstance = window.gapi.auth2.getAuthInstance();
       await authInstance.signOut();
       
       this.isSignedIn = false;
-      console.log('[Sync] Successfully signed out from Google Play Games');
+      console.log('[Sync] Successfully signed out from Google Drive');
       
     } catch (error) {
       console.error('[Sync] Sign-out failed:', error);
+      // Force disconnect even if there's an error
+      this.isSignedIn = false;
     }
   }
 
