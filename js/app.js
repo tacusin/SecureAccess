@@ -1813,8 +1813,12 @@ class SecurityApp {
     container.innerHTML = '';
     container.appendChild(fragment);
 
+    // Remove existing event listeners and add new ones
+    container.replaceWith(container.cloneNode(true));
+    const newContainer = document.getElementById('activity-log-list');
+
     // Add event listeners for undo and delete buttons using event delegation
-    container.addEventListener('click', (e) => {
+    newContainer.addEventListener('click', (e) => {
       if (e.target.closest('.undo-btn')) {
         const activityId = e.target.closest('.undo-btn').dataset.activityId;
         this.handleUndoActivity(activityId);
@@ -1825,7 +1829,7 @@ class SecurityApp {
     });
 
     // Add event listener for bulk selection checkboxes
-    container.addEventListener('change', (e) => {
+    newContainer.addEventListener('change', (e) => {
       if (e.target.classList.contains('bulk-select-checkbox')) {
         const activityId = e.target.dataset.activityId;
         this.toggleActivitySelection(activityId);
