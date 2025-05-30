@@ -1,6 +1,6 @@
 /**
  * Secure Access - Main Application
- * Enterprise-grade Progressive Web App for security officers
+ * Enterprise-grade web application for security officers
  */
 
 class SecurityApp {
@@ -21,7 +21,7 @@ class SecurityApp {
     try {
       console.log('[App] Initializing Secure Access');
       
-      // Service worker functionality removed
+      console.log('[App] Service worker registration disabled for development');
       
       // Initialize storage
       await window.StorageManager.init();

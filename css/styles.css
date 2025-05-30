@@ -1945,19 +1945,25 @@ body {
   justify-content: flex-start;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--radius-lg);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--font-size-md);
   transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid transparent;
+  background: linear-gradient(135deg, transparent, transparent);
+  cursor: pointer;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .setting-group .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .setting-group .btn:active {
@@ -1966,35 +1972,43 @@ body {
 }
 
 .setting-group .btn.btn-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-variant)));
-  color: hsl(var(--on-primary));
-  border-color: hsl(var(--primary));
+  background: linear-gradient(135deg, #00E5FF, #00BCD4);
+  color: white;
+  border: 2px solid #00E5FF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .setting-group .btn.btn-primary:hover {
-  background: linear-gradient(135deg, hsl(var(--primary-variant)), hsl(var(--secondary)));
-  border-color: hsl(var(--primary-variant));
+  background: linear-gradient(135deg, #00BCD4, #0097A7);
+  border-color: #00BCD4;
+  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4);
 }
 
 .setting-group .btn.btn-secondary {
-  background: linear-gradient(135deg, hsl(var(--surface-variant)), hsl(var(--outline-variant)));
-  color: hsl(var(--on-surface));
-  border-color: hsl(var(--outline));
+  background: linear-gradient(135deg, #37474F, #455A64);
+  color: #E0F2F1;
+  border: 2px solid #546E7A;
 }
 
 .setting-group .btn.btn-secondary:hover {
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2));
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  background: linear-gradient(135deg, #455A64, #546E7A);
+  border-color: #00E5FF;
+  color: #00E5FF;
+  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.2);
 }
 
 .setting-group .btn .material-icons {
-  font-size: 22px;
-  transition: transform var(--transition-fast);
+  font-size: 24px;
+  transition: all var(--transition-fast);
+  border-radius: 50%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .setting-group .btn:hover .material-icons {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .setting-description {
@@ -2020,14 +2034,26 @@ body {
 }
 
 .debug-section .btn-danger {
-  background: hsl(var(--error));
+  background: linear-gradient(135deg, #F44336, #D32F2F);
   color: white;
-  border-color: hsl(var(--error));
+  border: 2px solid #F44336;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .debug-section .btn-danger:hover {
-  background: hsl(var(--error) / 0.9);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #D32F2F, #B71C1C);
+  border-color: #D32F2F;
+  box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+  transform: translateY(-3px);
+}
+
+.debug-section .btn-danger .material-icons {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.debug-section .btn-danger:hover .material-icons {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1) rotate(-5deg);
 }
 
 @media (max-width: 480px) {
