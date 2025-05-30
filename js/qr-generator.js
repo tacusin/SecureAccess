@@ -13,22 +13,9 @@ class QRGenerator {
   async init() {
     try {
       console.log('[QR] Initializing QR Generator');
-      
-      // Check if QRCode library is available, if not load it
-      if (typeof QRCode === 'undefined') {
-        console.log('[QR] Loading QRCode.js library...');
-        await this.loadQRLibrary();
-      }
-
-      if (typeof QRCode !== 'undefined') {
-        this.isInitialized = true;
-        console.log('[QR] QR Generator initialized successfully');
-        return true;
-      } else {
-        console.warn('[QR] QRCode.js could not be loaded');
-        return false;
-      }
-      
+      this.isInitialized = true;
+      console.log('[QR] QR Generator initialized successfully');
+      return true;
     } catch (error) {
       console.error('[QR] Error initializing QR generator:', error);
       return false;
@@ -37,17 +24,37 @@ class QRGenerator {
 
   async loadQRLibrary() {
     return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      script.onload = () => {
-        console.log('[QR] QRCode.js library loaded successfully');
-        resolve();
+      // Try multiple CDN sources
+      const cdnSources = [
+        'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
+        'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'
+      ];
+      
+      let currentIndex = 0;
+      
+      const tryNextSource = () => {
+        if (currentIndex >= cdnSources.length) {
+          console.error('[QR] All QR library sources failed');
+          reject(new Error('Failed to load QR library from any source'));
+          return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = cdnSources[currentIndex];
+        script.onload = () => {
+          console.log('[QR] QRCode.js library loaded successfully from:', cdnSources[currentIndex]);
+          resolve();
+        };
+        script.onerror = () => {
+          console.warn('[QR] Failed to load from:', cdnSources[currentIndex]);
+          currentIndex++;
+          tryNextSource();
+        };
+        document.head.appendChild(script);
       };
-      script.onerror = () => {
-        console.error('[QR] Failed to load QRCode.js library');
-        reject(new Error('Failed to load QR library'));
-      };
-      document.head.appendChild(script);
+      
+      tryNextSource();
     });
   }
 
@@ -74,16 +81,9 @@ class QRGenerator {
         version: '1.0'
       };
 
-      // Generate QR code as data URL
-      const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
-        width: this.qrSize,
-        margin: 2,
-        color: {
-          dark: '#00E5FF',
-          light: '#FFFFFF'
-        },
-        errorCorrectionLevel: this.errorCorrectionLevel
-      });
+      // Use QR code API service
+      const qrText = JSON.stringify(qrData);
+      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=00E5FF&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
 
       console.log('[QR] QR code generated successfully');
       return qrCodeDataURL;
