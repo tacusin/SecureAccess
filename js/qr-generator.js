@@ -31,14 +31,6 @@ class QRGenerator {
   }
 
   async generatePersonQR(person) {
-    if (!this.isInitialized) {
-      await this.init();
-    }
-
-    if (!this.isInitialized) {
-      throw new Error('QR Code system not available');
-    }
-
     try {
       console.log('[QR] Generating QR code for person:', person.name);
 
@@ -58,7 +50,7 @@ class QRGenerator {
         width: this.qrSize,
         margin: 2,
         color: {
-          dark: '#1976D2',
+          dark: '#00E5FF',
           light: '#FFFFFF'
         },
         errorCorrectionLevel: this.errorCorrectionLevel
