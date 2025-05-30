@@ -395,7 +395,7 @@ class SecurityApp {
       listElement.innerHTML = handovers.map(handover => `
         <div class="handover-item">
           <div class="handover-header">
-            <strong>From: ${handover.fromOfficer}</strong>
+            <strong>From: ${handover.fromOfficer1 || handover.fromOfficer || 'Unknown'} & ${handover.fromOfficer2 || 'Unknown'}</strong>
             <span class="handover-meta">${this.formatTime(handover.timestamp)}</span>
           </div>
           <div class="handover-notes">${handover.notes}</div>
