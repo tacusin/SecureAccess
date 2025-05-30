@@ -166,28 +166,15 @@ class SecurityApp {
     document.getElementById('scan-qr-connect-btn')?.addEventListener('click', () => this.scanSyncQR());
     document.getElementById('clear-sync-log-btn')?.addEventListener('click', () => this.clearSyncLog());
     
-    // Settings button - with retry to ensure DOM is ready
-    const addSettingsListener = () => {
-      const settingsBtn = document.getElementById('settings-btn');
-      if (settingsBtn) {
-        console.log('[App] Settings button found, adding event listener');
-        settingsBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('[App] Settings button clicked');
-          this.showSettingsMenu();
-        });
-        return true;
-      } else {
-        console.warn('[App] Settings button not found, retrying...');
-        return false;
+    // Settings button - using event delegation
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'settings-btn' || e.target.closest('#settings-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[App] Settings button clicked via delegation');
+        this.showSettingsMenu();
       }
-    };
-    
-    // Try immediately, then retry if needed
-    if (!addSettingsListener()) {
-      setTimeout(() => addSettingsListener(), 500);
-    }
+    });
     
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
