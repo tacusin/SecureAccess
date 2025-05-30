@@ -24,8 +24,15 @@ class SecurityApp {
       // Unregister any existing service worker to prevent 404 errors
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
+          if (registrations.length > 0) {
+            console.log('[App] Unregistering', registrations.length, 'service worker(s)');
+            for(let registration of registrations) {
+              registration.unregister().then(function(success) {
+                if (success) {
+                  console.log('[App] Service worker unregistered successfully');
+                }
+              });
+            }
           }
         });
       }
