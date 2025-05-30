@@ -68,6 +68,10 @@ class DashboardManager {
       return;
     }
     
+    // Set explicit canvas dimensions to prevent growing
+    canvas.style.maxWidth = '100%';
+    canvas.style.maxHeight = '250px';
+    
     const ctx = canvas.getContext('2d');
     const occupancyData = this.getOccupancyTrendData();
     
@@ -142,6 +146,10 @@ class DashboardManager {
       console.warn('[Dashboard] Duration chart canvas not found');
       return;
     }
+    
+    // Set explicit canvas dimensions to prevent growing
+    canvas.style.maxWidth = '100%';
+    canvas.style.maxHeight = '250px';
     
     const ctx = canvas.getContext('2d');
     const durationData = this.getVisitDurationData();
