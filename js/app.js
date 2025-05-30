@@ -21,8 +21,7 @@ class SecurityApp {
     try {
       console.log('[App] Initializing Secure Access');
       
-      // Register service worker
-      await this.registerServiceWorker();
+      // Service worker functionality removed
       
       // Initialize storage
       await window.StorageManager.init();
@@ -57,36 +56,7 @@ class SecurityApp {
     }
   }
 
-  async registerServiceWorker() {
-    // Temporarily disabled during development to avoid cache issues
-    console.log('[App] Service worker registration disabled for development');
-    return;
-    
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('[App] Service Worker registered:', registration);
-        
-        // Handle service worker updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              this.showToast('App update available. Refresh to update.', 'info');
-            }
-          });
-        });
-        
-        // Listen for messages from service worker
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          this.handleServiceWorkerMessage(event.data);
-        });
-        
-      } catch (error) {
-        console.error('[App] Service Worker registration failed:', error);
-      }
-    }
-  }
+
 
   setupEventListeners() {
     // Navigation
@@ -1400,15 +1370,7 @@ class SecurityApp {
     }
   }
 
-  handleServiceWorkerMessage(data) {
-    switch (data.type) {
-      case 'SYNC_COMPLETE':
-        this.showToast(`Synced ${data.data.synced} items`, 'success');
-        break;
-      default:
-        console.log('[App] Unknown service worker message:', data);
-    }
-  }
+
 
   formatTimestamp(timestamp) {
     return new Date(timestamp).toLocaleString();

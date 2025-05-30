@@ -1945,10 +1945,56 @@ body {
   justify-content: flex-start;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+}
+
+.setting-group .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.setting-group .btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.setting-group .btn.btn-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-variant)));
+  color: hsl(var(--on-primary));
+  border-color: hsl(var(--primary));
+}
+
+.setting-group .btn.btn-primary:hover {
+  background: linear-gradient(135deg, hsl(var(--primary-variant)), hsl(var(--secondary)));
+  border-color: hsl(var(--primary-variant));
+}
+
+.setting-group .btn.btn-secondary {
+  background: linear-gradient(135deg, hsl(var(--surface-variant)), hsl(var(--outline-variant)));
+  color: hsl(var(--on-surface));
+  border-color: hsl(var(--outline));
+}
+
+.setting-group .btn.btn-secondary:hover {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
 }
 
 .setting-group .btn .material-icons {
-  font-size: 20px;
+  font-size: 22px;
+  transition: transform var(--transition-fast);
+}
+
+.setting-group .btn:hover .material-icons {
+  transform: scale(1.1);
 }
 
 .setting-description {
