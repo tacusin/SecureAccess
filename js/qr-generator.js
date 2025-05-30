@@ -127,19 +127,30 @@ class QRGenerator {
 
       const qrText = JSON.stringify(syncData);
       
-      // Test if we can access the QR service
+      // Use the same QR generation method as personnel QR codes
       let qrCodeDataURL;
       try {
-        qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
-        
-        // Test the URL accessibility
-        const testResponse = await fetch(qrCodeDataURL, { method: 'HEAD' });
-        if (!testResponse.ok) {
-          throw new Error('QR service not accessible');
+        if (typeof QRCode !== 'undefined') {
+          // Use QRCode library like personnel QR generation
+          const canvas = document.createElement('canvas');
+          await QRCode.toCanvas(canvas, qrText, {
+            width: this.qrSize,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            },
+            errorCorrectionLevel: this.errorCorrectionLevel
+          });
+          qrCodeDataURL = canvas.toDataURL();
+          console.log('[QR] QR code generated using QRCode library');
+        } else {
+          // Fallback to external service
+          qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+          console.log('[QR] QR code generated using external service');
         }
       } catch (serviceError) {
-        console.warn('[QR] External QR service not accessible, using text fallback');
-        // If the service fails, we'll display connection info without QR image
+        console.warn('[QR] QR generation failed, using connection info only');
         qrCodeDataURL = null;
       }
 
