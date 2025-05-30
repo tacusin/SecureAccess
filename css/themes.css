@@ -33,9 +33,9 @@
   --primary-variant: 188 75% 30%; /* Darker muted cyan */
   --secondary: 200 25% 35%; /* Soft blue-gray */
   --secondary-variant: 200 30% 25%; /* Darker blue-gray */
-  --background: 200 15% 88%; /* Warm light gray */
-  --surface: 0 0% 95%; /* Very light gray, not white */
-  --surface-variant: 200 10% 90%; /* Soft gray variant */
+  --background: 210 35% 75%; /* Darker blue-gray */
+  --surface: 210 25% 85%; /* Light blue-gray */
+  --surface-variant: 210 20% 80%; /* Medium blue-gray variant */
   --error: 4 70% 50%; /* Softer red */
   --warning: 38 85% 55%; /* Softer orange */
   --success: 122 35% 45%; /* Muted green */
