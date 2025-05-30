@@ -50,14 +50,22 @@ class CloudSyncManager {
   }
 
   async loadGoogleAPI() {
+    // Load Google Identity Services (new authentication library)
     return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
-      script.onload = () => {
-        window.gapi.load('client:auth2', resolve);
+      const gisScript = document.createElement('script');
+      gisScript.src = 'https://accounts.google.com/gsi/client';
+      gisScript.onload = () => {
+        // Then load the API client
+        const apiScript = document.createElement('script');
+        apiScript.src = 'https://apis.google.com/js/api.js';
+        apiScript.onload = () => {
+          window.gapi.load('client', resolve);
+        };
+        apiScript.onerror = reject;
+        document.head.appendChild(apiScript);
       };
-      script.onerror = reject;
-      document.head.appendChild(script);
+      gisScript.onerror = reject;
+      document.head.appendChild(gisScript);
     });
   }
 
@@ -73,26 +81,25 @@ class CloudSyncManager {
     console.log('[Sync] Initializing with API Key:', apiKey.substring(0, 10) + '...');
     console.log('[Sync] Initializing with Client ID:', clientId.substring(0, 20) + '...');
     
-    // Initialize auth2 first
-    await new Promise((resolve, reject) => {
-      window.gapi.load('auth2', () => {
-        window.gapi.auth2.init({
-          client_id: clientId,
-          scope: 'https://www.googleapis.com/auth/drive.file'
-        }).then(resolve).catch(reject);
-      });
+    // Initialize Google API client
+    await window.gapi.client.init({
+      apiKey: apiKey,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
     });
     
-    // Then initialize client
-    await new Promise((resolve, reject) => {
-      window.gapi.load('client', () => {
-        window.gapi.client.init({
-          apiKey: apiKey,
-          clientId: clientId,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          scope: 'https://www.googleapis.com/auth/drive.file'
-        }).then(resolve).catch(reject);
-      });
+    // Initialize Google Identity Services for authentication
+    this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: (response) => {
+        if (response.error !== undefined) {
+          throw response;
+        }
+        this.accessToken = response.access_token;
+        window.gapi.client.setToken({access_token: this.accessToken});
+        this.isSignedIn = true;
+        console.log('[Sync] Successfully authenticated with Google Drive');
+      }
     });
   }
 
