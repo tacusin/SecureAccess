@@ -84,6 +84,16 @@ const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  
+  // Add Content Security Policy to allow Google APIs
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://content.googleapis.com; " +
+    "frame-src 'self' https://accounts.google.com https://content.googleapis.com; " +
+    "connect-src 'self' https://accounts.google.com https://content.googleapis.com https://www.googleapis.com; " +
+    "img-src 'self' data: https:; " +
+    "style-src 'self' 'unsafe-inline';"
+  );
 
   const parsedUrl = url.parse(req.url);
   let pathname = parsedUrl.pathname;
