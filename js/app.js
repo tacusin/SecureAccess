@@ -157,6 +157,15 @@ class SecurityApp {
     document.getElementById('end-shift-btn')?.addEventListener('click', () => this.handleEndShift());
     document.getElementById('handover-btn')?.addEventListener('click', () => this.showHandoverModal());
     
+    // Sync management buttons
+    document.getElementById('enable-sync-btn')?.addEventListener('click', () => this.enableSync());
+    document.getElementById('disable-sync-btn')?.addEventListener('click', () => this.disableSync());
+    document.getElementById('start-server-btn')?.addEventListener('click', () => this.startSyncServer());
+    document.getElementById('stop-server-btn')?.addEventListener('click', () => this.stopSyncServer());
+    document.getElementById('connect-btn')?.addEventListener('click', () => this.connectToSyncServer());
+    document.getElementById('scan-qr-connect-btn')?.addEventListener('click', () => this.scanSyncQR());
+    document.getElementById('clear-sync-log-btn')?.addEventListener('click', () => this.clearSyncLog());
+    
     // Prevent default touch behaviors on buttons
     document.querySelectorAll('button').forEach(button => {
       button.addEventListener('touchstart', (e) => {
@@ -310,6 +319,12 @@ class SecurityApp {
         if (window.EmergencyManager) {
           await window.EmergencyManager.updateContent();
         }
+        break;
+      case 'activity':
+        await this.updateActivityPage();
+        break;
+      case 'sync':
+        await this.updateSyncPage();
         break;
     }
   }
@@ -2315,3 +2330,171 @@ window.addEventListener('unhandledrejection', (event) => {
     window.app.showError('An unexpected error occurred. Please try again.');
   }
 });
+
+// Network Sync Management Methods
+SecurityApp.prototype.updateSyncPage = async function() {
+  if (!window.SyncClient) return;
+  
+  const status = window.SyncClient.getStatus();
+  this.updateSyncUI(status);
+  this.loadSyncActivityLog();
+};
+
+SecurityApp.prototype.updateSyncUI = function(status) {
+  const enableBtn = document.getElementById('enable-sync-btn');
+  const disableBtn = document.getElementById('disable-sync-btn');
+  const serverControls = document.getElementById('server-controls');
+  const clientControls = document.getElementById('client-controls');
+  const startServerBtn = document.getElementById('start-server-btn');
+  const stopServerBtn = document.getElementById('stop-server-btn');
+
+  if (status.enabled) {
+    enableBtn.style.display = 'none';
+    disableBtn.style.display = 'inline-flex';
+    serverControls.style.display = 'block';
+    clientControls.style.display = 'block';
+  } else {
+    enableBtn.style.display = 'inline-flex';
+    disableBtn.style.display = 'none';
+    serverControls.style.display = 'none';
+    clientControls.style.display = 'none';
+  }
+
+  if (status.isServer) {
+    startServerBtn.style.display = 'none';
+    stopServerBtn.style.display = 'inline-flex';
+    clientControls.style.display = 'none';
+  } else {
+    startServerBtn.style.display = 'inline-flex';
+    stopServerBtn.style.display = 'none';
+  }
+};
+
+SecurityApp.prototype.enableSync = function() {
+  if (window.SyncClient) {
+    window.SyncClient.enableSync();
+    this.showToast('Network sync enabled', 'success');
+    this.updateSyncPage();
+  }
+};
+
+SecurityApp.prototype.disableSync = function() {
+  if (window.SyncClient) {
+    window.SyncClient.disableSync();
+    this.showToast('Network sync disabled', 'info');
+    this.updateSyncPage();
+  }
+};
+
+SecurityApp.prototype.startSyncServer = async function() {
+  if (window.SyncClient) {
+    try {
+      await window.SyncClient.startAsServer();
+      this.updateSyncPage();
+    } catch (error) {
+      this.showError('Failed to start sync server: ' + error.message);
+    }
+  }
+};
+
+SecurityApp.prototype.stopSyncServer = function() {
+  if (window.SyncClient) {
+    window.SyncClient.disconnect();
+    this.showToast('Sync server stopped', 'info');
+    this.updateSyncPage();
+  }
+};
+
+SecurityApp.prototype.connectToSyncServer = function() {
+  const serverIpInput = document.getElementById('server-ip-input');
+  const serverUrl = serverIpInput.value.trim();
+  
+  if (!serverUrl) {
+    this.showError('Please enter a server IP address');
+    return;
+  }
+
+  const wsUrl = serverUrl.startsWith('ws://') ? serverUrl : `ws://${serverUrl}`;
+  
+  if (window.SyncClient) {
+    window.SyncClient.connectToServer(wsUrl);
+    this.showToast('Connecting to sync server...', 'info');
+  }
+};
+
+SecurityApp.prototype.scanSyncQR = async function() {
+  if (window.CameraManager) {
+    try {
+      const qrData = await window.CameraManager.scanQRCode();
+      if (qrData && qrData.startsWith('ws://')) {
+        document.getElementById('server-ip-input').value = qrData;
+        this.connectToSyncServer();
+      } else {
+        this.showError('Invalid sync QR code');
+      }
+    } catch (error) {
+      this.showError('Failed to scan QR code: ' + error.message);
+    }
+  }
+};
+
+SecurityApp.prototype.clearSyncLog = function() {
+  const logContainer = document.getElementById('sync-activity-log');
+  if (logContainer) {
+    logContainer.innerHTML = '<div class="sync-log-empty">Sync activity log cleared</div>';
+  }
+  this.showToast('Sync log cleared', 'success');
+};
+
+SecurityApp.prototype.loadSyncActivityLog = function() {
+  const container = document.getElementById('sync-activity-log');
+  if (!container) return;
+
+  const activities = window.StorageManager.getActivityLog(100).filter(activity => 
+    activity.action.includes('sync') || activity.action.includes('_sync')
+  );
+
+  if (activities.length === 0) {
+    container.innerHTML = '<div class="sync-log-empty">No sync activity yet</div>';
+    return;
+  }
+
+  const logHtml = activities.map(activity => `
+    <div class="sync-log-item">
+      <div class="sync-log-icon">
+        <span class="material-icons">${this.getSyncEventIcon(activity.action)}</span>
+      </div>
+      <div class="sync-log-details">
+        <div class="sync-log-action">${this.formatSyncAction(activity.action)}</div>
+        <div class="sync-log-data">${this.formatSyncData(activity.data)}</div>
+        <div class="sync-log-time">${new Date(activity.timestamp).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = logHtml;
+};
+
+SecurityApp.prototype.getSyncEventIcon = function(action) {
+  if (action.includes('check_in')) return 'login';
+  if (action.includes('check_out')) return 'logout';
+  if (action.includes('personnel')) return 'person';
+  if (action.includes('emergency')) return 'warning';
+  if (action.includes('shift')) return 'schedule';
+  return 'sync';
+};
+
+SecurityApp.prototype.formatSyncAction = function(action) {
+  return action.replace(/_/g, ' ').replace(/sync/g, '').trim().toUpperCase();
+};
+
+SecurityApp.prototype.formatSyncData = function(data) {
+  if (data.name) return `${data.name}`;
+  if (data.syncedFrom) return `From: ${data.syncedFrom}`;
+  return 'System event';
+};
+
+SecurityApp.prototype.emitSyncEvent = function(eventType, data) {
+  const event = new CustomEvent(eventType, { detail: data });
+  window.dispatchEvent(event);
+};
