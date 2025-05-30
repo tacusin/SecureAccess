@@ -126,7 +126,22 @@ class QRGenerator {
       };
 
       const qrText = JSON.stringify(syncData);
-      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+      
+      // Test if we can access the QR service
+      let qrCodeDataURL;
+      try {
+        qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+        
+        // Test the URL accessibility
+        const testResponse = await fetch(qrCodeDataURL, { method: 'HEAD' });
+        if (!testResponse.ok) {
+          throw new Error('QR service not accessible');
+        }
+      } catch (serviceError) {
+        console.warn('[QR] External QR service not accessible, using text fallback');
+        // If the service fails, we'll display connection info without QR image
+        qrCodeDataURL = null;
+      }
 
       console.log('[QR] Sync host QR code generated successfully');
       console.log('[QR] QR code URL:', qrCodeDataURL);
@@ -243,7 +258,9 @@ class QRGenerator {
 
   async showSyncHostQRModal() {
     try {
+      console.log('[QR] Starting sync host QR modal generation');
       const qrResult = await this.generateSyncHostQR();
+      console.log('[QR] QR result generated:', qrResult);
       
       const modalContent = `
         <div class="qr-modal">
@@ -258,11 +275,17 @@ class QRGenerator {
               <p>Other devices can connect using this address:</p>
               <h4>QR Code</h4>
               <div class="qr-code-display">
-                <img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div class="qr-error" style="display: none;">
-                  <span class="material-icons">qr_code</span>
-                  <p>QR Code unavailable</p>
-                </div>
+                ${qrResult.dataURL ? 
+                  `<img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                   <div class="qr-error" style="display: none;">
+                     <span class="material-icons">qr_code</span>
+                     <p>QR Code unavailable</p>
+                   </div>` :
+                  `<div class="qr-error">
+                     <span class="material-icons">qr_code</span>
+                     <p>QR service unavailable<br>Use connection string below</p>
+                   </div>`
+                }
               </div>
               <div class="connection-string">
                 <strong>${qrResult.connectionString}</strong>
@@ -408,9 +431,11 @@ class QRGenerator {
 
     } catch (error) {
       console.error('[QR] Error showing sync host QR modal:', error);
+      console.error('[QR] Error details:', error.message, error.stack);
       if (window.app) {
-        window.app.showError('Failed to generate sync host QR code');
+        window.app.showError('Failed to generate sync host QR code: ' + (error.message || 'Unknown error'));
       }
+      throw error; // Re-throw to help with debugging
     }
   }
 
