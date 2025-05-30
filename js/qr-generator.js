@@ -273,6 +273,12 @@ class QRGenerator {
       const qrResult = await this.generateSyncHostQR();
       console.log('[QR] QR result generated:', qrResult);
       
+      if (!qrResult) {
+        throw new Error('QR result is null or undefined');
+      }
+      
+      console.log('[QR] Building modal content...');
+      
       const modalContent = `
         <div class="qr-modal">
           <div class="modal-header">
@@ -432,10 +438,17 @@ class QRGenerator {
       `;
 
       // Show modal
+      console.log('[QR] Displaying modal...');
       const modalOverlay = document.getElementById('modal-overlay');
       const modalContentEl = document.getElementById('modal-content');
+      
+      if (!modalOverlay || !modalContentEl) {
+        throw new Error('Modal elements not found in DOM');
+      }
+      
       modalContentEl.innerHTML = syncQrStyles + modalContent;
       modalOverlay.classList.remove('hidden');
+      console.log('[QR] Modal displayed successfully');
 
       // Store current sync QR data for actions
       this.currentSyncQR = qrResult;
