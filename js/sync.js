@@ -92,16 +92,20 @@ class SyncManager {
         if (response.ok) {
           const data = await response.json();
           this.addLogEntry('success', `Sync server is running with ${data.clients} connected clients`);
-          this.addLogEntry('info', 'Use "Connect to Server" to join the network');
-          this.updateStatus('offline', 'Server available - Click Connect');
+          this.addLogEntry('info', 'Server is ready for connections');
+          this.updateStatus('offline', 'Server ready - Click Connect');
+          
+          // Start HTTP-based sync as fallback
+          this.serverHost = 'localhost';
+          this.serverPort = port;
+          this.startHttpSync();
         } else {
-          this.addLogEntry('info', 'No sync server running on this port');
-          this.addLogEntry('info', 'Server is available as a background service');
-          this.updateStatus('offline', 'Server not running');
+          this.addLogEntry('warning', 'Sync server not responding');
+          this.updateStatus('offline', 'Server not available');
         }
       } catch (error) {
-        this.addLogEntry('info', 'No sync server running on this port');
-        this.addLogEntry('info', 'Server is available as a background service');
+        this.addLogEntry('warning', 'No sync server running on this port');
+        this.addLogEntry('info', 'Start the sync server to enable network synchronization');
         this.updateStatus('offline', 'Server not running');
       }
       

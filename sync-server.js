@@ -25,7 +25,8 @@ class SyncServer {
     // Create WebSocket server
     this.wss = new WebSocket.Server({ 
       server: this.server,
-      path: '/sync'
+      path: '/sync',
+      perMessageDeflate: false
     });
 
     this.wss.on('connection', (ws, req) => {
@@ -62,6 +63,16 @@ class SyncServer {
       return;
     }
 
+    if (req.url === '/sync' && req.method === 'POST') {
+      this.handleHttpSync(req, res);
+      return;
+    }
+
+    if (req.url === '/sync' && req.method === 'GET') {
+      this.handleHttpSyncGet(req, res);
+      return;
+    }
+
     res.writeHead(404);
     res.end('Not Found');
   }
@@ -71,8 +82,8 @@ class SyncServer {
     const clientInfo = {
       id: clientId,
       ws: ws,
-      ip: req.socket.remoteAddress,
-      userAgent: req.headers['user-agent'],
+      ip: req.socket.remoteAddress || req.connection.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
       connectedAt: new Date(),
       lastSeen: new Date()
     };
@@ -251,6 +262,39 @@ class SyncServer {
         lastSeen: c.lastSeen
       }))
     };
+  }
+
+  handleHttpSync(req, res) {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        // Store sync data temporarily
+        this.lastSyncData = data;
+        this.lastSyncTime = Date.now();
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, timestamp: this.lastSyncTime }));
+        
+        console.log(`[Sync Server] HTTP sync data received from ${req.socket.remoteAddress}`);
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+  }
+
+  handleHttpSyncGet(req, res) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      data: this.lastSyncData || null,
+      timestamp: this.lastSyncTime || null,
+      clients: this.clients.size
+    }));
   }
 
   stop() {
