@@ -70,24 +70,24 @@ class ReportsManager {
       const personnel = window.StorageManager.getAllPersonnel();
 
       const personnelStats = personnel.map(person => {
-        const personActivities = activities.filter(a => a.data.personnelId === person.id);
+        const personActivities = activities.filter(a => a.data && a.data.personnelId === person.id);
         const checkIns = personActivities.filter(a => a.action === 'check_in');
         const checkOuts = personActivities.filter(a => a.action === 'check_out');
         
         const totalTime = checkOuts.reduce((sum, checkout) => {
-          return sum + (checkout.data.duration || 0);
+          return sum + (checkout.data && checkout.data.duration ? checkout.data.duration : 0);
         }, 0);
 
         return {
           id: person.id,
-          name: person.name,
-          role: person.role,
-          company: person.company,
+          name: person.name || 'Unknown',
+          role: person.role || 'visitor',
+          company: person.company || 'N/A',
           totalVisits: checkIns.length,
           totalTimeSpent: totalTime,
           averageVisitDuration: checkIns.length > 0 ? totalTime / checkIns.length : 0,
-          lastVisit: person.lastActivity,
-          status: person.status,
+          lastVisit: person.lastActivity || 'Never',
+          status: person.status || 'checked_out',
           compliance: { isCompliant: true, issues: [] }
         };
       });
@@ -115,8 +115,8 @@ class ReportsManager {
       return report;
 
     } catch (error) {
-      console.error('[Reports] Error generating personnel activity report:', error);
-      throw new Error('Failed to generate personnel activity report');
+      console.error('[Reports] Error generating personnel activity report:', error.message, error.stack);
+      throw error;
     }
   }
 
