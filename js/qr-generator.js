@@ -441,38 +441,45 @@ class QRGenerator {
 
     try {
       const person = this.currentQR.person;
+      const fileName = `qr-code-${person.name.replace(/\s+/g, '-').toLowerCase()}.png`;
 
-      // Check if Web Share API is available
-      if (navigator.share) {
-        // Convert data URL to blob for sharing
-        const response = await fetch(this.currentQR.dataURL);
-        const blob = await response.blob();
-        const file = new File([blob], `qr-code-${person.name}.png`, { type: 'image/png' });
+      // Check if Web Share API is available and supports files
+      if (navigator.share && navigator.canShare) {
+        try {
+          // Convert QR code URL to blob
+          const response = await fetch(this.currentQR.dataURL);
+          const blob = await response.blob();
+          const file = new File([blob], fileName, { type: 'image/png' });
 
-        await navigator.share({
-          title: `QR Code - ${person.name}`,
-          text: `QR code for ${person.name} (${person.role})`,
-          files: [file]
-        });
+          // Check if files can be shared
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: `QR Code - ${person.name}`,
+              text: `QR code for ${person.name} (${person.role})`,
+              files: [file]
+            });
 
-        if (window.app) {
-          window.app.showToast('QR code shared successfully', 'success');
+            if (window.app) {
+              window.app.showToast('QR code shared successfully', 'success');
+            }
+            return;
+          }
+        } catch (shareError) {
+          console.log('[QR] Web Share API failed, falling back to download');
         }
-      } else {
-        // Fallback: copy QR code data to clipboard
-        const qrData = {
-          type: 'person',
-          id: person.id,
-          name: person.name,
-          role: person.role,
-          company: person.company || ''
-        };
+      }
 
-        await navigator.clipboard.writeText(JSON.stringify(qrData));
-        
-        if (window.app) {
-          window.app.showToast('QR code data copied to clipboard', 'success');
-        }
+      // Fallback: Download the image directly
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = this.currentQR.dataURL;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      if (window.app) {
+        window.app.showToast('QR code image saved to device', 'success');
       }
 
     } catch (error) {
