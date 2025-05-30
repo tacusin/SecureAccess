@@ -10,6 +10,8 @@ class SecurityApp {
     this.lastSaveTime = null;
     this.currentTheme = localStorage.getItem('theme') || 'dark';
     this.isNavOpen = false;
+    this.bulkSelectMode = false;
+    this.selectedActivityIds = new Set();
     
     // Initialize app
     this.init();
@@ -146,7 +148,8 @@ class SecurityApp {
     
     // Activity log controls
     document.getElementById('clear-activity-btn')?.addEventListener('click', () => this.handleClearActivityLog());
-    document.getElementById('export-activity-btn')?.addEventListener('click', () => this.handleExportActivityLog());
+    document.getElementById('bulk-select-btn')?.addEventListener('click', () => this.toggleBulkSelect());
+    document.getElementById('bulk-delete-btn')?.addEventListener('click', () => this.handleBulkDelete());
     document.getElementById('apply-filters-btn')?.addEventListener('click', () => this.applyActivityFilters());
     
     // Shift management buttons
@@ -2090,17 +2093,65 @@ class SecurityApp {
     }
   }
 
-  async handleExportActivityLog() {
+  toggleBulkSelect() {
+    this.bulkSelectMode = !this.bulkSelectMode;
+    this.selectedActivityIds.clear();
+    
+    const selectBtn = document.getElementById('bulk-select-btn');
+    const deleteBtn = document.getElementById('bulk-delete-btn');
+    const selectIcon = selectBtn.querySelector('.material-icons');
+    
+    if (this.bulkSelectMode) {
+      selectBtn.textContent = '';
+      selectBtn.appendChild(selectIcon);
+      selectBtn.append(' Cancel Selection');
+      selectIcon.textContent = 'cancel';
+      deleteBtn.style.display = 'inline-flex';
+    } else {
+      selectBtn.textContent = '';
+      selectBtn.appendChild(selectIcon);
+      selectBtn.append(' Select Items');
+      selectIcon.textContent = 'check_box';
+      deleteBtn.style.display = 'none';
+    }
+    
+    // Refresh the activity list to show/hide checkboxes
+    this.loadActivityList();
+  }
+
+  async handleBulkDelete() {
+    if (this.selectedActivityIds.size === 0) {
+      this.showToast('No items selected for deletion', 'warning');
+      return;
+    }
+
+    const confirmed = await this.showConfirmDialog(
+      'Delete Selected Activities',
+      `Are you sure you want to permanently delete ${this.selectedActivityIds.size} selected activity records? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
     try {
-      const activities = window.StorageManager.getActivityLog(10000);
-      const filtered = this.applyCurrentFilters(activities);
+      const allActivities = window.StorageManager.getActivityLog(10000);
+      const updatedActivities = allActivities.filter(a => !this.selectedActivityIds.has(a.id));
       
-      await window.ExportManager.exportActivitiesCSV(filtered);
-      this.showToast('Activity log exported successfully', 'success');
+      console.log(`[App] Bulk deleting: ${allActivities.length} -> ${updatedActivities.length} activities`);
+      
+      // Update storage
+      window.StorageManager.data.activities = updatedActivities;
+      await window.StorageManager.saveToStorage();
+      
+      // Reset selection mode
+      this.selectedActivityIds.clear();
+      this.toggleBulkSelect();
+      
+      this.showToast(`Successfully deleted ${this.selectedActivityIds.size} activity records`, 'success');
+      await this.updateActivityPage();
 
     } catch (error) {
-      console.error('[App] Error exporting activity log:', error);
-      this.showError('Failed to export activity log');
+      console.error('[App] Error during bulk delete:', error);
+      this.showError('Failed to delete selected activities');
     }
   }
 
