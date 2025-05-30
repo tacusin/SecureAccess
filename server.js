@@ -1,15 +1,15 @@
 /**
- * Secure Access - WebSocket Sync Server
- * Node.js server for real-time synchronization between devices
+ * Secure Access - Integrated Server with WebSocket Support
+ * Combines HTTP server for the app with WebSocket server for sync
  */
 
-const WebSocket = require('ws');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const WebSocket = require('ws');
 
-class SyncServer {
-  constructor(port = 8080) {
+class IntegratedServer {
+  constructor(port = 5000) {
     this.port = port;
     this.clients = new Map();
     this.server = null;
@@ -17,26 +17,24 @@ class SyncServer {
   }
 
   start() {
-    // Create HTTP server for static files
+    // Create HTTP server
     this.server = http.createServer((req, res) => {
       this.handleHttpRequest(req, res);
     });
 
-    // Create WebSocket server
+    // Create WebSocket server on the same port
     this.wss = new WebSocket.Server({ 
       server: this.server,
       path: '/sync'
     });
 
     this.wss.on('connection', (ws, req) => {
-      this.handleConnection(ws, req);
+      this.handleSyncConnection(ws, req);
     });
 
     this.server.listen(this.port, '0.0.0.0', () => {
-      console.log(`[Sync Server] Running on port ${this.port}`);
-      console.log(`[Sync Server] WebSocket endpoint: ws://0.0.0.0:${this.port}/sync`);
-      console.log(`[Sync Server] HTTP status endpoint: http://0.0.0.0:${this.port}/status`);
-      console.log(`[Sync Server] Server accessible on local network`);
+      console.log(`[Server] Running on port ${this.port}`);
+      console.log(`[Server] WebSocket sync endpoint: ws://localhost:${this.port}/sync`);
     });
   }
 
@@ -52,7 +50,8 @@ class SyncServer {
       return;
     }
 
-    if (req.url === '/status') {
+    // Handle sync status endpoint
+    if (req.url === '/sync/status') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         status: 'running',
@@ -62,11 +61,54 @@ class SyncServer {
       return;
     }
 
-    res.writeHead(404);
-    res.end('Not Found');
+    // Serve static files
+    this.serveStaticFile(req, res);
   }
 
-  handleConnection(ws, req) {
+  serveStaticFile(req, res) {
+    let filePath = '.' + req.url;
+    if (filePath === './') {
+      filePath = './index.html';
+    }
+
+    const extname = String(path.extname(filePath)).toLowerCase();
+    const mimeTypes = {
+      '.html': 'text/html',
+      '.js': 'text/javascript',
+      '.css': 'text/css',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.wav': 'audio/wav',
+      '.mp4': 'video/mp4',
+      '.woff': 'application/font-woff',
+      '.ttf': 'application/font-ttf',
+      '.eot': 'application/vnd.ms-fontobject',
+      '.otf': 'application/font-otf',
+      '.wasm': 'application/wasm'
+    };
+
+    const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+    fs.readFile(filePath, (error, content) => {
+      if (error) {
+        if(error.code == 'ENOENT') {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end('File not found', 'utf-8');
+        } else {
+          res.writeHead(500);
+          res.end('Server error: ' + error.code + ' ..\n');
+        }
+      } else {
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content, 'utf-8');
+      }
+    });
+  }
+
+  handleSyncConnection(ws, req) {
     const clientId = this.generateClientId();
     const clientInfo = {
       id: clientId,
@@ -78,18 +120,18 @@ class SyncServer {
     };
 
     this.clients.set(clientId, clientInfo);
-    console.log(`[Sync Server] Client connected: ${clientId} from ${clientInfo.ip}`);
+    console.log(`[Sync] Client connected: ${clientId} from ${clientInfo.ip}`);
 
     ws.on('message', (data) => {
-      this.handleMessage(clientId, data);
+      this.handleSyncMessage(clientId, data);
     });
 
     ws.on('close', () => {
-      this.handleDisconnection(clientId);
+      this.handleSyncDisconnection(clientId);
     });
 
     ws.on('error', (error) => {
-      console.error(`[Sync Server] Client error ${clientId}:`, error);
+      console.error(`[Sync] Client error ${clientId}:`, error);
     });
 
     // Send welcome message
@@ -102,6 +144,9 @@ class SyncServer {
       }
     });
 
+    // Send client list
+    this.sendClientList(clientId);
+
     // Notify other clients
     this.broadcastToOthers(clientId, {
       type: 'client_connected',
@@ -113,7 +158,7 @@ class SyncServer {
     });
   }
 
-  handleMessage(clientId, data) {
+  handleSyncMessage(clientId, data) {
     try {
       const message = JSON.parse(data.toString());
       const client = this.clients.get(clientId);
@@ -121,8 +166,6 @@ class SyncServer {
       if (!client) return;
 
       client.lastSeen = new Date();
-
-      console.log(`[Sync Server] Message from ${clientId}:`, message.type);
 
       switch (message.type) {
         case 'handshake':
@@ -141,11 +184,11 @@ class SyncServer {
           this.sendToClient(clientId, { type: 'pong' });
           break;
         default:
-          console.warn(`[Sync Server] Unknown message type: ${message.type}`);
+          console.warn(`[Sync] Unknown message type: ${message.type}`);
       }
 
     } catch (error) {
-      console.error(`[Sync Server] Error handling message from ${clientId}:`, error);
+      console.error(`[Sync] Error handling message from ${clientId}:`, error);
     }
   }
 
@@ -156,7 +199,49 @@ class SyncServer {
       client.deviceInfo = message.deviceInfo;
     }
 
-    // Send client list to the new client
+    this.sendClientList(clientId);
+  }
+
+  handleSyncData(clientId, message) {
+    this.broadcastToOthers(clientId, {
+      type: 'sync_data',
+      data: message.data,
+      sourceClient: clientId,
+      timestamp: message.timestamp
+    });
+  }
+
+  handleSyncRequest(clientId, message) {
+    this.broadcastToOthers(clientId, {
+      type: 'sync_request',
+      dataTypes: message.dataTypes,
+      requestingClient: clientId
+    });
+  }
+
+  handleRealtimeUpdate(clientId, message) {
+    this.broadcastToOthers(clientId, {
+      type: 'realtime_update',
+      update: message.update,
+      sourceClient: clientId,
+      timestamp: message.timestamp
+    });
+  }
+
+  handleSyncDisconnection(clientId) {
+    const client = this.clients.get(clientId);
+    if (client) {
+      console.log(`[Sync] Client disconnected: ${clientId}`);
+      this.clients.delete(clientId);
+
+      this.broadcastToOthers(clientId, {
+        type: 'client_disconnected',
+        clientId: clientId
+      });
+    }
+  }
+
+  sendClientList(clientId) {
     const clientList = Array.from(this.clients.values()).map(c => ({
       id: c.id,
       deviceName: c.deviceName || 'Unknown Device',
@@ -170,60 +255,11 @@ class SyncServer {
     });
   }
 
-  handleSyncData(clientId, message) {
-    // Broadcast sync data to all other clients
-    this.broadcastToOthers(clientId, {
-      type: 'sync_data',
-      data: message.data,
-      sourceClient: clientId,
-      timestamp: message.timestamp
-    });
-  }
-
-  handleSyncRequest(clientId, message) {
-    // Forward sync request to all other clients
-    this.broadcastToOthers(clientId, {
-      type: 'sync_request',
-      dataTypes: message.dataTypes,
-      requestingClient: clientId
-    });
-  }
-
-  handleRealtimeUpdate(clientId, message) {
-    // Broadcast real-time update to all other clients
-    this.broadcastToOthers(clientId, {
-      type: 'realtime_update',
-      update: message.update,
-      sourceClient: clientId,
-      timestamp: message.timestamp
-    });
-  }
-
-  handleDisconnection(clientId) {
-    const client = this.clients.get(clientId);
-    if (client) {
-      console.log(`[Sync Server] Client disconnected: ${clientId}`);
-      this.clients.delete(clientId);
-
-      // Notify other clients
-      this.broadcastToOthers(clientId, {
-        type: 'client_disconnected',
-        clientId: clientId
-      });
-    }
-  }
-
   sendToClient(clientId, message) {
     const client = this.clients.get(clientId);
     if (client && client.ws.readyState === WebSocket.OPEN) {
       client.ws.send(JSON.stringify(message));
     }
-  }
-
-  broadcastToAll(message) {
-    this.clients.forEach((client, clientId) => {
-      this.sendToClient(clientId, message);
-    });
   }
 
   broadcastToOthers(excludeClientId, message) {
@@ -238,21 +274,6 @@ class SyncServer {
     return 'client_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
   }
 
-  getStats() {
-    return {
-      port: this.port,
-      connectedClients: this.clients.size,
-      uptime: process.uptime(),
-      clients: Array.from(this.clients.values()).map(c => ({
-        id: c.id,
-        deviceName: c.deviceName || 'Unknown',
-        ip: c.ip,
-        connectedAt: c.connectedAt,
-        lastSeen: c.lastSeen
-      }))
-    };
-  }
-
   stop() {
     if (this.wss) {
       this.wss.close();
@@ -260,22 +281,19 @@ class SyncServer {
     if (this.server) {
       this.server.close();
     }
-    console.log('[Sync Server] Server stopped');
+    console.log('[Server] Server stopped');
   }
 }
 
-// Start server if run directly
-if (require.main === module) {
-  const port = process.argv[2] || 8080;
-  const server = new SyncServer(port);
-  server.start();
+// Start server
+const server = new IntegratedServer(5000);
+server.start();
 
-  // Graceful shutdown
-  process.on('SIGINT', () => {
-    console.log('\n[Sync Server] Shutting down gracefully...');
-    server.stop();
-    process.exit(0);
-  });
-}
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n[Server] Shutting down gracefully...');
+  server.stop();
+  process.exit(0);
+});
 
-module.exports = SyncServer;
+module.exports = IntegratedServer;

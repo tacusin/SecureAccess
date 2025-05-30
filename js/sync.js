@@ -79,7 +79,7 @@ class SyncManager {
       // Check if our sync server is already running
       try {
         const response = await Promise.race([
-          fetch(`http://localhost:${port}/status`),
+          fetch(`/sync/status`),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout')), 3000)
           )
@@ -119,7 +119,7 @@ class SyncManager {
       
       try {
         const response = await Promise.race([
-          fetch(`http://${host}:${port}/status`, {
+          fetch(`/sync/status`, {
             method: 'GET'
           }),
           new Promise((_, reject) => 
@@ -140,7 +140,8 @@ class SyncManager {
         return;
       }
       
-      const url = `ws://${host}:${port}/sync`;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const url = `${protocol}//${window.location.host}/sync`;
       this.updateStatus('connecting', 'Connecting to WebSocket...');
       this.addLogEntry('info', `Connecting to WebSocket at ${url}`);
       
