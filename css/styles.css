@@ -1023,6 +1023,34 @@ body {
   color: hsl(var(--on-surface-variant));
 }
 
+.activity-checkbox {
+  margin-right: var(--spacing-md);
+  display: flex;
+  align-items: center;
+}
+
+.activity-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+.activity-checkbox input[type="checkbox"]:checked {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.danger-btn, .action-button.danger {
+  background: hsl(var(--error));
+  color: hsl(var(--on-error));
+}
+
+.danger-btn:hover, .action-button.danger:hover {
+  background: hsl(var(--error) / 0.8);
+}
+
 @media (max-width: 768px) {
   .filter-group {
     flex-direction: column;

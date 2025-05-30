@@ -1823,15 +1823,33 @@ class SecurityApp {
         this.handleDeleteActivity(activityId);
       }
     });
+
+    // Add event listener for bulk selection checkboxes
+    container.addEventListener('change', (e) => {
+      if (e.target.classList.contains('bulk-select-checkbox')) {
+        const activityId = e.target.dataset.activityId;
+        this.toggleActivitySelection(activityId);
+      }
+    });
   }
 
   createActivityItem(activity) {
     const { icon, iconClass, title, description } = this.getActivityDisplayInfo(activity);
     const isUndoable = this.isUndoable(activity);
     const canUndo = isUndoable && Date.now() - activity.timestamp < 24 * 60 * 60 * 1000;
+    const isSelected = this.selectedActivityIds.has(activity.id);
     
     return `
       <div class="activity-item ${isUndoable ? 'undoable' : ''}" data-activity-id="${activity.id}">
+        ${this.bulkSelectMode ? `
+          <div class="activity-checkbox">
+            <input type="checkbox" 
+                   id="activity-${activity.id}" 
+                   ${isSelected ? 'checked' : ''} 
+                   data-activity-id="${activity.id}"
+                   class="bulk-select-checkbox">
+          </div>
+        ` : ''}
         <div class="activity-icon ${iconClass}">
           <span class="material-icons">${icon}</span>
         </div>
@@ -1846,16 +1864,18 @@ class SecurityApp {
           </div>
         </div>
         <div class="activity-actions">
-          ${canUndo ? `
+          ${canUndo && !this.bulkSelectMode ? `
             <button class="undo-btn" data-activity-id="${activity.id}">
               <span class="material-icons" style="font-size: 14px;">undo</span>
               Undo
             </button>
           ` : ''}
-          <button class="delete-activity-btn" data-activity-id="${activity.id}">
-            <span class="material-icons" style="font-size: 14px;">delete</span>
-            Delete
-          </button>
+          ${!this.bulkSelectMode ? `
+            <button class="delete-activity-btn" data-activity-id="${activity.id}">
+              <span class="material-icons" style="font-size: 14px;">delete</span>
+              Delete
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
@@ -2119,6 +2139,24 @@ class SecurityApp {
     this.loadActivityList();
   }
 
+  toggleActivitySelection(activityId) {
+    if (this.selectedActivityIds.has(activityId)) {
+      this.selectedActivityIds.delete(activityId);
+    } else {
+      this.selectedActivityIds.add(activityId);
+    }
+    
+    // Update the delete button text with count
+    const deleteBtn = document.getElementById('bulk-delete-btn');
+    if (deleteBtn) {
+      const count = this.selectedActivityIds.size;
+      const deleteIcon = deleteBtn.querySelector('.material-icons');
+      deleteBtn.textContent = '';
+      deleteBtn.appendChild(deleteIcon);
+      deleteBtn.append(` Delete Selected (${count})`);
+    }
+  }
+
   async handleBulkDelete() {
     if (this.selectedActivityIds.size === 0) {
       this.showToast('No items selected for deletion', 'warning');
@@ -2142,11 +2180,13 @@ class SecurityApp {
       window.StorageManager.data.activities = updatedActivities;
       await window.StorageManager.saveToStorage();
       
+      const deletedCount = this.selectedActivityIds.size;
+      
       // Reset selection mode
       this.selectedActivityIds.clear();
       this.toggleBulkSelect();
       
-      this.showToast(`Successfully deleted ${this.selectedActivityIds.size} activity records`, 'success');
+      this.showToast(`Successfully deleted ${deletedCount} activity records`, 'success');
       await this.updateActivityPage();
 
     } catch (error) {
