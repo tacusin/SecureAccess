@@ -459,7 +459,7 @@
             <div id="sync-page" class="page">
                 <div class="page-header">
                     <h2>Cloud Sync</h2>
-                    <p>Sync your data with Google Play Games Services</p>
+                    <p>Backup and sync your data with Google Drive</p>
                 </div>
 
                 <div class="sync-content">
@@ -468,14 +468,14 @@
                             <span class="material-icons" id="sync-status-icon">cloud_off</span>
                             <div>
                                 <h3 id="sync-status-title">Not Connected</h3>
-                                <p id="sync-status-subtitle">Sign in to enable cloud sync</p>
+                                <p id="sync-status-subtitle">Sign in to enable Google Drive backup</p>
                             </div>
                         </div>
                         
                         <div class="sync-actions">
                             <button id="sync-signin-btn" class="action-button primary">
                                 <span class="material-icons">login</span>
-                                Sign In to Google Play
+                                Sign In to Google Drive
                             </button>
                             <button id="sync-signout-btn" class="action-button secondary" style="display: none;">
                                 <span class="material-icons">logout</span>
@@ -526,12 +526,13 @@
                     </div>
 
                     <div class="sync-help">
-                        <h3>About Cloud Sync</h3>
+                        <h3>About Google Drive Sync</h3>
                         <ul>
-                            <li>Securely backup your personnel records and activity logs</li>
-                            <li>Access your data across multiple devices</li>
-                            <li>Automatic conflict resolution when data differs</li>
-                            <li>Uses Google Play Games Services for authentication</li>
+                            <li>Securely backup your personnel records and activity logs to Google Drive</li>
+                            <li>Access your data from any device with your Google account</li>
+                            <li>Automatic conflict resolution when data differs between devices</li>
+                            <li>Files are stored in your private app data folder on Google Drive</li>
+                            <li>Data is encrypted and only accessible by this application</li>
                         </ul>
                     </div>
                 </div>
@@ -595,6 +596,13 @@
         <span class="material-icons">cloud_done</span>
         <span>Saved</span>
     </div>
+
+    <!-- Environment Variables -->
+    <script>
+        // Make environment variables available to client-side scripts
+        window.GOOGLE_DRIVE_API_KEY = process.env.GOOGLE_DRIVE_API_KEY;
+        window.GOOGLE_DRIVE_CLIENT_ID = process.env.GOOGLE_DRIVE_CLIENT_ID;
+    </script>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

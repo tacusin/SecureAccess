@@ -1,6 +1,6 @@
 /**
- * Secure Access - Google Play Games Cloud Save Manager
- * Handles automatic data synchronization using Google Play Games Services
+ * Secure Access - Google Drive Cloud Sync Manager
+ * Handles automatic data synchronization using Google Drive API
  */
 
 class CloudSyncManager {
@@ -11,20 +11,22 @@ class CloudSyncManager {
     this.syncInProgress = false;
     this.autoSyncEnabled = true;
     this.syncConflictResolver = null;
+    this.driveFileId = null;
+    this.fileName = 'secure_access_backup.json';
   }
 
   async init() {
     try {
-      console.log('[Sync] Initializing Google Play Games Services');
+      console.log('[Sync] Initializing Google Drive API');
       
-      // Check if Google Play Games Services is available
+      // Check if Google API is available
       if (!window.gapi) {
-        console.log('[Sync] Loading Google Play Games API');
+        console.log('[Sync] Loading Google Drive API');
         await this.loadGoogleAPI();
       }
 
-      // Initialize the Games API
-      await this.initializeGamesAPI();
+      // Initialize the Drive API
+      await this.initializeDriveAPI();
       
       // Check current sign-in status
       await this.checkSignInStatus();
@@ -49,25 +51,27 @@ class CloudSyncManager {
       const script = document.createElement('script');
       script.src = 'https://apis.google.com/js/api.js';
       script.onload = () => {
-        window.gapi.load('auth2:client:games', resolve);
+        window.gapi.load('client:auth2', resolve);
       };
       script.onerror = reject;
       document.head.appendChild(script);
     });
   }
 
-  async initializeGamesAPI() {
-    return new Promise((resolve, reject) => {
-      window.gapi.load('games', {
-        callback: () => {
-          window.gapi.games.init({
-            client_id: 'AUTO_DETECT', // Auto-detect from app
-            scope: 'https://www.googleapis.com/auth/games'
-          });
-          resolve();
-        },
-        onerror: reject
-      });
+  async initializeDriveAPI() {
+    // Get API credentials from environment
+    const apiKey = window.GOOGLE_DRIVE_API_KEY || process.env.GOOGLE_DRIVE_API_KEY;
+    const clientId = window.GOOGLE_DRIVE_CLIENT_ID || process.env.GOOGLE_DRIVE_CLIENT_ID;
+    
+    if (!apiKey || !clientId) {
+      throw new Error('Google Drive API credentials not found');
+    }
+    
+    await window.gapi.client.init({
+      apiKey: apiKey,
+      clientId: clientId,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+      scope: 'https://www.googleapis.com/auth/drive.file'
     });
   }
 
@@ -208,48 +212,105 @@ class CloudSyncManager {
 
   async saveToCloud(data) {
     try {
-      // Use a specific save slot for security data
-      const saveSlot = 'security_access_data';
-      const dataString = JSON.stringify(data);
+      const dataString = JSON.stringify(data, null, 2);
       
-      // Mock implementation - in real app would use gapi.games.snapshots
-      return new Promise((resolve) => {
-        // Simulate cloud save
-        setTimeout(() => {
-          localStorage.setItem(`cloud_${saveSlot}`, dataString);
-          resolve({ success: true, savedAt: Date.now() });
-        }, 1000);
-      });
+      if (this.driveFileId) {
+        // Update existing file
+        const response = await window.gapi.client.request({
+          path: `https://www.googleapis.com/upload/drive/v3/files/${this.driveFileId}`,
+          method: 'PATCH',
+          params: {
+            uploadType: 'media'
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: dataString
+        });
+        
+        return { success: true, fileId: response.result.id, savedAt: Date.now() };
+      } else {
+        // Create new file
+        const metadata = {
+          name: this.fileName,
+          parents: ['appDataFolder']
+        };
+        
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+        form.append('file', new Blob([dataString], {type: 'application/json'}));
+        
+        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: new Headers({
+            'Authorization': `Bearer ${window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token}`
+          }),
+          body: form
+        });
+        
+        const result = await response.json();
+        this.driveFileId = result.id;
+        localStorage.setItem('driveFileId', this.driveFileId);
+        
+        return { success: true, fileId: result.id, savedAt: Date.now() };
+      }
 
     } catch (error) {
-      console.error('[Sync] Error saving to cloud:', error);
+      console.error('[Sync] Error saving to Google Drive:', error);
       return { success: false, error: error.message };
     }
   }
 
   async loadFromCloud() {
     try {
-      const saveSlot = 'security_access_data';
+      // Find the backup file
+      await this.findBackupFile();
       
-      // Mock implementation - in real app would use gapi.games.snapshots
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const cloudData = localStorage.getItem(`cloud_${saveSlot}`);
-          if (cloudData) {
-            resolve({ 
-              success: true, 
-              data: JSON.parse(cloudData),
-              loadedAt: Date.now()
-            });
-          } else {
-            resolve({ success: false, message: 'No cloud data found' });
-          }
-        }, 1000);
+      if (!this.driveFileId) {
+        return { success: false, message: 'No backup file found' };
+      }
+      
+      // Download file content
+      const response = await window.gapi.client.drive.files.get({
+        fileId: this.driveFileId,
+        alt: 'media'
       });
+      
+      const data = JSON.parse(response.body);
+      return { 
+        success: true, 
+        data: data,
+        loadedAt: Date.now()
+      };
 
     } catch (error) {
-      console.error('[Sync] Error loading from cloud:', error);
+      console.error('[Sync] Error loading from Google Drive:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  async findBackupFile() {
+    try {
+      // Check if we have a cached file ID
+      const cachedFileId = localStorage.getItem('driveFileId');
+      if (cachedFileId) {
+        this.driveFileId = cachedFileId;
+        return;
+      }
+      
+      // Search for the backup file
+      const response = await window.gapi.client.drive.files.list({
+        q: `name='${this.fileName}' and parents in 'appDataFolder'`,
+        spaces: 'appDataFolder'
+      });
+      
+      if (response.result.files && response.result.files.length > 0) {
+        this.driveFileId = response.result.files[0].id;
+        localStorage.setItem('driveFileId', this.driveFileId);
+      }
+
+    } catch (error) {
+      console.error('[Sync] Error finding backup file:', error);
     }
   }
 
