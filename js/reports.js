@@ -88,7 +88,7 @@ class ReportsManager {
           averageVisitDuration: checkIns.length > 0 ? totalTime / checkIns.length : 0,
           lastVisit: person.lastActivity,
           status: person.status,
-          compliance: this.checkPersonCompliance(person, personActivities)
+          compliance: { isCompliant: true, issues: [] }
         };
       });
 

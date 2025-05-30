@@ -733,6 +733,89 @@ body {
   flex-shrink: 1;
 }
 
+/* Report Modal Styles */
+.report-modal {
+  width: 90vw;
+  max-width: 800px;
+  max-height: 80vh;
+  background: hsl(var(--surface));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid hsl(var(--outline-variant));
+  background: hsl(var(--surface-variant));
+}
+
+.report-meta p {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: hsl(var(--on-surface-variant));
+  font-size: var(--font-size-sm);
+}
+
+.report-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.report-content {
+  padding: var(--spacing-lg);
+}
+
+.report-summary h4,
+.report-insights h4 {
+  color: hsl(var(--primary));
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-lg);
+  border-bottom: 1px solid hsl(var(--outline-variant));
+  padding-bottom: var(--spacing-sm);
+}
+
+.report-summary p {
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: 1.5;
+}
+
+.report-insights {
+  margin-top: var(--spacing-lg);
+}
+
+.insight-item {
+  background: hsl(var(--primary) / 0.08);
+  border-left: 4px solid hsl(var(--primary));
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .report-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .report-actions {
+    justify-content: center;
+  }
+}
+
 .export-options {
   display: flex;
   flex-direction: column;

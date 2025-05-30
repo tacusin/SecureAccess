@@ -1514,14 +1514,131 @@ class SecurityApp {
           throw new Error('Unknown report type');
       }
 
-      // Export the report as HTML
-      await window.ReportsManager.exportReportAsHTML(report);
-      this.showToast('Report generated and downloaded successfully!', 'success');
+      // Show report in modal with download options
+      this.showReportModal(report);
 
     } catch (error) {
       console.error('[App] Error generating advanced report:', error);
       this.showError('Failed to generate report. Please try again.');
     }
+  }
+
+  showReportModal(report) {
+    const modalContent = `
+      <div class="report-modal">
+        <div class="modal-header">
+          <h3>${report.title}</h3>
+          <button class="icon-button" onclick="window.app.closeModal()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="report-header">
+            <div class="report-meta">
+              <p><strong>Generated:</strong> ${new Date(report.generatedAt).toLocaleString()}</p>
+              ${report.dateRange ? `<p><strong>Period:</strong> ${new Date(report.dateRange.startDate).toLocaleDateString()} - ${new Date(report.dateRange.endDate).toLocaleDateString()}</p>` : ''}
+            </div>
+            <div class="report-actions">
+              <button class="action-button secondary" onclick="window.app.downloadReport('html')">
+                <span class="material-icons">download</span>
+                Download HTML
+              </button>
+              <button class="action-button secondary" onclick="window.app.downloadReport('json')">
+                <span class="material-icons">code</span>
+                Download JSON
+              </button>
+              <button class="action-button primary" onclick="window.app.printReport()">
+                <span class="material-icons">print</span>
+                Print Report
+              </button>
+            </div>
+          </div>
+          <div class="report-content">
+            ${this.generateReportPreview(report)}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Store current report for download actions
+    this.currentReport = report;
+    this.showModal(modalContent);
+  }
+
+  generateReportPreview(report) {
+    let content = `
+      <div class="report-summary">
+        <h4>Summary</h4>
+    `;
+    
+    if (report.summary) {
+      Object.entries(report.summary).forEach(([key, value]) => {
+        if (typeof value === 'object' && Array.isArray(value)) {
+          content += `<p><strong>${this.formatKey(key)}:</strong> ${value.length} items</p>`;
+        } else if (typeof value === 'object') {
+          content += `<p><strong>${this.formatKey(key)}:</strong> [Object]</p>`;
+        } else {
+          content += `<p><strong>${this.formatKey(key)}:</strong> ${value}</p>`;
+        }
+      });
+    }
+    
+    content += `</div>`;
+    
+    if (report.insights && report.insights.length > 0) {
+      content += `
+        <div class="report-insights">
+          <h4>Key Insights</h4>
+          ${report.insights.map(insight => `<div class="insight-item">${insight}</div>`).join('')}
+        </div>
+      `;
+    }
+    
+    return content;
+  }
+
+  formatKey(key) {
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  }
+
+  async downloadReport(format) {
+    if (!this.currentReport) return;
+    
+    try {
+      if (format === 'html') {
+        await window.ReportsManager.exportReportAsHTML(this.currentReport);
+      } else if (format === 'json') {
+        const jsonData = JSON.stringify(this.currentReport, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${this.currentReport.title.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      
+      this.showToast(`Report downloaded as ${format.toUpperCase()}`, 'success');
+    } catch (error) {
+      console.error('[App] Error downloading report:', error);
+      this.showError('Failed to download report.');
+    }
+  }
+
+  printReport() {
+    if (!this.currentReport) return;
+    
+    const printWindow = window.open('', '_blank');
+    const reportHTML = window.ReportsManager.generateReportHTML(this.currentReport);
+    
+    printWindow.document.write(reportHTML);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   }
 
   async showConfirmDialog(title, message) {
