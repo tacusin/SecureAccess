@@ -323,7 +323,7 @@ class SecurityApp {
       case 'activity':
         await this.updateActivityPage();
         break;
-      case 'sync':
+      case 'sync-page':
         await this.updateSyncPage();
         break;
     }
