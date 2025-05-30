@@ -51,6 +51,13 @@ class SecurityApp {
       console.error('[App] Error initializing application:', error);
       this.showError('Failed to initialize application. Please refresh the page.');
     }
+
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('[App] Unhandled promise rejection:', event.reason);
+      // Prevent the default behavior which would log to console
+      event.preventDefault();
+    });
   }
 
   async registerServiceWorker() {

@@ -116,17 +116,39 @@ class SyncManager {
     try {
       const host = document.getElementById('sync-server-host').value || 'localhost';
       const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
-      const url = `ws://${host}:${port}/sync`;
       
-      this.updateStatus('connecting', 'Connecting...');
-      this.addLogEntry('info', `Connecting to ${host}:${port}`);
+      // First check if server is accessible
+      this.updateStatus('connecting', 'Checking server...');
+      this.addLogEntry('info', `Checking server at ${host}:${port}`);
+      
+      try {
+        const response = await fetch(`http://${host}:${port}/status`, {
+          method: 'GET',
+          timeout: 5000
+        });
+        
+        if (!response.ok) {
+          throw new Error('Server not responding');
+        }
+        
+        const serverInfo = await response.json();
+        this.addLogEntry('success', `Server found with ${serverInfo.clients} connected clients`);
+      } catch (fetchError) {
+        this.addLogEntry('error', 'Cannot reach server - check host and port');
+        this.updateStatus('offline', 'Server unreachable');
+        return;
+      }
+      
+      const url = `ws://${host}:${port}/sync`;
+      this.updateStatus('connecting', 'Connecting to WebSocket...');
+      this.addLogEntry('info', `Connecting to WebSocket at ${url}`);
       
       this.socket = new WebSocket(url);
       
       this.socket.onopen = () => {
         this.isConnected = true;
         this.updateStatus('online', `Connected to ${host}:${port}`);
-        this.addLogEntry('success', 'Connected successfully');
+        this.addLogEntry('success', 'WebSocket connected successfully');
         this.updateButtonStates();
         
         // Send initial handshake
@@ -144,23 +166,31 @@ class SyncManager {
       };
       
       this.socket.onmessage = (event) => {
-        this.handleMessage(JSON.parse(event.data));
+        try {
+          const message = JSON.parse(event.data);
+          this.handleMessage(message);
+        } catch (parseError) {
+          console.error('[Sync] Error parsing message:', parseError);
+          this.addLogEntry('error', 'Failed to parse incoming message');
+        }
       };
       
-      this.socket.onclose = () => {
+      this.socket.onclose = (event) => {
+        console.log('[Sync] WebSocket closed:', event.code, event.reason);
         this.handleDisconnection();
       };
       
       this.socket.onerror = (error) => {
-        console.error('[Sync] Connection error:', error);
-        this.addLogEntry('error', 'Connection failed - check server address and port');
+        console.error('[Sync] WebSocket error:', error);
+        this.addLogEntry('error', 'WebSocket connection failed');
         this.updateStatus('offline', 'Connection failed');
+        this.handleDisconnection();
       };
       
     } catch (error) {
-      console.error('[Sync] Error connecting to server:', error);
+      console.error('[Sync] Error in connectToServer:', error);
       this.addLogEntry('error', 'Failed to connect to server');
-      this.updateStatus('offline', 'Disconnected');
+      this.updateStatus('offline', 'Connection error');
     }
   }
 
