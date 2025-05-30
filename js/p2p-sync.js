@@ -72,6 +72,13 @@ class P2PSync {
 
   async startAsCoordinator() {
     try {
+      // Check if coordinator is already running on this device
+      const existingCoordinator = localStorage.getItem('p2p_coordinator');
+      if (existingCoordinator === 'true' && this.isCoordinator) {
+        this.showStatus('Coordinator already running on this device', 'warning');
+        return false;
+      }
+      
       console.log('[P2PSync] Starting as coordinator...');
       this.isCoordinator = true;
       this.coordinatorPort = 8080; // Fixed port for mesh network discovery
@@ -89,6 +96,7 @@ class P2PSync {
       localStorage.setItem('p2p_coordinator', 'true');
       localStorage.setItem('p2p_coordinator_ip', localIP);
       localStorage.setItem('p2p_coordinator_port', this.coordinatorPort);
+      localStorage.setItem('p2p_coordinator_timestamp', Date.now());
       
       this.showStatus(`Coordinator started on ${localIP}:${this.coordinatorPort}`, 'success');
       console.log('[P2PSync] Coordinator started successfully');
@@ -179,7 +187,7 @@ class P2PSync {
 
   async handleSyncRequest(data) {
     if (data && data.updates) {
-      await this.processIncomingUpdates(data.updates);
+      await this.applyRemoteUpdates(data.updates);
     }
 
     return new Response(JSON.stringify({
@@ -192,7 +200,7 @@ class P2PSync {
 
   async handleBroadcast(data) {
     if (data && data.event) {
-      await this.processBroadcastEvent(data.event);
+      await this.processRemoteUpdate(data.event);
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -405,7 +413,10 @@ class P2PSync {
       this.connectedPeers.clear();
       
       localStorage.removeItem('p2p_coordinator');
-      localStorage.removeItem('p2p_coordinator_url');
+      localStorage.removeItem('p2p_coordinator_ip');
+      localStorage.removeItem('p2p_coordinator_port');
+      localStorage.removeItem('p2p_coordinator_timestamp');
+      localStorage.removeItem('coordinator_data');
       
       // Remove header indicator
       const headerIndicator = document.getElementById('sync-status-indicator');

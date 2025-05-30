@@ -2485,15 +2485,24 @@ SecurityApp.prototype.scanSyncQR = async function() {
   if (window.CameraManager) {
     try {
       const qrData = await window.CameraManager.scanQRCode();
-      if (qrData && (qrData.startsWith('http://') || qrData.startsWith('https://'))) {
-        document.getElementById('server-ip-input').value = qrData;
-        this.connectToSyncServer();
+      if (qrData) {
+        // Validate if it's an IP:port format or URL
+        if (this.validateIPPort(qrData) || qrData.startsWith('http://') || qrData.startsWith('https://')) {
+          document.getElementById('server-ip-input').value = qrData;
+          this.showToast('QR code scanned successfully', 'success');
+          // Auto-connect after successful scan
+          await this.connectToSyncServer();
+        } else {
+          this.showError('Invalid sync QR code format');
+        }
       } else {
-        this.showError('Invalid sync QR code');
+        this.showError('No QR code detected');
       }
     } catch (error) {
       this.showError('Failed to scan QR code: ' + error.message);
     }
+  } else {
+    this.showError('Camera not available for QR scanning');
   }
 };
 
