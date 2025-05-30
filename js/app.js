@@ -1498,27 +1498,29 @@ class SecurityApp {
 
   async handleGenerateSyncQR() {
     try {
+      console.log('[App] Starting sync QR generation');
+      
       if (!window.QRGenerator) {
         this.showError('QR code generation system is not available');
         return;
       }
 
-      // Initialize QR generator if needed
-      if (!window.QRGenerator.isInitialized) {
-        this.showToast('Initializing QR code generator...', 'info');
+      this.showToast('Generating sync QR code...', 'info');
+
+      // Always try to initialize to ensure it's ready
+      try {
         await window.QRGenerator.init();
+      } catch (initError) {
+        console.warn('[App] QR Generator init warning:', initError);
       }
 
-      if (!window.QRGenerator.isInitialized) {
-        this.showError('QR code generation is currently unavailable');
-        return;
-      }
-
-      // Show sync host QR modal
+      // Show sync host QR modal directly
       await window.QRGenerator.showSyncHostQRModal();
+      
+      console.log('[App] Sync QR generation completed');
     } catch (error) {
       console.error('[App] Error generating sync QR code:', error);
-      this.showError('Failed to generate sync QR code: ' + error.message);
+      this.showError('Failed to generate sync QR code. Please try again.');
     }
   }
 

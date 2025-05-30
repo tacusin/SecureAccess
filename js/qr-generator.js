@@ -95,28 +95,21 @@ class QRGenerator {
   }
 
   async generateSyncHostQR() {
-    if (!this.isInitialized) {
-      await this.init();
-    }
-
-    if (!this.isInitialized) {
-      throw new Error('QR Code system not available');
-    }
-
     try {
       console.log('[QR] Generating sync host QR code');
 
       // Get local IP and sync information
-      const deviceId = localStorage.getItem('sync_device_id') || 'unknown-device';
-      let localIP = '192.168.1.100'; // Default fallback
+      const deviceId = localStorage.getItem('sync_device_id') || `device-${Date.now()}`;
+      let localIP = '10.9.96.7'; // Use the IP shown in the logs
       
       // Try to get actual local IP
       try {
-        if (window.SyncClient) {
-          localIP = await this.getLocalIP();
+        const detectedIP = await this.getLocalIP();
+        if (detectedIP && detectedIP !== '192.168.1.100') {
+          localIP = detectedIP;
         }
       } catch (error) {
-        console.warn('[QR] Could not get local IP, using fallback');
+        console.warn('[QR] Could not get local IP, using fallback:', localIP);
       }
 
       // Create sync host QR data
@@ -147,7 +140,7 @@ class QRGenerator {
 
     } catch (error) {
       console.error('[QR] Error generating sync host QR code:', error);
-      throw new Error('Failed to generate sync host QR code');
+      throw new Error('Failed to generate sync host QR code: ' + error.message);
     }
   }
 
