@@ -251,7 +251,12 @@ class SyncManager {
 
   handleDisconnection() {
     this.isConnected = false;
-    this.isServer = false;
+    this.isHosting = false;
+    
+    if (this.httpSyncInterval) {
+      clearInterval(this.httpSyncInterval);
+      this.httpSyncInterval = null;
+    }
     this.socket = null;
     this.server = null;
     this.connectedDevices.clear();
@@ -382,7 +387,7 @@ class SyncManager {
   }
 
   async performHttpSync() {
-    if (!this.serverHost || !this.serverPort) return;
+    if (!this.serverHost || !this.serverPort || (!this.isConnected && !this.isHosting)) return;
     
     try {
       // Send our data to the server
@@ -409,7 +414,10 @@ class SyncManager {
         }
       }
     } catch (error) {
-      console.error('[Sync] HTTP sync error:', error);
+      // Only log errors if we're actually supposed to be syncing
+      if (this.isConnected || this.isHosting) {
+        console.error('[Sync] HTTP sync error:', error);
+      }
     }
   }
 
