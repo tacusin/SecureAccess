@@ -27,6 +27,40 @@ class P2PSync {
     return deviceId;
   }
 
+  async getLocalIP() {
+    return new Promise((resolve) => {
+      // Create a dummy peer connection to get local IP
+      const pc = new RTCPeerConnection({
+        iceServers: []
+      });
+      
+      pc.createDataChannel('');
+      pc.createOffer().then(offer => pc.setLocalDescription(offer));
+      
+      pc.onicecandidate = (ice) => {
+        if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+        const candidate = ice.candidate.candidate;
+        const ip = candidate.split(' ')[4];
+        
+        // Look for local IP addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+        if (ip && (
+          ip.startsWith('192.168.') || 
+          ip.startsWith('10.') || 
+          (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)
+        )) {
+          pc.close();
+          resolve(ip);
+        }
+      };
+      
+      // Fallback after timeout
+      setTimeout(() => {
+        pc.close();
+        resolve('192.168.1.100'); // Default fallback
+      }, 3000);
+    });
+  }
+
   setupEventListeners() {
     // Listen for data changes to broadcast
     window.addEventListener('personnel-added', (e) => this.broadcastUpdate('personnel-added', e.detail));
@@ -40,6 +74,11 @@ class P2PSync {
     try {
       console.log('[P2PSync] Starting as coordinator...');
       this.isCoordinator = true;
+      this.coordinatorPort = 8080; // Fixed port for mesh network discovery
+      
+      // Get local IP for WiFi/mesh networks
+      const localIP = await this.getLocalIP();
+      this.coordinatorIP = localIP;
       
       // Create a simple HTTP endpoint using Service Worker
       this.setupCoordinatorEndpoints();
@@ -48,9 +87,10 @@ class P2PSync {
       this.startPeerCleanup();
       
       localStorage.setItem('p2p_coordinator', 'true');
-      localStorage.setItem('p2p_coordinator_url', window.location.origin);
+      localStorage.setItem('p2p_coordinator_ip', localIP);
+      localStorage.setItem('p2p_coordinator_port', this.coordinatorPort);
       
-      this.showStatus('Coordinator started - ready for connections', 'success');
+      this.showStatus(`Coordinator started on ${localIP}:${this.coordinatorPort}`, 'success');
       console.log('[P2PSync] Coordinator started successfully');
       
       // Add a visual indicator to the main interface
@@ -165,19 +205,29 @@ class P2PSync {
     });
   }
 
-  async connectToPeer(coordinatorUrl) {
+  async connectToPeer(coordinatorAddress) {
     try {
-      // Clean URL and support mesh network URLs
-      const cleanUrl = coordinatorUrl.replace(/\/+$/, ''); // Remove trailing slashes
-      console.log('[P2PSync] Connecting to coordinator:', cleanUrl);
-      this.coordinatorUrl = cleanUrl;
+      // Handle IP:port format for local network connections
+      let coordinatorUrl;
+      if (coordinatorAddress.includes('://')) {
+        // Full URL provided
+        coordinatorUrl = coordinatorAddress.replace(/\/+$/, '');
+      } else if (coordinatorAddress.includes(':')) {
+        // IP:port format
+        coordinatorUrl = `http://${coordinatorAddress}`;
+      } else {
+        // Just IP provided, assume default port
+        coordinatorUrl = `http://${coordinatorAddress}:8080`;
+      }
+      
+      console.log('[P2PSync] Connecting to coordinator:', coordinatorUrl);
+      this.coordinatorUrl = coordinatorUrl;
       this.isCoordinator = false;
 
-      // Test basic connectivity first for mesh network compatibility
+      // Test basic connectivity first for local network compatibility
       console.log('[P2PSync] Testing connectivity...');
-      const testResponse = await fetch(cleanUrl, { 
+      const testResponse = await fetch(coordinatorUrl, { 
         method: 'GET',
-        mode: 'cors',
         headers: {
           'Accept': 'text/html,application/json,*/*'
         }
@@ -188,12 +238,11 @@ class P2PSync {
       }
       
       // Register with coordinator using correct endpoint
-      const registerUrl = `${cleanUrl}/p2p-sync/register`;
+      const registerUrl = `${coordinatorUrl}/p2p-sync/register`;
       console.log('[P2PSync] Registering at:', registerUrl);
       
       const response = await fetch(registerUrl, {
         method: 'POST',
-        mode: 'cors',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
@@ -201,9 +250,9 @@ class P2PSync {
         body: JSON.stringify({
           deviceId: this.deviceId,
           deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Device',
-          ip: 'mesh-network',
+          ip: 'local-network',
           timestamp: Date.now(),
-          userAgent: navigator.userAgent.substring(0, 100) // Truncate for security
+          userAgent: navigator.userAgent.substring(0, 100)
         })
       });
 

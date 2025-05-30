@@ -2442,20 +2442,43 @@ SecurityApp.prototype.stopSyncServer = function() {
 
 SecurityApp.prototype.connectToSyncServer = async function() {
   const serverIpInput = document.getElementById('server-ip-input');
-  const serverUrl = serverIpInput.value.trim();
+  const serverAddress = serverIpInput.value.trim();
   
-  if (!serverUrl) {
-    this.showError('Please enter coordinator URL');
+  if (!serverAddress) {
+    this.showError('Please enter coordinator IP:port');
     return;
   }
 
-  const coordinatorUrl = serverUrl.startsWith('http') ? serverUrl : `${window.location.protocol}//${serverUrl}`;
+  // Validate IP:port format
+  if (!this.validateIPPort(serverAddress)) {
+    this.showError('Please enter valid IP:port format (e.g., 192.168.1.100:8080)');
+    return;
+  }
   
   if (window.P2PSync) {
     this.showToast('Connecting to coordinator...', 'info');
-    const success = await window.P2PSync.connectToPeer(coordinatorUrl);
+    const success = await window.P2PSync.connectToPeer(serverAddress);
     this.updateSyncPage();
   }
+};
+
+SecurityApp.prototype.validateIPPort = function(address) {
+  // Simple validation for IP:port format
+  const regex = /^(\d{1,3}\.){3}\d{1,3}:\d{1,5}$/;
+  if (!regex.test(address)) return false;
+  
+  const [ip, port] = address.split(':');
+  const ipParts = ip.split('.');
+  
+  // Validate IP octets
+  for (const part of ipParts) {
+    const num = parseInt(part);
+    if (num < 0 || num > 255) return false;
+  }
+  
+  // Validate port
+  const portNum = parseInt(port);
+  return portNum > 0 && portNum <= 65535;
 };
 
 SecurityApp.prototype.scanSyncQR = async function() {
@@ -2505,7 +2528,9 @@ SecurityApp.prototype.updateP2PConnectionInfo = function() {
 SecurityApp.prototype.showP2PConnectionQR = function() {
   if (!window.P2PSync || !window.P2PSync.isCoordinator) return;
   
-  const connectionUrl = window.location.origin; // Use current page URL for connection
+  const coordinatorIP = window.P2PSync.coordinatorIP || 'Loading...';
+  const coordinatorPort = window.P2PSync.coordinatorPort || 8080;
+  const connectionAddress = `${coordinatorIP}:${coordinatorPort}`;
   
   this.showModal(`
     <div class="modal-header">
@@ -2516,17 +2541,18 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
     </div>
     <div class="modal-body">
       <div style="text-align: center;">
-        <p>Other devices can connect using this URL:</p>
+        <p>Other devices can connect using this address:</p>
         <div id="connection-qr" style="margin: 20px 0; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 1px dashed #ccc;">
           <span style="color: #666;">Generating QR code...</span>
         </div>
-        <p style="font-family: monospace; word-break: break-all; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 4px;">${connectionUrl}</p>
+        <p style="font-family: monospace; word-break: break-all; font-size: 16px; background: #f5f5f5; padding: 15px; border-radius: 4px; font-weight: bold;">${connectionAddress}</p>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">Enter this IP:port on other devices to connect</p>
         <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-          <button class="action-button secondary" onclick="navigator.clipboard.writeText('${connectionUrl}'); window.app.showToast('URL copied to clipboard', 'success');">
+          <button class="action-button secondary" onclick="navigator.clipboard.writeText('${connectionAddress}'); window.app.showToast('Address copied to clipboard', 'success');">
             <span class="material-icons">content_copy</span>
-            Copy URL
+            Copy Address
           </button>
-          <button class="action-button secondary" onclick="navigator.share ? navigator.share({title: 'Secure Access Sync', url: '${connectionUrl}'}) : window.app.showToast('Sharing not supported', 'info');">
+          <button class="action-button secondary" onclick="navigator.share ? navigator.share({title: 'Secure Access Sync', text: '${connectionAddress}'}) : window.app.showToast('Sharing not supported', 'info');">
             <span class="material-icons">share</span>
             Share
           </button>
@@ -2545,7 +2571,7 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
         // Check if QRCode library is available
         if (typeof QRCode !== 'undefined') {
           new QRCode(qrContainer, {
-            text: connectionUrl,
+            text: connectionAddress,
             width: 200,
             height: 200,
             colorDark: "#000000",
@@ -2562,7 +2588,7 @@ SecurityApp.prototype.showP2PConnectionQR = function() {
           <div style="text-align: center; padding: 40px;">
             <span class="material-icons" style="font-size: 48px; color: #666;">qr_code</span>
             <p style="margin: 10px 0; color: #666;">QR code generation failed</p>
-            <p style="font-size: 12px; color: #999;">Use the URL above to connect</p>
+            <p style="font-size: 12px; color: #999;">Use the IP:port above to connect</p>
           </div>
         `;
       }
