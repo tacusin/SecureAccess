@@ -136,6 +136,9 @@ class QRGenerator {
       const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
 
       console.log('[QR] Sync host QR code generated successfully');
+      console.log('[QR] QR code URL:', qrCodeDataURL);
+      console.log('[QR] Connection string:', `${localIP}:8080`);
+      
       return {
         dataURL: qrCodeDataURL,
         syncData: syncData,
@@ -252,46 +255,34 @@ class QRGenerator {
       const modalContent = `
         <div class="qr-modal">
           <div class="modal-header">
-            <h3>Sync Host QR Code</h3>
+            <h3>Connection Information</h3>
             <button class="icon-button" onclick="window.QRGenerator.closeQRModal()">
               <span class="material-icons">close</span>
             </button>
           </div>
           <div class="modal-body">
-            <div class="qr-code-container">
-              <img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image">
-              <div class="qr-info">
-                <div class="sync-details">
-                  <h4>Device Sync Host</h4>
-                  <p class="sync-connection">${qrResult.connectionString}</p>
-                  <p class="sync-device-id">Device: ${qrResult.syncData.deviceId.slice(-8)}</p>
-                </div>
-                <div class="qr-instructions">
-                  <p>Other devices can scan this QR code to connect and sync data</p>
-                  <div class="sync-steps">
-                    <ol>
-                      <li>Open the app on another device</li>
-                      <li>Go to Sync settings</li>
-                      <li>Scan this QR code</li>
-                      <li>Devices will automatically sync</li>
-                    </ol>
-                  </div>
+            <div class="connection-info">
+              <p>Other devices can connect using this address:</p>
+              <h4>QR Code</h4>
+              <div class="qr-code-display">
+                <img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="qr-error" style="display: none;">
+                  <span class="material-icons">qr_code</span>
+                  <p>QR Code unavailable</p>
                 </div>
               </div>
-            </div>
-            <div class="qr-actions">
-              <button class="action-button secondary" onclick="window.QRGenerator.downloadSyncQR()">
-                <span class="material-icons">download</span>
-                Download QR
-              </button>
-              <button class="action-button secondary" onclick="window.QRGenerator.printSyncQR()">
-                <span class="material-icons">print</span>
-                Print QR
-              </button>
-              <button class="action-button primary" onclick="window.QRGenerator.shareSyncQR()">
-                <span class="material-icons">share</span>
-                Share QR
-              </button>
+              <div class="connection-string">
+                <strong>${qrResult.connectionString}</strong>
+              </div>
+              <p>Enter this IP:port on other devices to connect</p>
+              <div class="connection-actions">
+                <button class="action-button secondary" onclick="navigator.clipboard.writeText('${qrResult.connectionString}'); window.app.showToast('Address copied!', 'success')">
+                  Copy Address
+                </button>
+                <button class="action-button primary" onclick="navigator.share({title: 'Sync Connection', text: '${qrResult.connectionString}'}).catch(() => navigator.clipboard.writeText('${qrResult.connectionString}'))">
+                  Share
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -302,86 +293,102 @@ class QRGenerator {
         <style>
           .qr-modal {
             width: 90vw;
-            max-width: 500px;
+            max-width: 450px;
             background: hsl(var(--surface));
             border-radius: var(--radius-lg);
             overflow: hidden;
           }
           
-          .qr-code-container {
+          .connection-info {
             text-align: center;
             padding: var(--spacing-lg);
           }
           
-          .qr-code-image {
-            width: 200px;
-            height: 200px;
-            border: 2px solid hsl(var(--outline));
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-lg);
-            background: white;
-            padding: var(--spacing-sm);
+          .connection-info p {
+            margin: 0 0 var(--spacing-md) 0;
+            color: hsl(var(--on-surface-variant));
+            font-size: var(--font-size-sm);
           }
           
-          .qr-info {
-            margin-bottom: var(--spacing-lg);
-          }
-          
-          .sync-details h4 {
-            margin: 0 0 var(--spacing-xs) 0;
-            color: hsl(var(--on-surface));
+          .connection-info h4 {
+            margin: 0 0 var(--spacing-md) 0;
+            color: hsl(var(--primary));
             font-size: var(--font-size-lg);
           }
           
-          .sync-connection {
-            color: hsl(var(--primary));
-            font-weight: 500;
-            margin: 0 0 var(--spacing-xs) 0;
-            font-family: monospace;
-            font-size: var(--font-size-md);
+          .qr-code-display {
+            margin: var(--spacing-md) 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
           }
           
-          .sync-device-id {
+          .qr-code-image {
+            width: 180px;
+            height: 180px;
+            border: 2px solid hsl(var(--outline));
+            border-radius: var(--radius-md);
+            background: white;
+            padding: var(--spacing-sm);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          }
+          
+          .qr-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             color: hsl(var(--on-surface-variant));
-            margin: 0 0 var(--spacing-md) 0;
-            font-family: monospace;
-            font-size: var(--font-size-sm);
           }
           
-          .qr-instructions {
+          .qr-error .material-icons {
+            font-size: 48px;
+            margin-bottom: var(--spacing-sm);
+            opacity: 0.5;
+          }
+          
+          .connection-string {
             background: hsl(var(--surface-variant));
             padding: var(--spacing-md);
             border-radius: var(--radius-md);
-            margin-top: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            font-family: monospace;
+            font-size: var(--font-size-lg);
+            color: hsl(var(--primary));
+            border: 1px solid hsl(var(--outline));
           }
           
-          .qr-instructions p {
-            margin: 0 0 var(--spacing-sm) 0;
-            color: hsl(var(--on-surface-variant));
-            font-size: var(--font-size-sm);
-          }
-          
-          .sync-steps {
-            margin-top: var(--spacing-sm);
-          }
-          
-          .sync-steps ol {
-            margin: 0;
-            padding-left: var(--spacing-lg);
-            color: hsl(var(--on-surface-variant));
-            font-size: var(--font-size-sm);
-          }
-          
-          .sync-steps li {
-            margin-bottom: var(--spacing-xs);
-          }
-          
-          .qr-actions {
+          .connection-actions {
             display: flex;
             gap: var(--spacing-sm);
-            padding: 0 var(--spacing-lg) var(--spacing-lg);
-            flex-wrap: wrap;
             justify-content: center;
+            margin-top: var(--spacing-lg);
+          }
+          
+          .action-button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          
+          .action-button.primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--on-primary));
+          }
+          
+          .action-button.secondary {
+            background: hsl(var(--surface-variant));
+            color: hsl(var(--on-surface));
+            border: 1px solid hsl(var(--outline));
+          }
+          
+          .action-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
           }
           
           @media (max-width: 480px) {
@@ -390,7 +397,7 @@ class QRGenerator {
               height: 150px;
             }
             
-            .qr-actions {
+            .connection-actions {
               flex-direction: column;
             }
           }
