@@ -204,6 +204,11 @@ class SecurityApp {
       await window.ShiftManager.init();
     }
     
+    // Initialize sync manager
+    if (window.SyncManager) {
+      await window.SyncManager.init();
+    }
+    
     // Load initial data
     await this.loadPersonnelList();
     await this.updateDashboard();
@@ -311,6 +316,15 @@ class SecurityApp {
           await window.EmergencyManager.updateContent();
         }
         break;
+      case 'sync':
+        await this.updateSyncPage();
+        break;
+    }
+  }
+
+  async updateSyncPage() {
+    if (window.SyncManager) {
+      window.SyncManager.updateSyncUI();
     }
   }
 
