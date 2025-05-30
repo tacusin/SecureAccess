@@ -127,32 +127,9 @@ class QRGenerator {
 
       const qrText = JSON.stringify(syncData);
       
-      // Use the same QR generation method as personnel QR codes
-      let qrCodeDataURL;
-      try {
-        if (typeof QRCode !== 'undefined') {
-          // Use QRCode library like personnel QR generation
-          const canvas = document.createElement('canvas');
-          await QRCode.toCanvas(canvas, qrText, {
-            width: this.qrSize,
-            margin: 2,
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            },
-            errorCorrectionLevel: this.errorCorrectionLevel
-          });
-          qrCodeDataURL = canvas.toDataURL();
-          console.log('[QR] QR code generated using QRCode library');
-        } else {
-          // Fallback to external service
-          qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
-          console.log('[QR] QR code generated using external service');
-        }
-      } catch (serviceError) {
-        console.warn('[QR] QR generation failed, using connection info only');
-        qrCodeDataURL = null;
-      }
+      // Use external service (same as personnel QR codes)
+      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+      console.log('[QR] QR code generated using external service');
 
       console.log('[QR] Sync host QR code generated successfully');
       console.log('[QR] QR code URL:', qrCodeDataURL);
@@ -292,17 +269,11 @@ class QRGenerator {
               <p>Other devices can connect using this address:</p>
               <h4>QR Code</h4>
               <div class="qr-code-display">
-                ${qrResult.dataURL ? 
-                  `<img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                   <div class="qr-error" style="display: none;">
-                     <span class="material-icons">qr_code</span>
-                     <p>QR Code unavailable</p>
-                   </div>` :
-                  `<div class="qr-error">
-                     <span class="material-icons">qr_code</span>
-                     <p>QR service unavailable<br>Use connection string below</p>
-                   </div>`
-                }
+                <img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="qr-error" style="display: none;">
+                  <span class="material-icons">qr_code</span>
+                  <p>QR Code unavailable</p>
+                </div>
               </div>
               <div class="connection-string">
                 <strong>${qrResult.connectionString}</strong>
