@@ -167,7 +167,8 @@ class ShiftManager {
       await this.saveShiftData();
       await window.StorageManager.logActivity('shift_started', {
         shiftId: shift.id,
-        officerName,
+        officer1Name,
+        officer2Name,
         shiftType,
         startTime: shift.actualStartTime
       });
