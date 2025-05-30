@@ -109,7 +109,7 @@ class CameraManager {
         <div class="camera-modal">
           <div class="camera-header">
             <h3>Take Photo</h3>
-            <button class="icon-button" onclick="cameraManager.closeCameraModal(false)">
+            <button class="icon-button" onclick="window.CameraManager.closeCameraModal(false)">
               <span class="material-icons">close</span>
             </button>
           </div>
@@ -135,11 +135,11 @@ class CameraManager {
             <div class="camera-preview" id="photo-preview" style="display: none;">
               <img id="captured-image" alt="Captured photo">
               <div class="preview-controls">
-                <button class="action-button secondary" onclick="cameraManager.retakePhoto()">
+                <button class="action-button secondary" onclick="window.CameraManager.retakePhoto()">
                   <span class="material-icons">refresh</span>
                   Retake
                 </button>
-                <button class="action-button primary" onclick="cameraManager.confirmPhoto()">
+                <button class="action-button primary" onclick="window.CameraManager.confirmPhoto()">
                   <span class="material-icons">check</span>
                   Use Photo
                 </button>

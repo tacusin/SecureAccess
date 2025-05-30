@@ -491,17 +491,17 @@ class TutorialManager {
       <div class="tutorial-tooltip-body">
         <p class="tutorial-tooltip-content">${step.content}</p>
         <div class="tutorial-tooltip-actions">
-          <button class="tutorial-button danger" onclick="tutorialManager.skip()">
+          <button class="tutorial-button danger" onclick="window.TutorialManager.skip()">
             Skip Tour
           </button>
           <div class="tutorial-tooltip-nav">
             ${!isFirst ? `
-              <button class="tutorial-button secondary" onclick="tutorialManager.previousStep()">
+              <button class="tutorial-button secondary" onclick="window.TutorialManager.previousStep()">
                 <span class="material-icons">arrow_back</span>
                 Previous
               </button>
             ` : ''}
-            <button class="tutorial-button primary" onclick="tutorialManager.${isLast ? 'complete' : 'nextStep'}()">
+            <button class="tutorial-button primary" onclick="window.TutorialManager.${isLast ? 'complete' : 'nextStep'}()">
               ${isLast ? 'Finish' : 'Next'}
               ${!isLast ? '<span class="material-icons">arrow_forward</span>' : ''}
             </button>
@@ -608,7 +608,7 @@ class TutorialManager {
         <div class="tutorial-tooltip-body">
           <p class="tutorial-tooltip-content">${helpContent.content}</p>
           <div class="tutorial-tooltip-actions">
-            <button class="tutorial-button primary" onclick="tutorialManager.closeQuickHelp()">
+            <button class="tutorial-button primary" onclick="window.TutorialManager.closeQuickHelp()">
               Got it
             </button>
           </div>
