@@ -264,6 +264,18 @@
       "description": "Handles person card interactions",
       "delegated": true,
       "relatedFunctions": ["handlePersonCardClick", "togglePersonStatus", "showPersonQR"]
+    },
+    {
+      "element": "generate-sync-qr-btn",
+      "elementType": "button",
+      "elementId": "generate-sync-qr-btn",
+      "event": "click",
+      "handler": "handleGenerateSyncQR",
+      "file": "js/app.js",
+      "line": 118,
+      "description": "Generates QR code for sync host connection",
+      "delegated": false,
+      "relatedFunctions": ["handleGenerateSyncQR", "QRGenerator.showSyncHostQRModal"]
     }
   ],
   "keyboardShortcuts": [

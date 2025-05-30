@@ -129,7 +129,10 @@
       "Sync feature device ID persistence",
       "Local IP detection timeout handling",
       "Client-side sync coordination fallbacks",
-      "WebSocket server startup errors"
+      "WebSocket server startup errors",
+      "QR code sync host generation button missing",
+      "CSS custom properties for modal theming",
+      "Event handler for sync QR generation"
     ]
   },
   "commonModificationPoints": {
