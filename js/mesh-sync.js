@@ -8,10 +8,16 @@ class MeshSync {
     this.deviceId = this.generateDeviceId();
     this.isCoordinator = false;
     this.connectedDevices = new Map();
-    this.syncEnabled = false;
+    this.syncEnabled = localStorage.getItem('mesh_sync_enabled') === 'true';
     this.localIP = null;
     this.port = 8080;
     this.lastSyncTime = 0;
+    
+    // Check if this device was previously a coordinator
+    if (localStorage.getItem('mesh_coordinator') === 'true') {
+      this.localIP = localStorage.getItem('mesh_coordinator_ip');
+      this.isCoordinator = true;
+    }
     
     console.log('[MeshSync] Mesh Sync Manager initialized');
   }

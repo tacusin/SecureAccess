@@ -2333,12 +2333,12 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Network Sync Management Methods
 SecurityApp.prototype.updateSyncPage = async function() {
-  if (!window.P2PSync) return;
+  if (!window.MeshSync) return;
   
-  const status = window.P2PSync.getStatus();
+  const status = window.MeshSync.getStatus();
   this.updateSyncUI(status);
   this.loadSyncActivityLog();
-  this.updateP2PConnectionInfo();
+  this.updateMeshConnectionInfo();
 };
 
 SecurityApp.prototype.updateSyncUI = function(status) {
@@ -2376,15 +2376,25 @@ SecurityApp.prototype.updateSyncUI = function(status) {
 };
 
 SecurityApp.prototype.enableSync = function() {
-  if (window.P2PSync) {
-    window.P2PSync.enable();
+  if (window.MeshSync) {
+    window.MeshSync.syncEnabled = true;
+    localStorage.setItem('mesh_sync_enabled', 'true');
+    this.showToast('Mesh sync enabled', 'success');
     this.updateSyncPage();
   }
 };
 
 SecurityApp.prototype.disableSync = function() {
-  if (window.P2PSync) {
-    window.P2PSync.disable();
+  if (window.MeshSync) {
+    window.MeshSync.syncEnabled = false;
+    localStorage.setItem('mesh_sync_enabled', 'false');
+    
+    // Stop coordinator if running
+    if (window.MeshSync.isCoordinator) {
+      window.MeshSync.stopCoordinator();
+    }
+    
+    this.showToast('Mesh sync disabled', 'info');
     this.updateSyncPage();
   }
 };
@@ -2514,6 +2524,43 @@ SecurityApp.prototype.showMeshConnectionQR = function() {
   if (window.MeshSync) {
     window.MeshSync.showConnectionInfo();
   }
+};
+
+SecurityApp.prototype.updateMeshConnectionInfo = function() {
+  if (!window.MeshSync) return;
+  
+  const status = window.MeshSync.getStatus();
+  const connectionInfo = document.querySelector('.connection-info');
+  
+  if (connectionInfo && status.isCoordinator && status.localIP) {
+    const connectionAddress = `${status.localIP}:${status.port}`;
+    connectionInfo.innerHTML = `
+      <div class="coordinator-info">
+        <h4>Coordinator Active</h4>
+        <p>Other devices can connect using:</p>
+        <div class="connection-url">${connectionAddress}</div>
+        <button onclick="app.showMeshConnectionQR()" class="btn btn-primary">
+          <span class="material-icons">qr_code</span>
+          Show QR Code
+        </button>
+      </div>
+    `;
+  } else if (connectionInfo) {
+    connectionInfo.innerHTML = '';
+  }
+};
+
+SecurityApp.prototype.loadSyncActivityLog = function() {
+  const logContainer = document.getElementById('sync-activity-log');
+  if (!logContainer) return;
+  
+  // For now, show a simple message
+  logContainer.innerHTML = `
+    <div class="sync-log-item">
+      <span class="log-time">${new Date().toLocaleTimeString()}</span>
+      <span class="log-message">Mesh sync system ready</span>
+    </div>
+  `;
 };
 
 SecurityApp.prototype.updateP2PConnectionInfo = function() {
