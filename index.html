@@ -78,6 +78,9 @@
                 <li><a href="#personnel" class="nav-item" data-page="personnel">
                     <span class="material-icons">people</span>Personnel
                 </a></li>
+                <li><a href="#activity" class="nav-item" data-page="activity">
+                    <span class="material-icons">history</span>Activity Log
+                </a></li>
                 <li><a href="#reports" class="nav-item" data-page="reports">
                     <span class="material-icons">analytics</span>Reports
                 </a></li>
@@ -383,6 +386,65 @@
                 
                 <div id="emergency-content" class="emergency-content">
                     <!-- Emergency content will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Activity Log Page -->
+            <div id="activity-page" class="page">
+                <div class="page-header">
+                    <h2>Activity Log</h2>
+                    <div class="header-actions">
+                        <button id="clear-activity-btn" class="action-button secondary">
+                            <span class="material-icons">delete_sweep</span>
+                            Clear Old Logs
+                        </button>
+                        <button id="export-activity-btn" class="action-button primary">
+                            <span class="material-icons">download</span>
+                            Export Log
+                        </button>
+                    </div>
+                </div>
+
+                <div class="activity-filters">
+                    <div class="filter-group">
+                        <select id="activity-type-filter" class="filter-select">
+                            <option value="all">All Activities</option>
+                            <option value="check_in">Check Ins</option>
+                            <option value="check_out">Check Outs</option>
+                            <option value="personnel_added">Personnel Added</option>
+                            <option value="personnel_updated">Personnel Updated</option>
+                            <option value="personnel_deleted">Personnel Deleted</option>
+                            <option value="shift_start">Shift Started</option>
+                            <option value="shift_end">Shift Ended</option>
+                            <option value="emergency">Emergency Events</option>
+                        </select>
+                        <input type="date" id="activity-date-filter" class="filter-input">
+                        <button id="apply-filters-btn" class="action-button secondary">
+                            <span class="material-icons">filter_list</span>
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <div class="activity-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Today's Activities</span>
+                        <span id="today-activities-count" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Undoable Actions</span>
+                        <span id="undoable-actions-count" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Logged</span>
+                        <span id="total-activities-count" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="activity-log-container">
+                    <div id="activity-log-list" class="activity-log-list">
+                        <!-- Activity items will be loaded here -->
+                    </div>
                 </div>
             </div>
 

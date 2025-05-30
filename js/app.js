@@ -144,6 +144,11 @@ class SecurityApp {
       btn.addEventListener('click', (e) => this.handleAdvancedReport(e));
     });
     
+    // Activity log controls
+    document.getElementById('clear-activity-btn')?.addEventListener('click', () => this.handleClearActivityLog());
+    document.getElementById('export-activity-btn')?.addEventListener('click', () => this.handleExportActivityLog());
+    document.getElementById('apply-filters-btn')?.addEventListener('click', () => this.applyActivityFilters());
+    
     // Shift management buttons
     document.getElementById('start-shift-btn')?.addEventListener('click', () => this.showStartShiftModal());
     document.getElementById('end-shift-btn')?.addEventListener('click', () => this.handleEndShift());
@@ -1740,6 +1745,347 @@ class SecurityApp {
     setTimeout(() => {
       printWindow.print();
     }, 500);
+  }
+
+  // Activity Log Management
+  async updateActivityPage() {
+    try {
+      const activities = window.StorageManager.getActivityLog(1000);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const todayActivities = activities.filter(a => 
+        new Date(a.timestamp) >= todayStart
+      );
+      
+      const undoableActivities = activities.filter(a => 
+        this.isUndoable(a) && Date.now() - a.timestamp < 24 * 60 * 60 * 1000
+      );
+
+      // Update stats
+      document.getElementById('today-activities-count').textContent = todayActivities.length;
+      document.getElementById('undoable-actions-count').textContent = undoableActivities.length;
+      document.getElementById('total-activities-count').textContent = activities.length;
+
+      // Load activity list
+      this.loadActivityList(activities);
+
+    } catch (error) {
+      console.error('[App] Error updating activity page:', error);
+      this.showError('Failed to load activity log');
+    }
+  }
+
+  loadActivityList(activities = null) {
+    const container = document.getElementById('activity-log-list');
+    if (!container) return;
+
+    if (!activities) {
+      activities = window.StorageManager.getActivityLog(1000);
+    }
+
+    // Apply filters if any
+    activities = this.applyCurrentFilters(activities);
+
+    if (activities.length === 0) {
+      container.innerHTML = `
+        <div class="activity-empty">
+          <span class="material-icons" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">history</span>
+          <p>No activity records found</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = activities.map(activity => 
+      this.createActivityItem(activity)
+    ).join('');
+
+    // Add event listeners for undo buttons
+    container.querySelectorAll('.undo-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const activityId = e.target.dataset.activityId;
+        this.handleUndoActivity(activityId);
+      });
+    });
+  }
+
+  createActivityItem(activity) {
+    const { icon, iconClass, title, description } = this.getActivityDisplayInfo(activity);
+    const isUndoable = this.isUndoable(activity);
+    const canUndo = isUndoable && Date.now() - activity.timestamp < 24 * 60 * 60 * 1000;
+    
+    return `
+      <div class="activity-item ${isUndoable ? 'undoable' : ''}" data-activity-id="${activity.id}">
+        <div class="activity-icon ${iconClass}">
+          <span class="material-icons">${icon}</span>
+        </div>
+        <div class="activity-details">
+          <div class="activity-title">${title}</div>
+          <div class="activity-description">${description}</div>
+          <div class="activity-meta">
+            <span class="activity-timestamp">${new Date(activity.timestamp).toLocaleString()}</span>
+            <span>•</span>
+            <span>${activity.action.replace(/_/g, ' ').toUpperCase()}</span>
+            ${activity.data.officer ? `<span>• Officer: ${activity.data.officer}</span>` : ''}
+          </div>
+        </div>
+        <div class="activity-actions">
+          ${canUndo ? `
+            <button class="undo-btn" data-activity-id="${activity.id}">
+              <span class="material-icons" style="font-size: 14px;">undo</span>
+              Undo
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  getActivityDisplayInfo(activity) {
+    const person = activity.data.personnelId ? 
+      window.StorageManager.getPersonnel(activity.data.personnelId) : null;
+    
+    const personName = person ? person.name : 'Unknown Person';
+
+    switch (activity.action) {
+      case 'check_in':
+        return {
+          icon: 'login',
+          iconClass: 'check-in',
+          title: `${personName} checked in`,
+          description: `${person?.role || 'Visitor'} ${person?.company ? `from ${person.company}` : ''}`
+        };
+      
+      case 'check_out':
+        const duration = activity.data.duration ? 
+          this.formatDuration(activity.data.duration) : 'Unknown duration';
+        return {
+          icon: 'logout',
+          iconClass: 'check-out',
+          title: `${personName} checked out`,
+          description: `Visit duration: ${duration}`
+        };
+      
+      case 'personnel_added':
+        return {
+          icon: 'person_add',
+          iconClass: 'personnel',
+          title: `New personnel added`,
+          description: `${personName} (${activity.data.role || 'visitor'}) was added to the system`
+        };
+      
+      case 'personnel_updated':
+        return {
+          icon: 'edit',
+          iconClass: 'personnel',
+          title: `Personnel updated`,
+          description: `${personName}'s information was modified`
+        };
+      
+      case 'personnel_deleted':
+        return {
+          icon: 'person_remove',
+          iconClass: 'personnel',
+          title: `Personnel removed`,
+          description: `${activity.data.name || 'Unknown'} was removed from the system`
+        };
+      
+      case 'shift_start':
+        return {
+          icon: 'play_arrow',
+          iconClass: 'shift',
+          title: `Shift started`,
+          description: `${activity.data.shiftType || 'Regular'} shift with officers: ${activity.data.officers?.join(', ') || 'Unknown'}`
+        };
+      
+      case 'shift_end':
+        return {
+          icon: 'stop',
+          iconClass: 'shift',
+          title: `Shift ended`,
+          description: `Shift duration: ${activity.data.duration ? this.formatDuration(activity.data.duration) : 'Unknown'}`
+        };
+      
+      case 'emergency_mode_activated':
+        return {
+          icon: 'emergency',
+          iconClass: 'emergency',
+          title: `Emergency mode activated`,
+          description: `Emergency procedures initiated by ${activity.data.officer || 'system'}`
+        };
+      
+      default:
+        return {
+          icon: 'info',
+          iconClass: 'personnel',
+          title: activity.action.replace(/_/g, ' '),
+          description: JSON.stringify(activity.data)
+        };
+    }
+  }
+
+  isUndoable(activity) {
+    const undoableActions = [
+      'check_in',
+      'check_out',
+      'personnel_added',
+      'personnel_updated',
+      'personnel_deleted'
+    ];
+    return undoableActions.includes(activity.action);
+  }
+
+  async handleUndoActivity(activityId) {
+    try {
+      const activity = window.StorageManager.getActivityLog(1000).find(a => a.id === activityId);
+      if (!activity) {
+        this.showError('Activity not found');
+        return;
+      }
+
+      if (!this.isUndoable(activity)) {
+        this.showError('This activity cannot be undone');
+        return;
+      }
+
+      const confirmed = await this.showConfirmDialog(
+        'Undo Activity',
+        `Are you sure you want to undo this action: "${this.getActivityDisplayInfo(activity).title}"? This cannot be reversed.`
+      );
+
+      if (!confirmed) return;
+
+      await this.performUndo(activity);
+      
+      // Log the undo action
+      await window.StorageManager.logActivity('activity_undone', {
+        originalActivityId: activityId,
+        originalAction: activity.action,
+        undoneAt: Date.now()
+      });
+
+      this.showToast('Activity successfully undone', 'success');
+      await this.updateActivityPage();
+
+    } catch (error) {
+      console.error('[App] Error undoing activity:', error);
+      this.showError('Failed to undo activity');
+    }
+  }
+
+  async performUndo(activity) {
+    switch (activity.action) {
+      case 'check_in':
+        if (activity.data.personnelId) {
+          const person = window.StorageManager.getPersonnel(activity.data.personnelId);
+          if (person && person.status === 'checked_in') {
+            await window.StorageManager.checkOut(activity.data.personnelId);
+          }
+        }
+        break;
+
+      case 'check_out':
+        if (activity.data.personnelId) {
+          const person = window.StorageManager.getPersonnel(activity.data.personnelId);
+          if (person && person.status === 'checked_out') {
+            await window.StorageManager.checkIn(activity.data.personnelId);
+          }
+        }
+        break;
+
+      case 'personnel_added':
+        if (activity.data.personnelId) {
+          await window.StorageManager.deletePersonnel(activity.data.personnelId);
+        }
+        break;
+
+      case 'personnel_deleted':
+        if (activity.data.personnelData) {
+          await window.StorageManager.addPersonnel(activity.data.personnelData);
+        }
+        break;
+
+      case 'personnel_updated':
+        if (activity.data.personnelId && activity.data.previousData) {
+          await window.StorageManager.updatePersonnel(activity.data.personnelId, activity.data.previousData);
+        }
+        break;
+    }
+  }
+
+  applyCurrentFilters(activities) {
+    const typeFilter = document.getElementById('activity-type-filter')?.value;
+    const dateFilter = document.getElementById('activity-date-filter')?.value;
+
+    let filtered = activities;
+
+    if (typeFilter && typeFilter !== 'all') {
+      if (typeFilter === 'emergency') {
+        filtered = filtered.filter(a => 
+          a.action.includes('emergency') || a.action.includes('missing')
+        );
+      } else {
+        filtered = filtered.filter(a => a.action === typeFilter);
+      }
+    }
+
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter);
+      const nextDay = new Date(filterDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
+      filtered = filtered.filter(a => {
+        const activityDate = new Date(a.timestamp);
+        return activityDate >= filterDate && activityDate < nextDay;
+      });
+    }
+
+    return filtered.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  applyActivityFilters() {
+    this.loadActivityList();
+  }
+
+  async handleClearActivityLog() {
+    const confirmed = await this.showConfirmDialog(
+      'Clear Activity Log',
+      'Are you sure you want to clear old activity logs? This will remove activities older than 30 days and cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const cutoffDate = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
+      const activities = window.StorageManager.getActivityLog(10000);
+      const toKeep = activities.filter(a => a.timestamp > cutoffDate);
+      
+      // Update storage with filtered activities
+      window.StorageManager.data.activityLog = toKeep;
+      await window.StorageManager.saveToStorage();
+
+      this.showToast('Old activity logs cleared successfully', 'success');
+      await this.updateActivityPage();
+
+    } catch (error) {
+      console.error('[App] Error clearing activity log:', error);
+      this.showError('Failed to clear activity log');
+    }
+  }
+
+  async handleExportActivityLog() {
+    try {
+      const activities = window.StorageManager.getActivityLog(10000);
+      const filtered = this.applyCurrentFilters(activities);
+      
+      await window.ExportManager.exportActivitiesCSV(filtered);
+      this.showToast('Activity log exported successfully', 'success');
+
+    } catch (error) {
+      console.error('[App] Error exporting activity log:', error);
+      this.showError('Failed to export activity log');
+    }
   }
 
   async showConfirmDialog(title, message) {
