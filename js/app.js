@@ -2390,10 +2390,10 @@ SecurityApp.prototype.disableSync = function() {
 };
 
 SecurityApp.prototype.startSyncServer = async function() {
-  if (window.P2PSync && window.P2PSync.syncEnabled) {
+  if (window.MeshSync) {
     try {
       this.showToast('Starting coordinator...', 'info');
-      const success = await window.P2PSync.startAsCoordinator();
+      const success = await window.MeshSync.startCoordinator();
       this.updateSyncPage();
       if (success) {
         // Update button to show active state
@@ -2406,20 +2406,20 @@ SecurityApp.prototype.startSyncServer = async function() {
           startServerBtn.classList.remove('primary');
           startServerBtn.classList.add('success');
         }
-        this.showP2PConnectionQR();
+        this.showMeshConnectionQR();
         this.showToast('Coordinator started successfully!', 'success');
       }
     } catch (error) {
       this.showError('Failed to start coordinator: ' + error.message);
     }
   } else {
-    this.showToast('Please enable sync first', 'warning');
+    this.showError('Mesh sync not available');
   }
 };
 
 SecurityApp.prototype.stopSyncServer = function() {
-  if (window.P2PSync && window.P2PSync.isCoordinator) {
-    window.P2PSync.stopCoordinator();
+  if (window.MeshSync && window.MeshSync.isCoordinator) {
+    window.MeshSync.stopCoordinator();
     
     // Reset button to original state
     const startServerBtn = document.getElementById('start-server-btn');
