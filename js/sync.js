@@ -25,6 +25,7 @@ class SyncManager {
     this.serverPort = null;
     this.httpSyncInterval = null;
     this.lastSyncTimestamp = 0;
+    this.isHosting = false;
   }
 
   async init() {
@@ -80,36 +81,28 @@ class SyncManager {
       this.updateStatus('connecting', 'Starting server...');
       this.addLogEntry('info', `Starting WebSocket server on port ${port}`);
       
-      // Check if server is running by making HTTP request
-      const response = await fetch(`http://localhost:${port}/status`).catch(() => null);
-      
-      if (response && response.ok) {
-        this.addLogEntry('error', 'Server already running on this port');
-        this.updateStatus('offline', 'Port already in use');
-        return;
-      }
-      
-      // Check if our sync server is already running
-      this.addLogEntry('info', 'Checking if sync server is running...');
+      // Check if our sync server is running
+      this.addLogEntry('info', 'Checking if sync server is available...');
       try {
         const response = await fetch(`http://localhost:${port}/status`);
         if (response.ok) {
           const data = await response.json();
-          this.addLogEntry('success', `Sync server is running with ${data.clients} connected clients`);
-          this.addLogEntry('info', 'Server is ready for connections');
-          this.updateStatus('offline', 'Server ready - Click Connect');
+          this.addLogEntry('success', `Sync server found with ${data.clients} connected clients`);
+          this.addLogEntry('info', 'You are now hosting a sync server');
+          this.updateStatus('hosting', `Hosting on port ${port}`);
+          this.isHosting = true;
           
-          // Start HTTP-based sync as fallback
+          // Set up hosting mode
           this.serverHost = 'localhost';
           this.serverPort = port;
-          this.startHttpSync();
+          this.addLogEntry('success', 'Other devices can connect to this server');
         } else {
-          this.addLogEntry('warning', 'Sync server not responding');
+          this.addLogEntry('error', 'Sync server not responding');
           this.updateStatus('offline', 'Server not available');
         }
       } catch (error) {
         this.addLogEntry('warning', 'No sync server running on this port');
-        this.addLogEntry('info', 'Start the sync server to enable network synchronization');
+        this.addLogEntry('info', 'The sync server needs to be started separately');
         this.updateStatus('offline', 'Server not running');
       }
       
@@ -236,11 +229,21 @@ class SyncManager {
   }
 
   disconnect() {
+    this.isConnected = false;
+    this.isHosting = false;
+    
     if (this.socket) {
       this.socket.close();
+      this.socket = null;
     }
     if (this.server) {
       this.server.close();
+      this.server = null;
+    }
+    
+    if (this.httpSyncInterval) {
+      clearInterval(this.httpSyncInterval);
+      this.httpSyncInterval = null;
     }
     
     this.handleDisconnection();
@@ -594,7 +597,7 @@ class SyncManager {
     const connectBtn = document.getElementById('connect-sync-client');
     const disconnectBtn = document.getElementById('disconnect-sync');
     
-    if (this.isConnected) {
+    if (this.isConnected || this.isHosting) {
       startBtn.style.display = 'none';
       connectBtn.style.display = 'none';
       disconnectBtn.style.display = 'inline-flex';
