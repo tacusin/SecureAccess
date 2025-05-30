@@ -1,0 +1,435 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-05-30",
+    "version": "1.0.0",
+    "description": "System architecture and component relationships for Security Access Management System"
+  },
+  "systemArchitecture": {
+    "mainApplication": {
+      "name": "SecurityApp",
+      "file": "js/app.js",
+      "role": "Main application controller",
+      "responsibilities": [
+        "Application initialization and lifecycle management",
+        "Event handling and user interaction coordination",
+        "Page navigation and routing",
+        "Component orchestration and communication",
+        "Theme management and UI state control"
+      ],
+      "dependencies": [
+        "StorageManager",
+        "DashboardManager", 
+        "CameraManager",
+        "EmergencyManager",
+        "OCRManager",
+        "QRGenerator",
+        "ReportsManager",
+        "ShiftManager",
+        "TutorialManager"
+      ]
+    },
+    "coreComponents": [
+      {
+        "name": "StorageManager",
+        "file": "js/storage.js",
+        "role": "Data persistence and management",
+        "responsibilities": [
+          "Local storage operations",
+          "Personnel data management",
+          "Activity logging and retrieval",
+          "Settings management",
+          "Data export and import",
+          "Offline data synchronization"
+        ],
+        "provides": [
+          "Personnel CRUD operations",
+          "Activity log management",
+          "Real-time statistics",
+          "Data export capabilities"
+        ],
+        "usedBy": ["SecurityApp", "DashboardManager", "EmergencyManager", "ReportsManager", "ShiftManager"]
+      },
+      {
+        "name": "DashboardManager",
+        "file": "js/dashboard.js",
+        "role": "Dashboard visualization and analytics",
+        "responsibilities": [
+          "Chart initialization and management",
+          "Real-time data updates",
+          "Occupancy tracking",
+          "Statistics calculation and display"
+        ],
+        "provides": [
+          "Interactive charts",
+          "Real-time occupancy updates",
+          "Trend analysis",
+          "Performance metrics"
+        ],
+        "dependencies": ["StorageManager", "Chart.js"],
+        "usedBy": ["SecurityApp"]
+      },
+      {
+        "name": "CameraManager",
+        "file": "js/camera.js",
+        "role": "Camera access and photo capture",
+        "responsibilities": [
+          "Camera permission management",
+          "Photo capture and processing",
+          "Image compression and optimization",
+          "QR code scanning integration"
+        ],
+        "provides": [
+          "Photo capture functionality",
+          "Camera stream management",
+          "Image processing utilities"
+        ],
+        "usedBy": ["SecurityApp", "OCRManager"]
+      },
+      {
+        "name": "EmergencyManager",
+        "file": "js/emergency.js",
+        "role": "Emergency operations and evacuation",
+        "responsibilities": [
+          "Emergency mode activation/deactivation",
+          "Evacuation list generation",
+          "Emergency checkout procedures",
+          "Missing person identification"
+        ],
+        "provides": [
+          "Emergency protocols",
+          "Evacuation management",
+          "Emergency reporting"
+        ],
+        "dependencies": ["StorageManager"],
+        "usedBy": ["SecurityApp"]
+      },
+      {
+        "name": "OCRManager",
+        "file": "js/ocr.js",
+        "role": "Optical character recognition",
+        "responsibilities": [
+          "ID card text extraction",
+          "Driver's license parsing",
+          "Text recognition and processing"
+        ],
+        "provides": [
+          "ID scanning capabilities",
+          "Automated data entry",
+          "Text extraction utilities"
+        ],
+        "dependencies": ["CameraManager"],
+        "usedBy": ["SecurityApp"]
+      },
+      {
+        "name": "QRGenerator",
+        "file": "js/qr-generator.js",
+        "role": "QR code generation and scanning",
+        "responsibilities": [
+          "Personnel QR code generation",
+          "Bulk QR code creation",
+          "QR code parsing and validation"
+        ],
+        "provides": [
+          "QR code generation",
+          "Bulk QR operations",
+          "QR data parsing"
+        ],
+        "dependencies": ["QRCode.js library"],
+        "usedBy": ["SecurityApp"]
+      },
+      {
+        "name": "ReportsManager",
+        "file": "js/reports.js",
+        "role": "Advanced reporting and analytics",
+        "responsibilities": [
+          "Comprehensive report generation",
+          "Security audit reports",
+          "Visitor analytics",
+          "Compliance reporting"
+        ],
+        "provides": [
+          "Multiple report types",
+          "Advanced analytics",
+          "Export capabilities"
+        ],
+        "dependencies": ["StorageManager"],
+        "usedBy": ["SecurityApp"]
+      },
+      {
+        "name": "ShiftManager",
+        "file": "js/shifts.js",
+        "role": "Shift management and handovers",
+        "responsibilities": [
+          "Shift lifecycle management",
+          "Handover documentation",
+          "Shift history tracking",
+          "Officer scheduling"
+        ],
+        "provides": [
+          "Shift operations",
+          "Handover workflows",
+          "Shift analytics"
+        ],
+        "dependencies": ["StorageManager"],
+        "usedBy": ["SecurityApp"]
+      }
+    ],
+    "syncComponents": [
+      {
+        "name": "SyncClient",
+        "file": "js/sync-client.js",
+        "role": "WebSocket-based real-time synchronization",
+        "responsibilities": [
+          "Real-time data synchronization",
+          "Device communication",
+          "Conflict resolution",
+          "Network state management"
+        ],
+        "provides": [
+          "Real-time sync",
+          "Multi-device support",
+          "Offline resilience"
+        ]
+      },
+      {
+        "name": "P2PSync",
+        "file": "js/p2p-sync.js",
+        "role": "Peer-to-peer synchronization",
+        "responsibilities": [
+          "Direct device communication",
+          "Coordinator-client architecture",
+          "Local network sync",
+          "Data consistency management"
+        ],
+        "provides": [
+          "P2P networking",
+          "Local sync capabilities",
+          "Device coordination"
+        ]
+      },
+      {
+        "name": "MeshSync",
+        "file": "js/mesh-sync.js",
+        "role": "Simplified mesh network sync",
+        "responsibilities": [
+          "Simple mesh networking",
+          "Device discovery",
+          "Local area sync",
+          "Connection management"
+        ],
+        "provides": [
+          "Mesh networking",
+          "Device discovery",
+          "Local sync"
+        ]
+      }
+    ],
+    "utilityComponents": [
+      {
+        "name": "ExportManager",
+        "file": "js/export.js",
+        "role": "Data export in multiple formats",
+        "responsibilities": [
+          "CSV export generation",
+          "PDF report creation",
+          "JSON data export",
+          "Email and scheduling"
+        ],
+        "provides": [
+          "Multi-format export",
+          "Report generation",
+          "Data portability"
+        ],
+        "usedBy": ["SecurityApp", "ReportsManager"]
+      },
+      {
+        "name": "TutorialManager",
+        "file": "js/tutorial.js",
+        "role": "User onboarding and help",
+        "responsibilities": [
+          "Interactive tutorials",
+          "Feature guidance",
+          "Help system",
+          "User onboarding"
+        ],
+        "provides": [
+          "Guided tours",
+          "Contextual help",
+          "User education"
+        ],
+        "usedBy": ["SecurityApp"]
+      }
+    ]
+  },
+  "initializationFlow": {
+    "order": [
+      {
+        "step": 1,
+        "component": "SecurityApp.constructor",
+        "action": "Initialize application state and properties"
+      },
+      {
+        "step": 2,
+        "component": "SecurityApp.init",
+        "action": "Begin application initialization sequence"
+      },
+      {
+        "step": 3,
+        "component": "StorageManager.init",
+        "action": "Initialize data storage and load existing data"
+      },
+      {
+        "step": 4,
+        "component": "SecurityApp.setupEventListeners",
+        "action": "Attach all DOM event listeners"
+      },
+      {
+        "step": 5,
+        "component": "SecurityApp.applyTheme",
+        "action": "Apply saved theme settings"
+      },
+      {
+        "step": 6,
+        "component": "SecurityApp.initializeComponents",
+        "action": "Initialize all system components"
+      },
+      {
+        "step": 7,
+        "components": [
+          "DashboardManager.init",
+          "CameraManager.init", 
+          "EmergencyManager.init",
+          "OCRManager.init",
+          "QRGenerator.init",
+          "ReportsManager.init",
+          "ShiftManager.init"
+        ],
+        "action": "Parallel component initialization"
+      },
+      {
+        "step": 8,
+        "component": "SecurityApp.hideLoadingScreen",
+        "action": "Show main application interface"
+      },
+      {
+        "step": 9,
+        "component": "TutorialManager.start",
+        "action": "Start tutorial for new users (conditional)"
+      }
+    ]
+  },
+  "dataFlow": {
+    "personnelManagement": {
+      "flow": [
+        "User Input → SecurityApp → StorageManager → localStorage",
+        "StorageManager → SecurityApp → UI Update",
+        "Activity Logging → StorageManager → Activity Log"
+      ],
+      "components": ["SecurityApp", "StorageManager"],
+      "triggers": ["Form submission", "Status changes", "User actions"]
+    },
+    "dashboardUpdates": {
+      "flow": [
+        "StorageManager (data change) → DashboardManager → Chart updates",
+        "Real-time timer → DashboardManager → Statistics refresh",
+        "Activity events → Dashboard UI updates"
+      ],
+      "components": ["StorageManager", "DashboardManager", "Chart.js"],
+      "triggers": ["Data changes", "Timer intervals", "User navigation"]
+    },
+    "shiftOperations": {
+      "flow": [
+        "Shift actions → ShiftManager → StorageManager → Persistence",
+        "Handover creation → ShiftManager → Notification system",
+        "Shift changes → UI updates across application"
+      ],
+      "components": ["ShiftManager", "StorageManager", "SecurityApp"],
+      "triggers": ["Shift start/end", "Handover creation", "Status changes"]
+    },
+    "emergencyProcedures": {
+      "flow": [
+        "Emergency activation → EmergencyManager → System-wide alerts",
+        "Evacuation procedures → Personnel data → Emergency reports",
+        "Emergency checkout → Bulk operations → Activity logging"
+      ],
+      "components": ["EmergencyManager", "StorageManager", "SecurityApp"],
+      "triggers": ["Emergency button", "Emergency procedures", "Evacuation actions"]
+    }
+  },
+  "communicationPatterns": {
+    "eventDriven": {
+      "description": "Components communicate through custom events and callbacks",
+      "examples": [
+        "Personnel status changes trigger dashboard updates",
+        "Emergency activation broadcasts to all components",
+        "Data changes trigger auto-save operations"
+      ]
+    },
+    "directCalls": {
+      "description": "Direct method invocation between related components",
+      "examples": [
+        "SecurityApp calls StorageManager methods",
+        "CameraManager used by OCRManager",
+        "ReportsManager queries StorageManager"
+      ]
+    },
+    "globalState": {
+      "description": "Shared application state through window object",
+      "examples": [
+        "window.StorageManager for data access",
+        "window.app for main application instance",
+        "Component instances attached to window for global access"
+      ]
+    }
+  },
+  "errorHandling": {
+    "strategy": "Graceful degradation with user feedback",
+    "patterns": [
+      {
+        "component": "StorageManager",
+        "handling": "Continue with empty data if localStorage fails"
+      },
+      {
+        "component": "CameraManager", 
+        "handling": "Provide fallback file upload if camera unavailable"
+      },
+      {
+        "component": "SyncComponents",
+        "handling": "Operate in offline mode if sync fails"
+      },
+      {
+        "component": "ExternalLibraries",
+        "handling": "Disable features if external libraries fail to load"
+      }
+    ]
+  },
+  "performanceConsiderations": {
+    "lazyLoading": [
+      "Tutorial only loads when needed",
+      "Sync components load on demand",
+      "Charts initialize after DOM ready"
+    ],
+    "dataOptimization": [
+      "Activity log pagination",
+      "Personnel search debouncing",
+      "Auto-save throttling"
+    ],
+    "memoryManagement": [
+      "Event listener cleanup",
+      "Chart destruction on navigation",
+      "Camera stream cleanup"
+    ]
+  },
+  "securityConsiderations": {
+    "dataProtection": [
+      "Local storage only - no external data transmission",
+      "Client-side encryption for sensitive data",
+      "Secure camera access management"
+    ],
+    "accessControl": [
+      "Feature-based access control",
+      "Emergency override capabilities",
+      "Audit trail for all actions"
+    ]
+  }
+}

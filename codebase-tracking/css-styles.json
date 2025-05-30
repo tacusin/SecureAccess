@@ -1,0 +1,421 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-05-30",
+    "version": "1.0.0",
+    "description": "Complete CSS styles registry for Security Access Management System"
+  },
+  "cssVariables": {
+    "colors": {
+      "primary": {
+        "variable": "--primary",
+        "value": "188 100% 50%",
+        "description": "Main cyan color (#00E5FF)",
+        "usage": "Buttons, links, active states"
+      },
+      "primary-variant": {
+        "variable": "--primary-variant", 
+        "value": "188 100% 42%",
+        "description": "Darker cyan (#00BCD4)",
+        "usage": "Hover states, pressed buttons"
+      },
+      "secondary": {
+        "variable": "--secondary",
+        "value": "184 100% 38%",
+        "description": "Secondary blue-gray (#00ACC1)",
+        "usage": "Secondary buttons, accents"
+      },
+      "background": {
+        "variable": "--background",
+        "value": "212 51% 11%",
+        "description": "Main background color (#0D1B2A)",
+        "usage": "Body background, main content areas"
+      },
+      "surface": {
+        "variable": "--surface",
+        "value": "212 41% 18%",
+        "description": "Surface color (#1B2A41)",
+        "usage": "Cards, navigation, elevated elements"
+      },
+      "surface-variant": {
+        "variable": "--surface-variant",
+        "value": "210 29% 24%",
+        "description": "Surface variant (#2C3E50)",
+        "usage": "Stats cards, form elements"
+      },
+      "error": {
+        "variable": "--error",
+        "value": "4 90% 58%",
+        "description": "Error color (#F44336)",
+        "usage": "Error messages, validation"
+      },
+      "warning": {
+        "variable": "--warning",
+        "value": "45 100% 51%",
+        "description": "Warning color (#FFC107)",
+        "usage": "Warning messages, alerts"
+      },
+      "success": {
+        "variable": "--success",
+        "value": "122 39% 49%",
+        "description": "Success color (#4CAF50)",
+        "usage": "Success messages, check-in status"
+      },
+      "emergency": {
+        "variable": "--emergency",
+        "value": "4 90% 58%",
+        "description": "Emergency red (#F44336)",
+        "usage": "Emergency button, critical alerts"
+      }
+    },
+    "spacing": {
+      "xs": { "variable": "--spacing-xs", "value": "0.25rem", "usage": "Small gaps, tight spacing" },
+      "sm": { "variable": "--spacing-sm", "value": "0.5rem", "usage": "Form element spacing" },
+      "md": { "variable": "--spacing-md", "value": "1rem", "usage": "Standard spacing unit" },
+      "lg": { "variable": "--spacing-lg", "value": "1.5rem", "usage": "Section spacing" },
+      "xl": { "variable": "--spacing-xl", "value": "2rem", "usage": "Large section gaps" },
+      "xxl": { "variable": "--spacing-xxl", "value": "3rem", "usage": "Major layout spacing" }
+    },
+    "typography": {
+      "font-family": { "variable": "--font-family", "value": "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
+      "font-size-xs": { "variable": "--font-size-xs", "value": "0.75rem", "usage": "Timestamps, metadata" },
+      "font-size-sm": { "variable": "--font-size-sm", "value": "0.875rem", "usage": "Secondary text, labels" },
+      "font-size-base": { "variable": "--font-size-base", "value": "1rem", "usage": "Body text" },
+      "font-size-lg": { "variable": "--font-size-lg", "value": "1.125rem", "usage": "Person names, card titles" },
+      "font-size-xl": { "variable": "--font-size-xl", "value": "1.25rem", "usage": "App title, stats" },
+      "font-size-xxl": { "variable": "--font-size-xxl", "value": "1.5rem", "usage": "Page headers" },
+      "font-size-xxxl": { "variable": "--font-size-xxxl", "value": "2rem", "usage": "Counter numbers" }
+    },
+    "borderRadius": {
+      "sm": { "variable": "--radius-sm", "value": "0.25rem", "usage": "Status badges" },
+      "md": { "variable": "--radius-md", "value": "0.5rem", "usage": "Form elements, filters" },
+      "lg": { "variable": "--radius-lg", "value": "1rem", "usage": "Cards, buttons" },
+      "xl": { "variable": "--radius-xl", "value": "1.5rem", "usage": "Action buttons, modals" }
+    },
+    "shadows": {
+      "sm": { "variable": "--shadow-sm", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "usage": "Subtle elevation" },
+      "md": { "variable": "--shadow-md", "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)", "usage": "Cards, buttons" },
+      "lg": { "variable": "--shadow-lg", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "usage": "Modals, popovers" },
+      "xl": { "variable": "--shadow-xl", "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)", "usage": "High elevation elements" }
+    },
+    "transitions": {
+      "fast": { "variable": "--transition-fast", "value": "150ms ease-in-out", "usage": "Hover effects" },
+      "normal": { "variable": "--transition-normal", "value": "250ms ease-in-out", "usage": "Page transitions" },
+      "slow": { "variable": "--transition-slow", "value": "350ms ease-in-out", "usage": "Complex animations" }
+    },
+    "zIndex": {
+      "dropdown": { "variable": "--z-dropdown", "value": "100", "usage": "Dropdown menus" },
+      "modal": { "variable": "--z-modal", "value": "1000", "usage": "Modal dialogs" },
+      "toast": { "variable": "--z-toast", "value": "1100", "usage": "Toast notifications" },
+      "tooltip": { "variable": "--z-tooltip", "value": "1200", "usage": "Tooltips" }
+    },
+    "touchTargets": {
+      "size": { "variable": "--touch-target", "value": "44px", "usage": "Minimum touch target size" }
+    }
+  },
+  "layoutClasses": {
+    "app": {
+      "selector": ".app",
+      "description": "Main application grid container",
+      "properties": ["display: grid", "grid-template-areas", "height: 100vh"],
+      "usage": "Root application layout"
+    },
+    "app-bar": {
+      "selector": ".app-bar",
+      "description": "Top navigation bar",
+      "properties": ["grid-area: header", "background: linear-gradient", "border-bottom"],
+      "usage": "Main header with menu and actions"
+    },
+    "nav-drawer": {
+      "selector": ".nav-drawer",
+      "description": "Side navigation drawer",
+      "properties": ["grid-area: nav", "background: hsl(var(--surface))", "overflow-y: auto"],
+      "usage": "Left sidebar navigation"
+    },
+    "main-content": {
+      "selector": ".main-content",
+      "description": "Main content area",
+      "properties": ["grid-area: main", "overflow-y: auto", "padding: var(--spacing-lg)"],
+      "usage": "Primary content container"
+    },
+    "page": {
+      "selector": ".page",
+      "description": "Individual page container",
+      "properties": ["display: none"],
+      "modifiers": [".page.active"],
+      "usage": "Page content wrapper"
+    },
+    "page-header": {
+      "selector": ".page-header",
+      "description": "Page header with title and actions",
+      "properties": ["display: flex", "align-items: center", "justify-content: space-between"],
+      "usage": "Top section of each page"
+    }
+  },
+  "componentClasses": {
+    "cards": {
+      "card": {
+        "selector": ".card",
+        "description": "Basic card component",
+        "properties": ["background: hsl(var(--surface))", "border-radius: var(--radius-lg)", "padding: var(--spacing-lg)", "box-shadow: var(--shadow-md)"],
+        "usage": "Content containers, statistics"
+      },
+      "counter-card": {
+        "selector": ".counter-card",
+        "description": "Occupancy counter card",
+        "properties": ["background: hsl(var(--primary))", "color: hsl(var(--on-primary))", "text-align: center"],
+        "usage": "Current occupancy display"
+      }
+    },
+    "buttons": {
+      "action-button": {
+        "selector": ".action-button",
+        "description": "Primary action button",
+        "properties": ["display: flex", "align-items: center", "gap: var(--spacing-md)", "padding: var(--spacing-lg) var(--spacing-xl)", "border-radius: var(--radius-xl)"],
+        "modifiers": [".action-button.primary", ".action-button.secondary"],
+        "usage": "Main action buttons"
+      },
+      "icon-button": {
+        "selector": ".icon-button",
+        "description": "Icon-only button",
+        "properties": ["width: var(--touch-target)", "height: var(--touch-target)", "border-radius: 50%", "display: flex", "align-items: center", "justify-content: center"],
+        "usage": "Header actions, small controls"
+      },
+      "emergency-button": {
+        "selector": ".emergency-button",
+        "description": "Emergency action button",
+        "properties": ["background: hsl(var(--emergency))", "border-radius: 50%", "animation: pulse 2s infinite"],
+        "usage": "Emergency mode activation"
+      }
+    },
+    "navigation": {
+      "nav-item": {
+        "selector": ".nav-item",
+        "description": "Navigation menu item",
+        "properties": ["display: flex", "align-items: center", "gap: var(--spacing-md)", "padding: var(--spacing-md) var(--spacing-lg)"],
+        "modifiers": [".nav-item:hover", ".nav-item.active"],
+        "usage": "Side navigation links"
+      },
+      "nav-header": {
+        "selector": ".nav-header",
+        "description": "Navigation header section",
+        "properties": ["padding: var(--spacing-lg)", "text-align: center", "border-bottom: 1px solid"],
+        "usage": "Logo and title in navigation"
+      }
+    },
+    "personnel": {
+      "person-card": {
+        "selector": ".person-card",
+        "description": "Personnel information card",
+        "properties": ["background: hsl(var(--surface))", "border: 1px solid", "border-radius: var(--radius-lg)", "padding: var(--spacing-lg)", "display: flex", "align-items: center"],
+        "usage": "Individual person display"
+      },
+      "person-avatar": {
+        "selector": ".person-avatar",
+        "description": "Person photo/avatar",
+        "properties": ["width: 56px", "height: 56px", "border-radius: 50%", "overflow: hidden"],
+        "usage": "Profile pictures"
+      },
+      "person-status": {
+        "selector": ".person-status",
+        "description": "Check-in status indicator",
+        "properties": ["font-size: var(--font-size-sm)", "padding: var(--spacing-xs) var(--spacing-sm)", "border-radius: var(--radius-sm)"],
+        "modifiers": [".person-status.checked-in", ".person-status.checked-out"],
+        "usage": "Status badges"
+      }
+    },
+    "dashboard": {
+      "dashboard-grid": {
+        "selector": ".dashboard-grid",
+        "description": "Dashboard layout grid",
+        "properties": ["display: grid", "grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))", "gap: var(--spacing-lg)"],
+        "usage": "Dashboard card layout"
+      },
+      "occupancy-counter": {
+        "selector": ".occupancy-counter",
+        "description": "Current occupancy display",
+        "properties": ["text-align: center"],
+        "usage": "Main occupancy indicator"
+      },
+      "stats-grid": {
+        "selector": ".stats-grid",
+        "description": "Statistics grid layout",
+        "properties": ["display: grid", "grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))", "gap: var(--spacing-md)"],
+        "usage": "Statistics cards"
+      },
+      "quick-actions": {
+        "selector": ".quick-actions",
+        "description": "Quick action buttons container",
+        "properties": ["display: flex", "gap: var(--spacing-md)", "flex-wrap: wrap"],
+        "usage": "Dashboard action buttons"
+      }
+    },
+    "forms": {
+      "search-container": {
+        "selector": ".search-container",
+        "description": "Search input container",
+        "properties": ["position: relative", "flex: 1", "max-width: 400px"],
+        "usage": "Search functionality"
+      },
+      "search-input": {
+        "selector": ".search-input",
+        "description": "Search input field",
+        "properties": ["width: 100%", "padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) 48px", "border: 1px solid", "border-radius: var(--radius-lg)"],
+        "usage": "Text search input"
+      },
+      "filter-select": {
+        "selector": ".filter-select",
+        "description": "Filter dropdown",
+        "properties": ["padding: var(--spacing-sm) var(--spacing-md)", "border: 1px solid", "border-radius: var(--radius-md)", "min-width: 140px"],
+        "usage": "Filter controls"
+      }
+    },
+    "modals": {
+      "modal-overlay": {
+        "selector": ".modal-overlay",
+        "description": "Modal background overlay",
+        "properties": ["position: fixed", "top: 0", "left: 0", "width: 100%", "height: 100%", "background: rgba(0, 0, 0, 0.5)", "z-index: var(--z-modal)"],
+        "usage": "Modal backdrop"
+      },
+      "modal-content": {
+        "selector": ".modal-content",
+        "description": "Modal content container",
+        "properties": ["position: relative", "background: hsl(var(--surface))", "border-radius: var(--radius-lg)", "max-width: 90vw", "max-height: 90vh"],
+        "usage": "Modal dialog box"
+      },
+      "modal-header": {
+        "selector": ".modal-header",
+        "description": "Modal header section",
+        "properties": ["display: flex", "align-items: center", "justify-content: space-between", "padding: var(--spacing-lg)", "border-bottom: 1px solid"],
+        "usage": "Modal title and close button"
+      },
+      "modal-body": {
+        "selector": ".modal-body",
+        "description": "Modal content area",
+        "properties": ["padding: var(--spacing-lg)", "overflow-y: auto"],
+        "usage": "Modal main content"
+      }
+    },
+    "shifts": {
+      "shifts-grid": {
+        "selector": ".shifts-grid",
+        "description": "Shift management grid",
+        "properties": ["display: grid", "grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))", "gap: var(--spacing-lg)"],
+        "usage": "Shift management layout"
+      },
+      "shift-status": {
+        "selector": ".shift-status",
+        "description": "Current shift status indicator",
+        "properties": ["font-size: var(--font-size-sm)", "padding: var(--spacing-xs) var(--spacing-sm)", "border-radius: var(--radius-sm)"],
+        "usage": "Shift status display"
+      },
+      "handover-list": {
+        "selector": ".handover-list",
+        "description": "Handover items container",
+        "properties": ["display: flex", "flex-direction: column", "gap: var(--spacing-sm)"],
+        "usage": "Pending handovers"
+      }
+    },
+    "reports": {
+      "reports-grid": {
+        "selector": ".reports-grid",
+        "description": "Reports layout grid",
+        "properties": ["display: grid", "grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))", "gap: var(--spacing-lg)"],
+        "usage": "Reports page layout"
+      },
+      "chart-container": {
+        "selector": ".chart-container",
+        "description": "Chart.js container",
+        "properties": ["position: relative", "width: 100%", "height: 250px", "overflow: hidden"],
+        "usage": "Chart displays"
+      },
+      "report-modal": {
+        "selector": ".report-modal",
+        "description": "Report display modal",
+        "properties": ["width: 90vw", "max-width: 800px", "max-height: 80vh", "display: flex", "flex-direction: column"],
+        "usage": "Generated reports"
+      }
+    },
+    "emergency": {
+      "emergency-header": {
+        "selector": ".emergency-header",
+        "description": "Emergency mode header",
+        "properties": ["background: hsl(var(--emergency-bg))", "border-left: 4px solid hsl(var(--emergency))", "padding: var(--spacing-lg)"],
+        "usage": "Emergency status display"
+      },
+      "emergency-actions": {
+        "selector": ".emergency-actions",
+        "description": "Emergency action buttons grid",
+        "properties": ["display: grid", "grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))", "gap: var(--spacing-md)"],
+        "usage": "Emergency controls"
+      },
+      "emergency-action-btn": {
+        "selector": ".emergency-action-btn",
+        "description": "Emergency action button",
+        "properties": ["background: hsl(var(--emergency))", "color: white", "min-height: 120px", "display: flex", "flex-direction: column", "align-items: center"],
+        "usage": "Emergency operations"
+      }
+    }
+  },
+  "utilityClasses": {
+    "display": {
+      "hidden": { "selector": ".hidden", "properties": ["display: none !important"], "usage": "Hide elements" },
+      "visible": { "selector": ".visible", "properties": ["display: block"], "usage": "Show elements" }
+    },
+    "layout": {
+      "full-width": { "selector": ".full-width", "properties": ["grid-column: 1 / -1"], "usage": "Span full grid width" },
+      "flex-center": { "selector": ".flex-center", "properties": ["display: flex", "align-items: center", "justify-content: center"], "usage": "Center content" }
+    },
+    "text": {
+      "text-center": { "selector": ".text-center", "properties": ["text-align: center"], "usage": "Center text" },
+      "text-right": { "selector": ".text-right", "properties": ["text-align: right"], "usage": "Right align text" }
+    }
+  },
+  "animations": {
+    "fadeIn": {
+      "keyframes": "@keyframes fadeIn",
+      "properties": ["from { opacity: 0; transform: translateY(20px); }", "to { opacity: 1; transform: translateY(0); }"],
+      "usage": "Page transitions"
+    },
+    "spin": {
+      "keyframes": "@keyframes spin",
+      "properties": ["0% { transform: rotate(0deg); }", "100% { transform: rotate(360deg); }"],
+      "usage": "Loading spinners"
+    },
+    "pulse": {
+      "keyframes": "@keyframes pulse",
+      "properties": ["0%, 100% { transform: scale(1); }", "50% { transform: scale(1.05); }"],
+      "usage": "Emergency button"
+    },
+    "pulse-glow": {
+      "keyframes": "@keyframes pulse-glow",
+      "properties": ["from { filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.5)); transform: scale(1); }", "to { filter: drop-shadow(0 0 40px rgba(0, 229, 255, 0.8)); transform: scale(1.05); }"],
+      "usage": "Loading logo"
+    }
+  },
+  "responsiveBreakpoints": {
+    "mobile": {
+      "maxWidth": "768px",
+      "changes": ["Grid layouts collapse to single column", "Navigation drawer becomes overlay", "Reduced padding and spacing"]
+    },
+    "tablet": {
+      "minWidth": "769px",
+      "maxWidth": "1024px", 
+      "changes": ["Two-column layouts", "Larger touch targets", "Medium spacing"]
+    },
+    "desktop": {
+      "minWidth": "1025px",
+      "changes": ["Full grid layouts", "Hover effects enabled", "Maximum spacing"]
+    }
+  },
+  "themeVariations": {
+    "dark": {
+      "description": "Default dark theme",
+      "primaryColors": ["--background: 212 51% 11%", "--surface: 212 41% 18%", "--on-surface: 184 100% 93%"]
+    },
+    "light": {
+      "description": "Light theme variant",
+      "selector": "[data-theme=\"light\"]",
+      "primaryColors": ["--background: 210 35% 75%", "--surface: 210 25% 85%", "--on-surface: 200 25% 15%"]
+    }
+  }
+}

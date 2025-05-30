@@ -1,0 +1,351 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-05-30",
+    "version": "1.0.0",
+    "description": "Complete event handler registry for Security Access Management System"
+  },
+  "eventHandlers": [
+    {
+      "element": "menu-btn",
+      "elementType": "button",
+      "elementId": "menu-btn",
+      "event": "click",
+      "handler": "toggleNav",
+      "file": "js/app.js",
+      "line": 78,
+      "description": "Opens/closes navigation drawer",
+      "delegated": false,
+      "relatedFunctions": ["toggleNav", "addNavOverlay", "removeNavOverlay"]
+    },
+    {
+      "element": ".nav-item",
+      "elementType": "anchor",
+      "elementClass": "nav-item",
+      "event": "click",
+      "handler": "handleNavigation",
+      "file": "js/app.js",
+      "line": 79,
+      "description": "Handles navigation menu item clicks",
+      "delegated": true,
+      "relatedFunctions": ["handleNavigation", "navigateTo", "updatePageContent"]
+    },
+    {
+      "element": "theme-toggle",
+      "elementType": "button",
+      "elementId": "theme-toggle",
+      "event": "click",
+      "handler": "toggleTheme",
+      "file": "js/app.js",
+      "line": 84,
+      "description": "Toggles between light and dark themes",
+      "delegated": false,
+      "relatedFunctions": ["toggleTheme", "applyTheme"]
+    },
+    {
+      "element": "emergency-btn",
+      "elementType": "button",
+      "elementId": "emergency-btn",
+      "event": "click",
+      "handler": "navigateTo('emergency')",
+      "file": "js/app.js",
+      "line": 87,
+      "description": "Quick access to emergency page",
+      "delegated": false,
+      "relatedFunctions": ["navigateTo"]
+    },
+    {
+      "element": "person-search",
+      "elementType": "input",
+      "elementId": "person-search",
+      "event": "input",
+      "handler": "handleSearch",
+      "file": "js/app.js",
+      "line": 92,
+      "description": "Real-time personnel search filtering",
+      "delegated": false,
+      "relatedFunctions": ["handleSearch", "loadPersonnelList"]
+    },
+    {
+      "element": "[data-action]",
+      "elementType": "button",
+      "elementAttribute": "data-action",
+      "event": "click",
+      "handler": "handleQuickAction",
+      "file": "js/app.js",
+      "line": 97,
+      "description": "Handles quick action buttons on dashboard",
+      "delegated": true,
+      "relatedFunctions": ["handleQuickAction", "showAddPersonnelModal", "handleBulkCheckout"]
+    },
+    {
+      "element": "window",
+      "elementType": "window",
+      "event": "click",
+      "handler": "closeModal (conditional)",
+      "file": "js/app.js",
+      "line": 101,
+      "description": "Closes modal when clicking outside",
+      "delegated": false,
+      "relatedFunctions": ["closeModal"]
+    },
+    {
+      "element": "document",
+      "elementType": "document",
+      "event": "keydown",
+      "handler": "handleKeyboardShortcuts",
+      "file": "js/app.js",
+      "line": 110,
+      "description": "Global keyboard shortcuts",
+      "delegated": false,
+      "relatedFunctions": ["handleKeyboardShortcuts", "navigateTo", "showAddPersonnelModal"]
+    },
+    {
+      "element": "window",
+      "elementType": "window",
+      "event": "online",
+      "handler": "handleOnlineStatus(true)",
+      "file": "js/app.js",
+      "line": 120,
+      "description": "Handles coming back online",
+      "delegated": false,
+      "relatedFunctions": ["handleOnlineStatus", "syncOfflineData"]
+    },
+    {
+      "element": "window",
+      "elementType": "window",
+      "event": "offline",
+      "handler": "handleOnlineStatus(false)",
+      "file": "js/app.js",
+      "line": 121,
+      "description": "Handles going offline",
+      "delegated": false,
+      "relatedFunctions": ["handleOnlineStatus"]
+    },
+    {
+      "element": "start-shift-btn",
+      "elementType": "button",
+      "elementId": "start-shift-btn",
+      "event": "click",
+      "handler": "showStartShiftModal",
+      "file": "js/app.js",
+      "line": 130,
+      "description": "Shows modal to start new shift",
+      "delegated": false,
+      "relatedFunctions": ["showStartShiftModal", "handleStartShift"]
+    },
+    {
+      "element": "end-shift-btn",
+      "elementType": "button",
+      "elementId": "end-shift-btn",
+      "event": "click",
+      "handler": "handleEndShift",
+      "file": "js/app.js",
+      "line": 135,
+      "description": "Ends current active shift",
+      "delegated": false,
+      "relatedFunctions": ["handleEndShift"]
+    },
+    {
+      "element": "handover-btn",
+      "elementType": "button",
+      "elementId": "handover-btn",
+      "event": "click",
+      "handler": "showHandoverModal",
+      "file": "js/app.js",
+      "line": 140,
+      "description": "Shows handover creation modal",
+      "delegated": false,
+      "relatedFunctions": ["showHandoverModal", "handleCreateHandover"]
+    },
+    {
+      "element": "scan-qr-btn",
+      "elementType": "button",
+      "elementId": "scan-qr-btn",
+      "event": "click",
+      "handler": "handleQRScan",
+      "file": "js/app.js",
+      "line": 145,
+      "description": "Initiates QR code scanning",
+      "delegated": false,
+      "relatedFunctions": ["handleQRScan"]
+    },
+    {
+      "element": "scan-id-btn",
+      "elementType": "button",
+      "elementId": "scan-id-btn",
+      "event": "click",
+      "handler": "handleIDScan",
+      "file": "js/app.js",
+      "line": 150,
+      "description": "Initiates ID card scanning",
+      "delegated": false,
+      "relatedFunctions": ["handleIDScan"]
+    },
+    {
+      "element": "add-visitor-btn",
+      "elementType": "button",
+      "elementId": "add-visitor-btn",
+      "event": "click",
+      "handler": "showAddPersonnelModal('visitor')",
+      "file": "js/app.js",
+      "line": 155,
+      "description": "Shows modal to add new visitor",
+      "delegated": false,
+      "relatedFunctions": ["showAddPersonnelModal"]
+    },
+    {
+      "element": "add-personnel-btn",
+      "elementType": "button",
+      "elementId": "add-personnel-btn",
+      "event": "click",
+      "handler": "showAddPersonnelModal",
+      "file": "js/app.js",
+      "line": 160,
+      "description": "Shows modal to add new personnel",
+      "delegated": false,
+      "relatedFunctions": ["showAddPersonnelModal"]
+    },
+    {
+      "element": "export-personnel-btn",
+      "elementType": "button",
+      "elementId": "export-personnel-btn",
+      "event": "click",
+      "handler": "handleExport",
+      "file": "js/app.js",
+      "line": 165,
+      "description": "Exports personnel data",
+      "delegated": false,
+      "relatedFunctions": ["handleExport"]
+    },
+    {
+      "element": ".report-btn",
+      "elementType": "button",
+      "elementClass": "report-btn",
+      "event": "click",
+      "handler": "handleAdvancedReport",
+      "file": "js/app.js",
+      "line": 170,
+      "description": "Generates advanced reports",
+      "delegated": true,
+      "relatedFunctions": ["handleAdvancedReport", "generateBasicReport", "showReportModal"]
+    },
+    {
+      "element": "role-filter",
+      "elementType": "select",
+      "elementId": "role-filter",
+      "event": "change",
+      "handler": "loadPersonnelList",
+      "file": "js/app.js",
+      "line": 175,
+      "description": "Filters personnel by role",
+      "delegated": false,
+      "relatedFunctions": ["loadPersonnelList"]
+    },
+    {
+      "element": "status-filter",
+      "elementType": "select",
+      "elementId": "status-filter",
+      "event": "change",
+      "handler": "loadPersonnelList",
+      "file": "js/app.js",
+      "line": 180,
+      "description": "Filters personnel by status",
+      "delegated": false,
+      "relatedFunctions": ["loadPersonnelList"]
+    },
+    {
+      "element": ".person-card",
+      "elementType": "div",
+      "elementClass": "person-card",
+      "event": "click",
+      "handler": "handlePersonCardClick",
+      "file": "js/app.js",
+      "line": 185,
+      "description": "Handles person card interactions",
+      "delegated": true,
+      "relatedFunctions": ["handlePersonCardClick", "togglePersonStatus", "showPersonQR"]
+    }
+  ],
+  "keyboardShortcuts": [
+    {
+      "key": "Ctrl+D",
+      "action": "navigateTo('dashboard')",
+      "description": "Navigate to dashboard"
+    },
+    {
+      "key": "Ctrl+C",
+      "action": "navigateTo('checkin')",
+      "description": "Navigate to check-in page"
+    },
+    {
+      "key": "Ctrl+P",
+      "action": "navigateTo('personnel')",
+      "description": "Navigate to personnel page"
+    },
+    {
+      "key": "Ctrl+A",
+      "action": "navigateTo('activity')",
+      "description": "Navigate to activity log"
+    },
+    {
+      "key": "Ctrl+N",
+      "action": "showAddPersonnelModal()",
+      "description": "Add new personnel"
+    },
+    {
+      "key": "Escape",
+      "action": "closeModal()",
+      "description": "Close open modal"
+    }
+  ],
+  "customEvents": [
+    {
+      "eventName": "personnel-added",
+      "description": "Fired when new personnel is added",
+      "triggeredBy": ["StorageManager.addPersonnel"],
+      "listeners": ["updateDashboard", "loadPersonnelList"]
+    },
+    {
+      "eventName": "personnel-status-changed",
+      "description": "Fired when personnel check-in/out status changes",
+      "triggeredBy": ["StorageManager.checkIn", "StorageManager.checkOut"],
+      "listeners": ["updateDashboard", "updateActivityPage"]
+    },
+    {
+      "eventName": "emergency-activated",
+      "description": "Fired when emergency mode is activated",
+      "triggeredBy": ["EmergencyManager.activateEmergencyMode"],
+      "listeners": ["updateUI", "broadcastAlert"]
+    },
+    {
+      "eventName": "shift-started",
+      "description": "Fired when new shift starts",
+      "triggeredBy": ["ShiftManager.startShift"],
+      "listeners": ["updateShiftsPage", "logActivity"]
+    },
+    {
+      "eventName": "shift-ended",
+      "description": "Fired when shift ends",
+      "triggeredBy": ["ShiftManager.endShift"],
+      "listeners": ["updateShiftsPage", "logActivity"]
+    },
+    {
+      "eventName": "handover-created",
+      "description": "Fired when handover is created",
+      "triggeredBy": ["ShiftManager.createHandover"],
+      "listeners": ["updateShiftsPage", "notifyNextShift"]
+    },
+    {
+      "eventName": "data-synced",
+      "description": "Fired when data synchronization completes",
+      "triggeredBy": ["SyncClient.processSyncEvent", "P2PSync.applySyncData"],
+      "listeners": ["updateAllPages", "showSyncStatus"]
+    },
+    {
+      "eventName": "theme-changed",
+      "description": "Fired when application theme changes",
+      "triggeredBy": ["toggleTheme"],
+      "listeners": ["applyTheme", "updateChartThemes"]
+    }
+  ]
+}
