@@ -122,6 +122,18 @@ class CodebaseTestRunner {
       });
     }
 
+    // Run accuracy validation
+    if (!skipAccuracy) {
+      await this.runValidatorTest('accuracy', 'Codebase Accuracy Check', async (validator) => {
+        if (!(await validator.loadAllRegistries())) {
+          throw new Error('Failed to load tracking registries');
+        }
+        
+        if (verbose) console.log('  🎯 Performing comprehensive accuracy validation...');
+        await validator.performAccuracyCheck();
+      });
+    }
+
     this.endTime = Date.now();
     return this.generateFinalReport();
   }
@@ -270,6 +282,7 @@ class CodebaseTestRunner {
     return await this.runAllTests({
       skipCSS: true,
       skipArchitecture: true,
+      skipAccuracy: true,
       verbose: false
     });
   }

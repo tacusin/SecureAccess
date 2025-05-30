@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codebase Linters Test Page</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00e5ff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #00acc1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #00bcd4;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #output {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            white-space: pre-wrap;
+            font-family: inherit;
+            max-height: 80vh;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+        .log-info { color: #64b5f6; }
+        .log-success { color: #81c784; }
+        .log-warning { color: #ffb74d; }
+        .log-error { color: #e57373; }
+        .log-special { color: #ba68c8; }
+        .stats {
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Security Access Management - Codebase Linters</h1>
+        
+        <div class="test-buttons">
+            <button onclick="runQuickValidation()">⚡ Quick Check</button>
+            <button onclick="runTacuCheck()">🎯 TACU Check</button>
+            <button onclick="runAccuracyCheck()">📊 Accuracy Only</button>
+            <button onclick="runFunctionValidation()">🔧 Functions Only</button>
+            <button onclick="runCSSValidation()">🎨 CSS Only</button>
+            <button onclick="clearOutput()">🗑️ Clear</button>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-number" id="total-tests">0</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="passed-tests">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="total-errors">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="total-warnings">0</div>
+                <div class="stat-label">Warnings</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="quality-score">0</div>
+                <div class="stat-label">Quality Score</div>
+            </div>
+        </div>
+
+        <div id="output">Click a button above to run codebase validation tests...</div>
+    </div>
+
+    <!-- Load all linter scripts -->
+    <script src="function-validator.js"></script>
+    <script src="css-validator.js"></script>
+    <script src="data-integrity-validator.js"></script>
+    <script src="architecture-validator.js"></script>
+    <script src="accuracy-checker.js"></script>
+    <script src="test-runner.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+        let originalConsoleLog = console.log;
+        let originalConsoleError = console.error;
+        let originalConsoleWarn = console.warn;
+
+        // Enhanced console logging with styling
+        function enhanceConsoleLogging() {
+            console.log = function(...args) {
+                const message = args.join(' ');
+                appendToOutput(formatLogMessage(message, 'info'));
+                originalConsoleLog.apply(console, args);
+            };
+
+            console.error = function(...args) {
+                const message = args.join(' ');
+                appendToOutput(formatLogMessage(message, 'error'));
+                originalConsoleError.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                const message = args.join(' ');
+                appendToOutput(formatLogMessage(message, 'warning'));
+                originalConsoleWarn.apply(console, args);
+            };
+        }
+
+        function formatLogMessage(message, type) {
+            let className = 'log-info';
+            
+            if (type === 'error' || message.includes('❌') || message.includes('Error')) {
+                className = 'log-error';
+            } else if (type === 'warning' || message.includes('⚠️') || message.includes('Warning')) {
+                className = 'log-warning';
+            } else if (message.includes('✅') || message.includes('success')) {
+                className = 'log-success';
+            } else if (message.includes('🎯') || message.includes('📊') || message.includes('🔍')) {
+                className = 'log-special';
+            }
+
+            return `<span class="${className}">${escapeHtml(message)}</span>`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function appendToOutput(message) {
+            output.innerHTML += message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateStats(report) {
+            if (report && report.totalTests !== undefined) {
+                document.getElementById('stats').style.display = 'grid';
+                document.getElementById('total-tests').textContent = report.totalTests || 0;
+                document.getElementById('passed-tests').textContent = report.passedTests || 0;
+                document.getElementById('total-errors').textContent = report.totalErrors || 0;
+                document.getElementById('total-warnings').textContent = report.totalWarnings || 0;
+                document.getElementById('quality-score').textContent = (report.qualityScore || 0) + '%';
+            }
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (!btn.onclick || btn.onclick.toString().includes('clearOutput')) return;
+                btn.disabled = true;
+            });
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = false);
+        }
+
+        async function runQuickValidation() {
+            disableButtons();
+            clearOutput();
+            appendToOutput('⚡ Starting Quick Validation...\n');
+            
+            try {
+                const report = await window.runQuickValidation();
+                updateStats(report);
+                appendToOutput('\n✨ Quick validation completed!');
+            } catch (error) {
+                appendToOutput(`❌ Quick validation failed: ${error.message}`);
+            } finally {
+                enableButtons();
+            }
+        }
+
+        async function runTacuCheck() {
+            disableButtons();
+            clearOutput();
+            appendToOutput('🎯 Starting TACU Check (Total Accuracy Codebase Update)...\n');
+            
+            try {
+                const report = await window.runTacuCheck();
+                updateStats(report);
+                appendToOutput('\n🎯 TACU Check completed!');
+            } catch (error) {
+                appendToOutput(`❌ TACU Check failed: ${error.message}`);
+            } finally {
+                enableButtons();
+            }
+        }
+
+        async function runAccuracyCheck() {
+            disableButtons();
+            clearOutput();
+            appendToOutput('📊 Starting Accuracy Check...\n');
+            
+            try {
+                const report = await window.runAccuracyCheck();
+                appendToOutput('\n📊 Accuracy check completed!');
+            } catch (error) {
+                appendToOutput(`❌ Accuracy check failed: ${error.message}`);
+            } finally {
+                enableButtons();
+            }
+        }
+
+        async function runFunctionValidation() {
+            disableButtons();
+            clearOutput();
+            appendToOutput('🔧 Starting Function Validation...\n');
+            
+            try {
+                const validator = new FunctionValidator();
+                if (await validator.loadRegistry()) {
+                    const files = ['../js/app.js', '../js/storage.js', '../js/dashboard.js'];
+                    for (const file of files) {
+                        appendToOutput(`Validating ${file}...`);
+                        await validator.validateFile(file);
+                    }
+                    const report = validator.getReport();
+                    appendToOutput(`\n📋 Function Validation Results:`);
+                    appendToOutput(`Errors: ${report.errors.length}, Warnings: ${report.warnings.length}`);
+                    
+                    if (report.errors.length > 0) {
+                        appendToOutput('\nErrors:');
+                        report.errors.forEach(error => appendToOutput(`  ❌ ${error}`));
+                    }
+                    
+                    if (report.warnings.length > 0) {
+                        appendToOutput('\nWarnings:');
+                        report.warnings.forEach(warning => appendToOutput(`  ⚠️ ${warning}`));
+                    }
+                } else {
+                    appendToOutput('❌ Failed to load function registry');
+                }
+            } catch (error) {
+                appendToOutput(`❌ Function validation failed: ${error.message}`);
+            } finally {
+                enableButtons();
+            }
+        }
+
+        async function runCSSValidation() {
+            disableButtons();
+            clearOutput();
+            appendToOutput('🎨 Starting CSS Validation...\n');
+            
+            try {
+                const validator = new CSSValidator();
+                if (await validator.loadRegistry()) {
+                    await validator.validateCSSFiles();
+                    await validator.validateHTMLClassUsage();
+                    validator.findUnusedClasses();
+                    validator.checkAccessibility();
+                    
+                    const report = validator.getReport();
+                    appendToOutput(`\n📋 CSS Validation Results:`);
+                    appendToOutput(`Errors: ${report.errors.length}, Warnings: ${report.warnings.length}`);
+                    appendToOutput(`Classes: ${report.statistics.definedClasses} defined, ${report.statistics.usedClasses} used`);
+                    
+                    if (report.errors.length > 0) {
+                        appendToOutput('\nErrors:');
+                        report.errors.forEach(error => appendToOutput(`  ❌ ${error}`));
+                    }
+                    
+                    if (report.warnings.length > 0) {
+                        appendToOutput('\nWarnings (first 5):');
+                        report.warnings.slice(0, 5).forEach(warning => appendToOutput(`  ⚠️ ${warning}`));
+                        if (report.warnings.length > 5) {
+                            appendToOutput(`  ... and ${report.warnings.length - 5} more warnings`);
+                        }
+                    }
+                } else {
+                    appendToOutput('❌ Failed to load CSS registry');
+                }
+            } catch (error) {
+                appendToOutput(`❌ CSS validation failed: ${error.message}`);
+            } finally {
+                enableButtons();
+            }
+        }
+
+        function clearOutput() {
+            output.innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        // Initialize enhanced logging
+        enhanceConsoleLogging();
+
+        // Display initialization message
+        appendToOutput('🧪 Codebase Linters Initialized');
+        appendToOutput('📚 All validation systems ready');
+        appendToOutput('🎯 Select a validation test to begin\n');
+    </script>
+</body>
+</html>
