@@ -1801,11 +1801,18 @@ class SecurityApp {
       this.createActivityItem(activity)
     ).join('');
 
-    // Add event listeners for undo buttons
+    // Add event listeners for undo and delete buttons
     container.querySelectorAll('.undo-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const activityId = e.target.dataset.activityId;
         this.handleUndoActivity(activityId);
+      });
+    });
+
+    container.querySelectorAll('.delete-activity-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const activityId = e.target.dataset.activityId;
+        this.handleDeleteActivity(activityId);
       });
     });
   }
@@ -1837,6 +1844,10 @@ class SecurityApp {
               Undo
             </button>
           ` : ''}
+          <button class="delete-activity-btn" data-activity-id="${activity.id}">
+            <span class="material-icons" style="font-size: 14px;">delete</span>
+            Delete
+          </button>
         </div>
       </div>
     `;
@@ -2085,6 +2096,47 @@ class SecurityApp {
     } catch (error) {
       console.error('[App] Error exporting activity log:', error);
       this.showError('Failed to export activity log');
+    }
+  }
+
+  async handleDeleteActivity(activityId) {
+    try {
+      const activity = window.StorageManager.getActivityLog(1000).find(a => a.id === activityId);
+      if (!activity) {
+        this.showError('Activity not found');
+        return;
+      }
+
+      const { title } = this.getActivityDisplayInfo(activity);
+      const confirmed = await this.showConfirmDialog(
+        'Delete Activity',
+        `Are you sure you want to permanently delete this activity record: "${title}"? This action cannot be undone.`
+      );
+
+      if (!confirmed) return;
+
+      // Remove the activity from the log
+      const activities = window.StorageManager.getActivityLog(10000);
+      const updatedActivities = activities.filter(a => a.id !== activityId);
+      
+      // Update storage with filtered activities
+      window.StorageManager.data.activityLog = updatedActivities;
+      await window.StorageManager.saveToStorage();
+
+      // Log the deletion action
+      await window.StorageManager.logActivity('activity_deleted', {
+        deletedActivityId: activityId,
+        deletedAction: activity.action,
+        deletedAt: Date.now(),
+        deletedBy: 'user'
+      });
+
+      this.showToast('Activity deleted successfully', 'success');
+      await this.updateActivityPage();
+
+    } catch (error) {
+      console.error('[App] Error deleting activity:', error);
+      this.showError('Failed to delete activity');
     }
   }
 

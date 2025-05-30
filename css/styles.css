@@ -986,6 +986,29 @@ body {
   transform: none;
 }
 
+.delete-activity-btn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: hsl(var(--error));
+  color: hsl(var(--on-error));
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-activity-btn:hover {
+  background: hsl(var(--error) / 0.8);
+  transform: translateY(-1px);
+}
+
+.delete-activity-btn:disabled {
+  background: hsl(var(--outline));
+  color: hsl(var(--on-surface-variant));
+  cursor: not-allowed;
+  transform: none;
+}
+
 .activity-timestamp {
   font-weight: 500;
 }
