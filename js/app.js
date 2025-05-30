@@ -2142,9 +2142,15 @@ class SecurityApp {
       window.StorageManager.data.activityLog = updatedActivities;
       await window.StorageManager.saveToStorage();
       
+      // Remove the item from DOM immediately for instant feedback
+      const activityElement = document.querySelector(`[data-activity-id="${activityId}"]`);
+      if (activityElement) {
+        activityElement.remove();
+      }
+      
       this.showToast('Activity deleted successfully', 'success');
       
-      // Force refresh the entire activity page to ensure display updates
+      // Update the statistics counts
       await this.updateActivityPage();
 
     } catch (error) {
