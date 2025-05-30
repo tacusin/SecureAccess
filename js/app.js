@@ -2122,16 +2122,13 @@ class SecurityApp {
       // Update storage with filtered activities
       window.StorageManager.data.activityLog = updatedActivities;
       await window.StorageManager.saveToStorage();
-
-      // Log the deletion action
-      await window.StorageManager.logActivity('activity_deleted', {
-        deletedActivityId: activityId,
-        deletedAction: activity.action,
-        deletedAt: Date.now(),
-        deletedBy: 'user'
-      });
+      
+      console.log(`[App] Deleted activity ${activityId}, remaining activities:`, updatedActivities.length);
 
       this.showToast('Activity deleted successfully', 'success');
+      
+      // Refresh the activity list immediately without logging the deletion
+      // (to avoid creating new entries when deleting)
       await this.updateActivityPage();
 
     } catch (error) {
