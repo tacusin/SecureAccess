@@ -49,6 +49,26 @@
   --outline: 200 15% 50%; /* Medium gray borders */
   --outline-variant: 200 10% 70%; /* Light gray borders */
   
+  /* Spacing and sizing (same for light theme) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Font sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  
   /* Emergency colors for light theme */
   --emergency: 4 70% 50%; /* Softer red */
   --emergency-bg: 4 50% 92%; /* Very light red background */

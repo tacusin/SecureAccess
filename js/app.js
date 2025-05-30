@@ -114,6 +114,9 @@ class SecurityApp {
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
     
+    // Generate Sync QR button
+    document.getElementById('generate-sync-qr-btn')?.addEventListener('click', this.handleGenerateSyncQR.bind(this));
+    
     // FAB menu
     document.getElementById('fab-main').addEventListener('click', () => this.handleFabClick());
     
@@ -1490,6 +1493,32 @@ class SecurityApp {
     } catch (error) {
       console.error('[App] Error showing QR code:', error);
       this.showError('Failed to generate QR code: ' + error.message);
+    }
+  }
+
+  async handleGenerateSyncQR() {
+    try {
+      if (!window.QRGenerator) {
+        this.showError('QR code generation system is not available');
+        return;
+      }
+
+      // Initialize QR generator if needed
+      if (!window.QRGenerator.isInitialized) {
+        this.showToast('Initializing QR code generator...', 'info');
+        await window.QRGenerator.init();
+      }
+
+      if (!window.QRGenerator.isInitialized) {
+        this.showError('QR code generation is currently unavailable');
+        return;
+      }
+
+      // Show sync host QR modal
+      await window.QRGenerator.showSyncHostQRModal();
+    } catch (error) {
+      console.error('[App] Error generating sync QR code:', error);
+      this.showError('Failed to generate sync QR code: ' + error.message);
     }
   }
 
