@@ -19,6 +19,7 @@
       "Offline-first operation",
       "Camera integration for photos and scanning",
       "QR code generation and scanning",
+      "QR-based sync host connection",
       "Data export in multiple formats"
     ]
   },

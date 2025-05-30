@@ -94,6 +94,96 @@ class QRGenerator {
     }
   }
 
+  async generateSyncHostQR() {
+    if (!this.isInitialized) {
+      await this.init();
+    }
+
+    if (!this.isInitialized) {
+      throw new Error('QR Code system not available');
+    }
+
+    try {
+      console.log('[QR] Generating sync host QR code');
+
+      // Get local IP and sync information
+      const deviceId = localStorage.getItem('sync_device_id') || 'unknown-device';
+      let localIP = '192.168.1.100'; // Default fallback
+      
+      // Try to get actual local IP
+      try {
+        if (window.SyncClient) {
+          localIP = await this.getLocalIP();
+        }
+      } catch (error) {
+        console.warn('[QR] Could not get local IP, using fallback');
+      }
+
+      // Create sync host QR data
+      const syncData = {
+        type: 'sync-host',
+        deviceId: deviceId,
+        hostIP: localIP,
+        port: 8080,
+        protocol: 'http',
+        syncEndpoint: '/p2p-sync',
+        timestamp: new Date().toISOString(),
+        version: '1.0',
+        description: 'Security Access Sync Host'
+      };
+
+      const qrText = JSON.stringify(syncData);
+      const qrCodeDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(qrText)}`;
+
+      console.log('[QR] Sync host QR code generated successfully');
+      return {
+        dataURL: qrCodeDataURL,
+        syncData: syncData,
+        connectionString: `${localIP}:8080`
+      };
+
+    } catch (error) {
+      console.error('[QR] Error generating sync host QR code:', error);
+      throw new Error('Failed to generate sync host QR code');
+    }
+  }
+
+  async getLocalIP() {
+    return new Promise((resolve, reject) => {
+      let resolved = false;
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve('192.168.1.100'); // Fallback IP
+        }
+      }, 3000);
+      
+      const pc = new RTCPeerConnection({
+        iceServers: []
+      });
+      
+      pc.createDataChannel('');
+      pc.createOffer().then(offer => pc.setLocalDescription(offer));
+      
+      pc.onicecandidate = (ice) => {
+        if (!ice || !ice.candidate || !ice.candidate.candidate || resolved) return;
+        const candidate = ice.candidate.candidate;
+        const ip = candidate.split(' ')[4];
+        
+        if (ip && (
+          ip.startsWith('192.168.') || 
+          ip.startsWith('10.') || 
+          (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)
+        )) {
+          resolved = true;
+          clearTimeout(timeout);
+          pc.close();
+          resolve(ip);
+        }
+      };
+    });
+  }
+
   async generateBulkQRCodes(personnelList) {
     if (!this.isInitialized) {
       await this.init();
@@ -152,6 +242,175 @@ class QRGenerator {
         isValid: false,
         error: 'Invalid QR code format'
       };
+    }
+  }
+
+  async showSyncHostQRModal() {
+    try {
+      const qrResult = await this.generateSyncHostQR();
+      
+      const modalContent = `
+        <div class="qr-modal">
+          <div class="modal-header">
+            <h3>Sync Host QR Code</h3>
+            <button class="icon-button" onclick="window.QRGenerator.closeQRModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="qr-code-container">
+              <img src="${qrResult.dataURL}" alt="Sync Host QR Code" class="qr-code-image">
+              <div class="qr-info">
+                <div class="sync-details">
+                  <h4>Device Sync Host</h4>
+                  <p class="sync-connection">${qrResult.connectionString}</p>
+                  <p class="sync-device-id">Device: ${qrResult.syncData.deviceId.slice(-8)}</p>
+                </div>
+                <div class="qr-instructions">
+                  <p>Other devices can scan this QR code to connect and sync data</p>
+                  <div class="sync-steps">
+                    <ol>
+                      <li>Open the app on another device</li>
+                      <li>Go to Sync settings</li>
+                      <li>Scan this QR code</li>
+                      <li>Devices will automatically sync</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="qr-actions">
+              <button class="action-button secondary" onclick="window.QRGenerator.downloadSyncQR()">
+                <span class="material-icons">download</span>
+                Download QR
+              </button>
+              <button class="action-button secondary" onclick="window.QRGenerator.printSyncQR()">
+                <span class="material-icons">print</span>
+                Print QR
+              </button>
+              <button class="action-button primary" onclick="window.QRGenerator.shareSyncQR()">
+                <span class="material-icons">share</span>
+                Share QR
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add sync QR-specific styles
+      const syncQrStyles = `
+        <style>
+          .qr-modal {
+            width: 90vw;
+            max-width: 500px;
+            background: hsl(var(--surface));
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+          }
+          
+          .qr-code-container {
+            text-align: center;
+            padding: var(--spacing-lg);
+          }
+          
+          .qr-code-image {
+            width: 200px;
+            height: 200px;
+            border: 2px solid hsl(var(--outline));
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            background: white;
+            padding: var(--spacing-sm);
+          }
+          
+          .qr-info {
+            margin-bottom: var(--spacing-lg);
+          }
+          
+          .sync-details h4 {
+            margin: 0 0 var(--spacing-xs) 0;
+            color: hsl(var(--on-surface));
+            font-size: var(--font-size-lg);
+          }
+          
+          .sync-connection {
+            color: hsl(var(--primary));
+            font-weight: 500;
+            margin: 0 0 var(--spacing-xs) 0;
+            font-family: monospace;
+            font-size: var(--font-size-md);
+          }
+          
+          .sync-device-id {
+            color: hsl(var(--on-surface-variant));
+            margin: 0 0 var(--spacing-md) 0;
+            font-family: monospace;
+            font-size: var(--font-size-sm);
+          }
+          
+          .qr-instructions {
+            background: hsl(var(--surface-variant));
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-md);
+          }
+          
+          .qr-instructions p {
+            margin: 0 0 var(--spacing-sm) 0;
+            color: hsl(var(--on-surface-variant));
+            font-size: var(--font-size-sm);
+          }
+          
+          .sync-steps {
+            margin-top: var(--spacing-sm);
+          }
+          
+          .sync-steps ol {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+            color: hsl(var(--on-surface-variant));
+            font-size: var(--font-size-sm);
+          }
+          
+          .sync-steps li {
+            margin-bottom: var(--spacing-xs);
+          }
+          
+          .qr-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            padding: 0 var(--spacing-lg) var(--spacing-lg);
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          
+          @media (max-width: 480px) {
+            .qr-code-image {
+              width: 150px;
+              height: 150px;
+            }
+            
+            .qr-actions {
+              flex-direction: column;
+            }
+          }
+        </style>
+      `;
+
+      // Show modal
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalContentEl = document.getElementById('modal-content');
+      modalContentEl.innerHTML = syncQrStyles + modalContent;
+      modalOverlay.classList.remove('hidden');
+
+      // Store current sync QR data for actions
+      this.currentSyncQR = qrResult;
+
+    } catch (error) {
+      console.error('[QR] Error showing sync host QR modal:', error);
+      if (window.app) {
+        window.app.showError('Failed to generate sync host QR code');
+      }
     }
   }
 
@@ -631,6 +890,155 @@ class QRGenerator {
 
   setErrorCorrectionLevel(level) {
     this.errorCorrectionLevel = level;
+  }
+
+  downloadSyncQR() {
+    if (!this.currentSyncQR) return;
+    
+    const link = document.createElement('a');
+    link.download = `sync-host-qr-${this.currentSyncQR.syncData.deviceId.slice(-8)}.png`;
+    link.href = this.currentSyncQR.dataURL;
+    link.click();
+  }
+
+  printSyncQR() {
+    if (!this.currentSyncQR) return;
+    
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Sync Host QR Code</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+          }
+          .qr-print-container {
+            max-width: 400px;
+            margin: 0 auto;
+            border: 2px solid #1976D2;
+            border-radius: 10px;
+            padding: 20px;
+          }
+          .qr-image {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            display: block;
+          }
+          .sync-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976D2;
+            margin: 10px 0;
+          }
+          .connection-string {
+            font-size: 18px;
+            font-family: monospace;
+            color: #333;
+            margin: 10px 0;
+          }
+          .device-id {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="qr-print-container">
+          <div class="sync-title">Device Sync Host</div>
+          <div class="connection-string">${this.currentSyncQR.connectionString}</div>
+          <div class="device-id">Device: ${this.currentSyncQR.syncData.deviceId.slice(-8)}</div>
+          <img src="${this.currentSyncQR.dataURL}" alt="Sync Host QR Code" class="qr-image">
+        </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }
+
+  async shareSyncQR() {
+    if (!this.currentSyncQR) return;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Sync Host QR Code',
+          text: `Connect to sync host: ${this.currentSyncQR.connectionString}`,
+          url: this.currentSyncQR.dataURL
+        });
+      } else {
+        await navigator.clipboard.writeText(this.currentSyncQR.connectionString);
+        if (window.app) {
+          window.app.showToast('Sync connection info copied to clipboard', 'success');
+        }
+      }
+    } catch (error) {
+      console.error('[QR] Error sharing sync QR code:', error);
+      if (window.app) {
+        window.app.showError('Failed to share sync QR code');
+      }
+    }
+  }
+
+  async scanSyncHostQR(qrCodeData) {
+    try {
+      console.log('[QR] Processing scanned sync host QR code');
+      
+      let syncData;
+      try {
+        syncData = JSON.parse(qrCodeData);
+      } catch (error) {
+        if (qrCodeData.includes(':')) {
+          const [ip, port] = qrCodeData.split(':');
+          syncData = {
+            type: 'sync-host',
+            hostIP: ip,
+            port: parseInt(port) || 8080,
+            connectionString: qrCodeData
+          };
+        } else {
+          throw new Error('Invalid QR code format');
+        }
+      }
+
+      if (syncData.type !== 'sync-host') {
+        throw new Error('QR code is not a sync host code');
+      }
+
+      const connectionString = syncData.connectionString || `${syncData.hostIP}:${syncData.port}`;
+      
+      if (window.SyncClient) {
+        await window.SyncClient.connectToServer(connectionString);
+        if (window.app) {
+          window.app.showToast(`Connected to sync host: ${connectionString}`, 'success');
+        }
+        return true;
+      } else if (window.P2PSync) {
+        await window.P2PSync.connectToPeer(connectionString);
+        if (window.app) {
+          window.app.showToast(`Connected to sync host: ${connectionString}`, 'success');
+        }
+        return true;
+      } else {
+        throw new Error('No sync system available');
+      }
+
+    } catch (error) {
+      console.error('[QR] Error processing sync host QR:', error);
+      if (window.app) {
+        window.app.showError('Failed to connect to sync host: ' + error.message);
+      }
+      return false;
+    }
   }
 }
 
