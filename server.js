@@ -71,6 +71,12 @@ class IntegratedServer {
       filePath = './index.html';
     }
 
+    // Remove query parameters from file path
+    const urlParts = filePath.split('?');
+    filePath = urlParts[0];
+
+    console.log(`[Server] Serving file: ${filePath}`);
+
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {
       '.html': 'text/html',
