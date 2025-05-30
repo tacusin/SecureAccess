@@ -76,30 +76,34 @@ class SyncManager {
       this.updateStatus('connecting', 'Starting server...');
       this.addLogEntry('info', `Starting WebSocket server on port ${port}`);
       
-      // Create WebSocket server
-      this.server = new WebSocket(`ws://localhost:${port}`);
+      // Check if server is running by making HTTP request
+      const response = await fetch(`http://localhost:${port}/status`).catch(() => null);
       
-      this.server.onopen = () => {
-        this.isServer = true;
-        this.isConnected = true;
-        this.updateStatus('online', `Server running on port ${port}`);
-        this.addLogEntry('success', 'Server started successfully');
-        this.updateButtonStates();
-      };
+      if (response && response.ok) {
+        this.addLogEntry('error', 'Server already running on this port');
+        this.updateStatus('offline', 'Port already in use');
+        return;
+      }
       
-      this.server.onmessage = (event) => {
-        this.handleMessage(JSON.parse(event.data));
-      };
-      
-      this.server.onclose = () => {
-        this.handleDisconnection();
-      };
-      
-      this.server.onerror = (error) => {
-        console.error('[Sync] Server error:', error);
-        this.addLogEntry('error', 'Failed to start server - check if port is available');
-        this.updateStatus('offline', 'Server failed to start');
-      };
+      // Check if our sync server is already running
+      this.addLogEntry('info', 'Checking if sync server is running...');
+      try {
+        const response = await fetch(`http://localhost:${port}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          this.addLogEntry('success', `Sync server is running with ${data.clients} connected clients`);
+          this.addLogEntry('info', 'Use "Connect to Server" to join the network');
+          this.updateStatus('offline', 'Server available - Click Connect');
+        } else {
+          this.addLogEntry('info', 'No sync server running on this port');
+          this.addLogEntry('info', 'Server is available as a background service');
+          this.updateStatus('offline', 'Server not running');
+        }
+      } catch (error) {
+        this.addLogEntry('info', 'No sync server running on this port');
+        this.addLogEntry('info', 'Server is available as a background service');
+        this.updateStatus('offline', 'Server not running');
+      }
       
     } catch (error) {
       console.error('[Sync] Error starting server:', error);
@@ -112,7 +116,7 @@ class SyncManager {
     try {
       const host = document.getElementById('sync-server-host').value || 'localhost';
       const port = parseInt(document.getElementById('sync-server-port').value) || 8080;
-      const url = `ws://${host}:${port}`;
+      const url = `ws://${host}:${port}/sync`;
       
       this.updateStatus('connecting', 'Connecting...');
       this.addLogEntry('info', `Connecting to ${host}:${port}`);
@@ -129,11 +133,14 @@ class SyncManager {
         this.sendMessage({
           type: 'handshake',
           deviceName: this.getDeviceName(),
-          timestamp: Date.now()
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            timestamp: Date.now()
+          }
         });
         
-        // Initial sync
-        this.performFullSync();
+        // Request initial sync after connection
+        setTimeout(() => this.requestFullSync(), 1000);
       };
       
       this.socket.onmessage = (event) => {
@@ -258,6 +265,18 @@ class SyncManager {
       this.stats.dataSent += messageStr.length;
       this.updateStats();
     }
+  }
+
+  requestFullSync() {
+    if (!this.isConnected) return;
+    
+    this.sendMessage({
+      type: 'sync_request',
+      dataTypes: ['personnel', 'activity', 'shifts'],
+      timestamp: Date.now()
+    });
+    
+    this.addLogEntry('info', 'Requesting full sync from server');
   }
 
   performFullSync() {
