@@ -225,11 +225,20 @@ class SecurityApp {
     const loadingScreen = document.getElementById('loading-screen');
     const app = document.getElementById('app');
     
+    console.log('[App] Hiding loading screen');
+    
+    if (!loadingScreen || !app) {
+      console.error('[App] Loading screen or app element not found');
+      return;
+    }
+    
     setTimeout(() => {
       loadingScreen.style.opacity = '0';
       setTimeout(() => {
         loadingScreen.classList.add('hidden');
         app.classList.remove('hidden');
+        app.style.display = 'flex';
+        console.log('[App] Main app displayed');
       }, 250);
     }, 500);
   }
