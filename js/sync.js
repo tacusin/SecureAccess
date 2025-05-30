@@ -70,11 +70,29 @@ class CloudSyncManager {
       throw new Error('Google Drive API credentials not found');
     }
     
-    await window.gapi.client.init({
-      apiKey: apiKey,
-      clientId: clientId,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-      scope: 'https://www.googleapis.com/auth/drive.file'
+    console.log('[Sync] Initializing with API Key:', apiKey.substring(0, 10) + '...');
+    console.log('[Sync] Initializing with Client ID:', clientId.substring(0, 20) + '...');
+    
+    // Initialize auth2 first
+    await new Promise((resolve, reject) => {
+      window.gapi.load('auth2', () => {
+        window.gapi.auth2.init({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file'
+        }).then(resolve).catch(reject);
+      });
+    });
+    
+    // Then initialize client
+    await new Promise((resolve, reject) => {
+      window.gapi.load('client', () => {
+        window.gapi.client.init({
+          apiKey: apiKey,
+          clientId: clientId,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+          scope: 'https://www.googleapis.com/auth/drive.file'
+        }).then(resolve).catch(reject);
+      });
     });
   }
 
