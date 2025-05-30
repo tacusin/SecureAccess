@@ -62,6 +62,12 @@ function serveIndexWithEnv(res) {
     ).replace(
       'window.GOOGLE_DRIVE_CLIENT_ID = process.env.GOOGLE_DRIVE_CLIENT_ID;',
       `window.GOOGLE_DRIVE_CLIENT_ID = '${clientId}';`
+    ).replace(
+      '${process.env.GOOGLE_DRIVE_API_KEY}',
+      apiKey
+    ).replace(
+      '${process.env.GOOGLE_DRIVE_CLIENT_ID}',
+      clientId
     );
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
