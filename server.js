@@ -44,8 +44,8 @@ function serveFile(filePath, res) {
   });
 }
 
-function serveIndexWithEnv(res) {
-  fs.readFile('index.html', 'utf8', (error, content) => {
+function serveFileWithEnv(filePath, res) {
+  fs.readFile(filePath, 'utf8', (error, content) => {
     if (error) {
       res.writeHead(500);
       res.end('Server error: ' + error.code);
@@ -75,6 +75,10 @@ function serveIndexWithEnv(res) {
   });
 }
 
+function serveIndexWithEnv(res) {
+  serveFileWithEnv('index.html', res);
+}
+
 const server = http.createServer((req, res) => {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -87,6 +91,12 @@ const server = http.createServer((req, res) => {
   // Default to index.html
   if (pathname === '/') {
     serveIndexWithEnv(res);
+    return;
+  }
+
+  // Handle test page with environment injection
+  if (pathname === '/test-google-api.html') {
+    serveFileWithEnv('test-google-api.html', res);
     return;
   }
 
