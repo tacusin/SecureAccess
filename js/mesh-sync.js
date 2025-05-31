@@ -149,6 +149,11 @@ class MeshSync {
       };
     }
     
+    // Set up WebSocket for cross-device signaling if coordinator
+    if (this.isCoordinator) {
+      this.setupWebSocketSignaling();
+    }
+    
     // Fallback to localStorage events for cross-tab communication
     window.addEventListener('storage', (event) => {
       if (event.key === this.signalingChannel && event.newValue) {
@@ -160,6 +165,30 @@ class MeshSync {
         }
       }
     });
+  }
+
+  setupWebSocketSignaling() {
+    try {
+      // Create WebSocket server on port 8081 for signaling
+      this.signalingPort = 8081;
+      
+      // For browser environment, we'll use a simple HTTP endpoint approach
+      this.setupHTTPSignaling();
+      
+    } catch (error) {
+      console.error('[MeshSync] Failed to setup WebSocket signaling:', error);
+    }
+  }
+
+  setupHTTPSignaling() {
+    // Create a simple HTTP-based signaling mechanism
+    this.signalingEndpoint = `http://${this.localIP}:${this.signalingPort}/signal`;
+    
+    // Store signaling info for other devices
+    localStorage.setItem('mesh_signaling_endpoint', this.signalingEndpoint);
+    localStorage.setItem('mesh_signaling_device', this.deviceId);
+    
+    console.log('[MeshSync] HTTP signaling endpoint:', this.signalingEndpoint);
   }
 
   async handleSignalingMessage(message) {

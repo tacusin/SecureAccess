@@ -9,9 +9,9 @@ class CameraManager {
     this.isInitialized = false;
     this.constraints = {
       video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        facingMode: 'user'
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 },
+        facingMode: { ideal: 'environment', exact: undefined }
       }
     };
     this.maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -65,22 +65,41 @@ class CameraManager {
     try {
       console.log('[Camera] Requesting camera access');
       
-      this.stream = await navigator.mediaDevices.getUserMedia(this.constraints);
-      console.log('[Camera] Camera access granted');
-      return this.stream;
+      // Try with preferred constraints first
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+        console.log('[Camera] Camera access granted with preferred settings');
+        return this.stream;
+      } catch (firstError) {
+        console.warn('[Camera] Failed with preferred constraints, trying fallback');
+        
+        // Fallback to basic constraints
+        const fallbackConstraints = {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          }
+        };
+        
+        this.stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+        console.log('[Camera] Camera access granted with fallback settings');
+        return this.stream;
+      }
       
     } catch (error) {
       console.error('[Camera] Error accessing camera:', error);
       
       // Provide specific error messages
       if (error.name === 'NotAllowedError') {
-        throw new Error('Camera access denied. Please enable camera permissions.');
+        throw new Error('Camera access denied. Please enable camera permissions in your browser settings.');
       } else if (error.name === 'NotFoundError') {
         throw new Error('No camera found. Please connect a camera and try again.');
       } else if (error.name === 'NotReadableError') {
         throw new Error('Camera is busy. Please close other applications using the camera.');
+      } else if (error.name === 'OverconstrainedError') {
+        throw new Error('Camera constraints not supported. Trying with basic settings...');
       } else {
-        throw new Error('Failed to access camera. Please try again.');
+        throw new Error('Failed to access camera. Please try again or check your browser permissions.');
       }
     }
   }
