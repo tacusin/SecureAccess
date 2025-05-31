@@ -208,6 +208,27 @@ class SyncPasswordManager {
     }
     
     try {
+      // First ensure the group exists with proper structure
+      const groupRef = window.FirebaseSync.database.ref(`groupData/${groupId}`);
+      const groupSnapshot = await groupRef.once('value');
+      
+      if (!groupSnapshot.exists()) {
+        // Create the group structure first
+        await groupRef.set({
+          metadata: {
+            created: window.firebase.database.ServerValue.TIMESTAMP,
+            createdBy: userId
+          },
+          members: {},
+          personnel: {},
+          activities: {},
+          occupancy: {
+            count: 0,
+            timestamp: window.firebase.database.ServerValue.TIMESTAMP
+          }
+        });
+      }
+      
       // Add user to group members with identity
       const memberRef = window.FirebaseSync.database.ref(`groupData/${groupId}/members/${userId}`);
       await memberRef.set({
@@ -249,6 +270,16 @@ class SyncPasswordManager {
       
     } catch (error) {
       console.error('[SyncPassword] Failed to setup Firebase membership:', error);
+      
+      // Check if it's a permission error
+      if (error.code === 'PERMISSION_DENIED') {
+        console.warn('[SyncPassword] Permission denied - Firebase security rules may need adjustment');
+        this.showError('Permission denied when joining group. Check Firebase security settings.');
+      } else {
+        this.showError(`Failed to join group: ${error.message}`);
+      }
+      
+      throw error;
     }
   }
 

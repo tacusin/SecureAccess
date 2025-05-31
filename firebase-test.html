@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .test-button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Firebase Security Test</h1>
+    
+    <div id="connection-status" class="status info">Testing connection...</div>
+    
+    <div>
+        <button class="test-button" onclick="testGroupAccess()">Test Group Access</button>
+        <button class="test-button" onclick="testUserCreation()">Test User Creation</button>
+        <button class="test-button" onclick="testDataWrite()">Test Data Write</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <script>
+        // Firebase configuration
+        window.FIREBASE_API_KEY = 'AIzaSyCxcHZ8AnqLEu3gR1gHi1Oxdoq4Pr3xTbA';
+        window.FIREBASE_AUTH_DOMAIN = 'access-5de22.firebaseapp.com';
+        window.FIREBASE_PROJECT_ID = 'access-5de22';
+        window.FIREBASE_STORAGE_BUCKET = 'access-5de22.firebasestorage.app';
+        window.FIREBASE_MESSAGING_SENDER_ID = '861386021297';
+        window.FIREBASE_APP_ID = '1:861386021297:web:02d7b0eb53e6b6f86b0590';
+    </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    
+    <script>
+        let app, database, auth, currentUser;
+        
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: window.FIREBASE_API_KEY,
+            authDomain: window.FIREBASE_AUTH_DOMAIN,
+            projectId: window.FIREBASE_PROJECT_ID,
+            storageBucket: window.FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: window.FIREBASE_MESSAGING_SENDER_ID,
+            appId: window.FIREBASE_APP_ID,
+            databaseURL: `https://${window.FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`
+        };
+        
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            auth = firebase.auth();
+            
+            // Test connection
+            database.ref('.info/connected').on('value', (snapshot) => {
+                const connected = snapshot.val();
+                const statusEl = document.getElementById('connection-status');
+                if (connected) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ Firebase connected successfully!';
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '❌ Firebase disconnected';
+                }
+            });
+            
+            // Sign in anonymously
+            auth.signInAnonymously().then((result) => {
+                currentUser = result.user;
+                addResult('User authenticated: ' + currentUser.uid, 'success');
+            }).catch((error) => {
+                addResult('Authentication failed: ' + error.message, 'error');
+            });
+            
+        } catch (error) {
+            document.getElementById('connection-status').innerHTML = '❌ Firebase initialization failed: ' + error.message;
+        }
+        
+        function addResult(message, type) {
+            const div = document.createElement('div');
+            div.className = 'status ' + type;
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            document.getElementById('test-results').appendChild(div);
+        }
+        
+        async function testGroupAccess() {
+            if (!currentUser) {
+                addResult('Please wait for authentication to complete', 'error');
+                return;
+            }
+            
+            try {
+                // Test creating a group
+                const testGroupId = 'test_' + Date.now();
+                const groupRef = database.ref(`groupData/${testGroupId}`);
+                
+                await groupRef.set({
+                    metadata: {
+                        created: firebase.database.ServerValue.TIMESTAMP,
+                        createdBy: currentUser.uid
+                    },
+                    members: {
+                        [currentUser.uid]: {
+                            name: 'Test User',
+                            role: 'admin',
+                            joinedAt: firebase.database.ServerValue.TIMESTAMP
+                        }
+                    }
+                });
+                
+                addResult('Group creation successful: ' + testGroupId, 'success');
+                
+                // Clean up
+                setTimeout(() => groupRef.remove(), 5000);
+                
+            } catch (error) {
+                addResult('Group access failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function testUserCreation() {
+            if (!currentUser) {
+                addResult('Please wait for authentication to complete', 'error');
+                return;
+            }
+            
+            try {
+                const userRef = database.ref(`users/${currentUser.uid}`);
+                await userRef.set({
+                    profile: {
+                        name: 'Test User',
+                        role: 'security_officer',
+                        created: firebase.database.ServerValue.TIMESTAMP
+                    }
+                });
+                
+                addResult('User creation successful', 'success');
+                
+            } catch (error) {
+                addResult('User creation failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function testDataWrite() {
+            if (!currentUser) {
+                addResult('Please wait for authentication to complete', 'error');
+                return;
+            }
+            
+            try {
+                // Test writing to a group the user is member of
+                const testRef = database.ref(`groupData/dev/activities/test_${Date.now()}`);
+                await testRef.set({
+                    action: 'test_action',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    userId: currentUser.uid
+                });
+                
+                addResult('Data write to dev group successful', 'success');
+                
+            } catch (error) {
+                addResult('Data write failed: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
