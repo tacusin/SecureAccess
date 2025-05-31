@@ -23,6 +23,13 @@ class FirebaseConfigManager {
       configBtn.addEventListener('click', () => this.showConfigModal());
     }
 
+    // Add fallback event delegation for dynamically created buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'configure-firebase-btn' || e.target.closest('#configure-firebase-btn')) {
+        this.showConfigModal();
+      }
+    });
+
     // Test connection button
     const testBtn = document.getElementById('test-connection-btn');
     if (testBtn) {
