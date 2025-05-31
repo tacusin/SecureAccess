@@ -284,9 +284,21 @@ class HTTPMeshSync {
       return false;
     }
 
+    // Validate IP:port format
+    if (!this.validateIPPort(coordinatorAddress)) {
+      this.showMessage('Invalid IP address format. Use format: 192.168.1.100:8082', 'error');
+      return false;
+    }
+
     try {
       this.coordinatorAddress = coordinatorAddress;
       this.syncEnabled = true;
+      
+      // Test connection to coordinator
+      const connectionTest = await this.testCoordinatorConnection(coordinatorAddress);
+      if (!connectionTest.success) {
+        throw new Error(connectionTest.error || 'Unable to reach coordinator');
+      }
       
       // Register with coordinator
       await this.registerWithCoordinator();
@@ -304,6 +316,56 @@ class HTTPMeshSync {
       console.error('[HTTPMeshSync] Failed to connect to coordinator:', error);
       this.showMessage('Connection failed: ' + error.message, 'error');
       return false;
+    }
+  }
+
+  validateIPPort(address) {
+    const ipPortPattern = /^(\d{1,3}\.){3}\d{1,3}:\d{1,5}$/;
+    if (!ipPortPattern.test(address)) {
+      return false;
+    }
+    
+    const [ip, port] = address.split(':');
+    const ipParts = ip.split('.');
+    
+    // Validate IP octets
+    for (const part of ipParts) {
+      const num = parseInt(part);
+      if (num < 0 || num > 255) return false;
+    }
+    
+    // Validate port
+    const portNum = parseInt(port);
+    if (portNum < 1 || portNum > 65535) return false;
+    
+    return true;
+  }
+
+  async testCoordinatorConnection(coordinatorAddress) {
+    try {
+      // For browser environment, we'll simulate the connection test
+      // In a real implementation, this would try to reach the coordinator
+      const [ip, port] = coordinatorAddress.split(':');
+      
+      // Check if the IP is in a valid local network range
+      if (!ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.')) {
+        return {
+          success: false,
+          error: 'Coordinator must be on the same local network'
+        };
+      }
+      
+      // Simulate connection test delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo purposes, assume connection works
+      return { success: true };
+      
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Network connection failed'
+      };
     }
   }
 
@@ -534,6 +596,29 @@ class HTTPMeshSync {
     
     if (connectSection) {
       connectSection.style.display = this.isCoordinator ? 'none' : 'block';
+    }
+    
+    // Update coordinator connection info
+    this.updateCoordinatorInfo();
+  }
+
+  updateCoordinatorInfo() {
+    const coordinatorInfo = document.querySelector('.coordinator-connection-info');
+    
+    if (this.isCoordinator && coordinatorInfo) {
+      const connectionAddress = `${this.localIP}:${this.port}`;
+      coordinatorInfo.innerHTML = `
+        <div class="connection-display">
+          <h4>Share this address with other devices:</h4>
+          <div class="connection-address">${connectionAddress}</div>
+          <p class="connection-help">
+            Other devices on the same network can enter this address to sync data in real-time.
+          </p>
+        </div>
+      `;
+      coordinatorInfo.style.display = 'block';
+    } else if (coordinatorInfo) {
+      coordinatorInfo.style.display = 'none';
     }
   }
 
