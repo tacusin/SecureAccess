@@ -80,11 +80,8 @@ class SecurityApp {
       item.addEventListener('click', (e) => this.handleNavigation(e));
     });
     
-    // Theme toggle
-    document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
-    
-    // Emergency button
-    document.getElementById('emergency-btn').addEventListener('click', () => this.navigateTo('emergency'));
+    // Theme toggle (moved to settings menu)
+    // Emergency button (removed from header)
     
     // Search functionality
     const searchInput = document.getElementById('person-search');
@@ -239,14 +236,23 @@ class SecurityApp {
   }
 
   hideLoadingScreen() {
+    console.log('[App] Hiding loading screen...');
     const loadingScreen = document.getElementById('loading-screen');
     const app = document.getElementById('app');
+    
+    if (!loadingScreen || !app) {
+      console.error('[App] Loading screen or app elements not found');
+      return;
+    }
+    
+    console.log('[App] Loading screen found, starting transition...');
     
     setTimeout(() => {
       loadingScreen.style.opacity = '0';
       setTimeout(() => {
         loadingScreen.classList.add('hidden');
         app.classList.remove('hidden');
+        console.log('[App] Loading screen hidden, app shown');
       }, 250);
     }, 500);
   }
