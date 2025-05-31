@@ -181,7 +181,13 @@ class PersonnelModule {
   }
 
   async updatePersonnelPage() {
-    const container = document.getElementById('personnel-list');
+    // Update both personnel lists for different pages
+    this.updatePersonnelList('personnel-list', true); // Check-in page with actions
+    this.updatePersonnelList('all-personnel-list', true); // Personnel management page
+  }
+
+  updatePersonnelList(containerId, showActions = false) {
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     if (this.currentPersonnel.length === 0) {
@@ -198,7 +204,7 @@ class PersonnelModule {
     const fragment = document.createDocumentFragment();
     this.currentPersonnel.forEach(person => {
       const personElement = document.createElement('div');
-      personElement.innerHTML = this.createPersonCard(person, true);
+      personElement.innerHTML = this.createPersonCard(person, showActions);
       fragment.appendChild(personElement.firstElementChild);
     });
 

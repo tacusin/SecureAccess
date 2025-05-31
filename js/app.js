@@ -362,39 +362,40 @@ class SecurityApp {
   }
 
   async updatePageContent(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-      page.classList.remove('active');
-    });
-
-    // Show target page
-    const targetPage = document.getElementById(`${pageId}-page`);
-    if (targetPage) {
-      targetPage.classList.add('active');
-    }
-
-    // Update page-specific content
-    switch (pageId) {
-      case 'dashboard':
-        await this.updateDashboard();
-        break;
-      case 'checkin':
-        await this.loadPersonnelList();
-        break;
-      case 'shifts':
-        await this.updateShiftsPage();
-        break;
-      case 'personnel':
-        await this.loadAllPersonnel();
-        break;
-      case 'emergency':
-        if (window.EmergencyManager) {
-          await window.EmergencyManager.updateContent();
-        }
-        break;
-      case 'activity':
-        await this.updateActivityPage();
-        break;
+    try {
+      // Update page-specific content
+      switch (pageId) {
+        case 'dashboard':
+          await this.updateDashboard();
+          break;
+        case 'checkin':
+          await this.loadPersonnelList();
+          break;
+        case 'shifts':
+          await this.updateShiftsPage();
+          break;
+        case 'personnel':
+          await this.loadAllPersonnel();
+          break;
+        case 'emergency':
+          if (window.EmergencyManager) {
+            await window.EmergencyManager.updateContent();
+          }
+          break;
+        case 'activity':
+          if (window.ActivityModule && window.ActivityModule.initialized) {
+            window.ActivityModule.updateActivityPage();
+          }
+          break;
+        case 'sync':
+          this.updateSyncPage();
+          break;
+        case 'reports':
+          this.updateReportsPage();
+          break;
+      }
+    } catch (error) {
+      console.error(`[App] Error updating ${pageId} page:`, error);
     }
   }
 
@@ -1505,6 +1506,44 @@ class SecurityApp {
 
   formatTime(timestamp) {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  updateSyncPage() {
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) {
+      if (window.FirebaseSync && window.FirebaseSync.getStatus) {
+        const status = window.FirebaseSync.getStatus();
+        syncStatus.innerHTML = `<p>Status: ${status.connected ? 'Connected' : 'Disconnected'}</p>`;
+      } else {
+        syncStatus.innerHTML = '<p>Sync service not available</p>';
+      }
+    }
+  }
+
+  updateReportsPage() {
+    // Reports page is mostly static, just ensure export buttons work
+    const exportButtons = document.querySelectorAll('#reports-page .export-btn');
+    exportButtons.forEach(btn => {
+      if (!btn.hasAttribute('data-listener-added')) {
+        btn.addEventListener('click', (e) => this.handleExport(e));
+        btn.setAttribute('data-listener-added', 'true');
+      }
+    });
+  }
+
+  async loadAllPersonnel() {
+    try {
+      if (window.PersonnelModule) {
+        const container = document.getElementById('all-personnel-list');
+        if (container) {
+          await window.PersonnelModule.updatePersonnelPage();
+        }
+      } else {
+        await this.loadPersonnelList();
+      }
+    } catch (error) {
+      console.error('[App] Error loading all personnel:', error);
+    }
   }
 
   // UI Feedback
