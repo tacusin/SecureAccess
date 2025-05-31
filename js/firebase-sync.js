@@ -815,18 +815,33 @@ class FirebaseSync {
 window.FirebaseSync = new FirebaseSync();
 
 // Add profile setup functionality
-document.addEventListener('DOMContentLoaded', () => {
+function attachProfileButtonListener() {
   const profileBtn = document.getElementById('setup-user-profile-btn');
-  if (profileBtn) {
+  if (profileBtn && !profileBtn.hasAttribute('data-listener-attached')) {
+    profileBtn.setAttribute('data-listener-attached', 'true');
     profileBtn.addEventListener('click', async () => {
+      console.log('[FirebaseSync] Setup Profile button clicked');
       if (window.SyncPassword) {
-        const userIdentity = await window.SyncPassword.getUserIdentity();
-        if (userIdentity && window.FirebaseSync.currentGroupId) {
-          await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
+        try {
+          const userIdentity = await window.SyncPassword.getUserIdentity();
+          if (userIdentity && window.FirebaseSync.currentGroupId) {
+            await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
+            console.log('[FirebaseSync] User profile setup completed');
+          }
+        } catch (error) {
+          console.error('[FirebaseSync] Profile setup failed:', error);
         }
       }
     });
+    console.log('[FirebaseSync] Profile button listener attached');
   }
-});
+}
+
+// Try to attach listener immediately and also after DOM is ready
+attachProfileButtonListener();
+document.addEventListener('DOMContentLoaded', attachProfileButtonListener);
+
+// Also try after a short delay in case the button is loaded dynamically
+setTimeout(attachProfileButtonListener, 1000);
 
 console.log('[FirebaseSync] Firebase Sync Manager loaded');
