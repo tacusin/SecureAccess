@@ -253,13 +253,17 @@ class SyncPasswordManager {
   }
 
   async getUserIdentity() {
+    console.log('[SyncPassword] Getting user identity...');
+    
     // Check if we already have stored identity
     const storedIdentity = localStorage.getItem('userIdentity');
     if (storedIdentity) {
+      console.log('[SyncPassword] Using stored identity');
       return JSON.parse(storedIdentity);
     }
 
     // Show user identity modal
+    console.log('[SyncPassword] Showing user identity modal');
     return new Promise((resolve) => {
       this.showUserIdentityModal(resolve);
     });

@@ -2847,19 +2847,31 @@ SecurityApp.prototype.setupProfileButtonListener = function() {
       profileBtn.setAttribute('data-listener-attached', 'true');
       profileBtn.addEventListener('click', async () => {
         console.log('[App] Setup Profile button clicked');
+        
+        // Clear any existing user identity to force the modal to show
+        localStorage.removeItem('userIdentity');
+        
         if (window.SyncPassword) {
           try {
+            console.log('[App] Calling getUserIdentity...');
             const userIdentity = await window.SyncPassword.getUserIdentity();
+            console.log('[App] User identity received:', userIdentity);
+            
             if (userIdentity && window.FirebaseSync && window.FirebaseSync.currentGroupId) {
+              console.log('[App] Setting up Firebase membership...');
               await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
               this.showToast('Profile setup completed successfully!', 'success');
             } else {
+              console.log('[App] No group or identity found');
               this.showToast('Please join a security group first', 'warning');
             }
           } catch (error) {
             console.error('[App] Profile setup failed:', error);
             this.showError('Failed to setup profile: ' + error.message);
           }
+        } else {
+          console.error('[App] SyncPassword not available');
+          this.showError('Profile system not available');
         }
       });
       console.log('[App] Profile button listener attached');
