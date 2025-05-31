@@ -2852,7 +2852,9 @@ SecurityApp.prototype.setupProfileButtonListener = function() {
         localStorage.removeItem('userIdentity');
         
         // Show the profile setup modal directly
+        console.log('[App] Showing profile setup modal...');
         this.showProfileSetupModal();
+        console.log('[App] Profile setup modal should be visible now');
       });
       console.log('[App] Profile button listener attached');
     }
@@ -2866,6 +2868,8 @@ SecurityApp.prototype.setupProfileButtonListener = function() {
 };
 
 SecurityApp.prototype.showProfileSetupModal = function() {
+  console.log('[App] showProfileSetupModal called');
+  
   const modalContent = `
     <div class="modal-header">
       <h3>Setup Your Profile</h3>
@@ -2897,7 +2901,20 @@ SecurityApp.prototype.showProfileSetupModal = function() {
     </div>
   `;
   
+  console.log('[App] About to call showModal with content');
   this.showModal(modalContent);
+  console.log('[App] showModal called');
+  
+  // Force modal to be visible
+  const modal = document.getElementById('modal-overlay');
+  if (modal) {
+    console.log('[App] Modal element found, forcing visibility');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    modal.style.zIndex = '9999';
+  } else {
+    console.error('[App] Modal element not found!');
+  }
   
   // Handle form submission
   const submitBtn = document.getElementById('submit-user-identity');
