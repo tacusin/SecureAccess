@@ -129,7 +129,12 @@ class SyncPasswordManager {
       // Update Firebase sync if available
       if (window.FirebaseSync) {
         window.FirebaseSync.currentGroupId = groupId;
-        await this.setupFirebaseGroupMembership(groupId);
+        
+        // Get or prompt for user identity before setting up membership
+        const userIdentity = await this.getUserIdentity();
+        if (userIdentity) {
+          await this.setupFirebaseGroupMembership(groupId);
+        }
       }
       
       this.updateGroupDisplay();
