@@ -205,6 +205,40 @@ body {
   gap: var(--spacing-sm);
 }
 
+/* Sync indicator */
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+}
+
+.sync-indicator.connected {
+  background: hsl(var(--success) / 0.1);
+  color: hsl(var(--success));
+}
+
+.sync-indicator.connecting {
+  background: hsl(var(--warning) / 0.1);
+  color: hsl(var(--warning));
+}
+
+.sync-indicator.disconnected {
+  background: hsl(var(--error) / 0.1);
+  color: hsl(var(--error));
+}
+
+.sync-indicator.offline {
+  background: hsl(var(--outline-variant) / 0.1);
+  color: hsl(var(--on-surface-variant));
+}
+
+.sync-indicator .material-icons {
+  font-size: 18px;
+}
+
 /* Navigation */
 .nav-drawer {
   grid-area: nav;
