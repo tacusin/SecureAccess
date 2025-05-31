@@ -140,7 +140,10 @@ class SyncPasswordManager {
       this.updateGroupDisplay();
       window.app.closeModal();
       
-      this.showSuccess(`Successfully joined security group: ${groupId}`);
+      // Only show success message if this is a new group join (not just a refresh)
+      if (this.currentGroupId !== groupId) {
+        this.showSuccess(`Successfully joined security group: ${groupId}`);
+      }
       
     } catch (error) {
       console.error('[SyncPassword] Error joining group:', error);
