@@ -477,6 +477,10 @@ class FirebaseSync {
         syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
       });
       console.log('[FirebaseSync] Activity synced to group:', activity.action);
+      
+      // Update sync status
+      this.updateSyncStatus('connected', `Last sync: ${new Date().toLocaleTimeString()}`);
+      this.showSyncActivity(`Synced: ${activity.action}`);
     } catch (error) {
       console.error('[FirebaseSync] Failed to sync activity:', error);
       this.queueSync('activity', activity);
@@ -549,7 +553,7 @@ class FirebaseSync {
   }
 
   async processOfflineQueue() {
-    if (!this.isConnected || this.syncQueue.length === 0) {
+    if (!this.isConnected || this.syncQueue.length === 0 || !this.currentGroupId) {
       return;
     }
 
@@ -580,6 +584,8 @@ class FirebaseSync {
         this.syncQueue.push(item);
       }
     }
+    
+    console.log('[FirebaseSync] Queue processing completed');
   }
 
   generateDeviceId() {
