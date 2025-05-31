@@ -25,7 +25,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
-</head>
+
+    <script>
+        // Firebase configuration from environment variables
+        window.FIREBASE_API_KEY = 'AIzaSyCxcHZ8AnqLEu3gR1gHi1Oxdoq4Pr3xTbA';
+        window.FIREBASE_AUTH_DOMAIN = 'access-5de22.firebaseapp.com';
+        window.FIREBASE_PROJECT_ID = 'access-5de22';
+        window.FIREBASE_STORAGE_BUCKET = 'access-5de22.firebasestorage.app';
+        window.FIREBASE_MESSAGING_SENDER_ID = '861386021297';
+        window.FIREBASE_APP_ID = '1:861386021297:web:02d7b0eb53e6b6f86b0590';
+        console.log('[Firebase] Configuration loaded from environment');
+        console.log('[Firebase] Project ID:', window.FIREBASE_PROJECT_ID);
+    </script>
+    </head>
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">

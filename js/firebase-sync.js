@@ -162,7 +162,7 @@ class FirebaseSync {
 
     // Return empty config if no source available
     console.error('[FirebaseSync] No Firebase configuration available');
-    return {};
+    return null;
   }
 
   getEnvVar(name) {
