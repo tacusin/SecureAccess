@@ -195,18 +195,44 @@ class SyncPasswordManager {
 
     const userId = window.FirebaseSync.currentUser.uid;
     
+    // Get user identity first
+    const userIdentity = await this.getUserIdentity();
+    if (!userIdentity) {
+      console.log('[SyncPassword] User identity required for group membership');
+      return;
+    }
+    
     try {
-      // Add user to group members
+      // Add user to group members with identity
       const memberRef = window.FirebaseSync.database.ref(`groupData/${groupId}/members/${userId}`);
-      await memberRef.set(true);
+      await memberRef.set({
+        name: userIdentity.name,
+        role: userIdentity.role,
+        deviceId: window.FirebaseSync.deviceId,
+        joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
+        lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
+        isOnline: true
+      });
       
       // Update user's groups list
       const userRef = window.FirebaseSync.database.ref(`users/${userId}/groups/${groupId}`);
       await userRef.set(true);
       
+      // Store user profile
+      const profileRef = window.FirebaseSync.database.ref(`users/${userId}/profile`);
+      await profileRef.set({
+        name: userIdentity.name,
+        role: userIdentity.role,
+        lastActive: window.firebase.database.ServerValue.TIMESTAMP
+      });
+      
       // Update Firebase sync manager
       window.FirebaseSync.currentGroupId = groupId;
       window.FirebaseSync.userGroups = [groupId];
+      window.FirebaseSync.userProfile = userIdentity;
+      
+      // Setup presence system
+      this.setupPresenceSystem(groupId, userId);
       
       // Restart listeners for new group
       window.FirebaseSync.setupGroupBasedListeners();
@@ -219,6 +245,108 @@ class SyncPasswordManager {
     } catch (error) {
       console.error('[SyncPassword] Failed to setup Firebase membership:', error);
     }
+  }
+
+  async getUserIdentity() {
+    // Check if we already have stored identity
+    const storedIdentity = localStorage.getItem('userIdentity');
+    if (storedIdentity) {
+      return JSON.parse(storedIdentity);
+    }
+
+    // Show user identity modal
+    return new Promise((resolve) => {
+      this.showUserIdentityModal(resolve);
+    });
+  }
+
+  showUserIdentityModal(callback) {
+    const modal = document.getElementById('modal-overlay');
+    const modalContent = document.getElementById('modal-content');
+    
+    modalContent.innerHTML = `
+      <div class="modal-header">
+        <h3>User Identity Required</h3>
+        <p>Please identify yourself to join the security group</p>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="user-name-input">Your Name</label>
+          <input type="text" id="user-name-input" placeholder="Enter your full name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="user-role-select">Your Role</label>
+          <select id="user-role-select" class="form-input">
+            <option value="security_officer">Security Officer</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Administrator</option>
+            <option value="guest">Guest</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="submit-user-identity" class="action-button primary">
+          Join Group
+        </button>
+      </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    // Handle form submission
+    const submitBtn = document.getElementById('submit-user-identity');
+    const nameInput = document.getElementById('user-name-input');
+    const roleSelect = document.getElementById('user-role-select');
+    
+    const handleSubmit = () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        this.showError('Please enter your name');
+        return;
+      }
+      
+      const identity = {
+        name: name,
+        role: roleSelect.value,
+        timestamp: Date.now()
+      };
+      
+      // Store identity locally
+      localStorage.setItem('userIdentity', JSON.stringify(identity));
+      
+      modal.classList.add('hidden');
+      callback(identity);
+    };
+    
+    submitBtn.addEventListener('click', handleSubmit);
+    nameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSubmit();
+    });
+    
+    // Focus name input
+    setTimeout(() => nameInput.focus(), 100);
+  }
+
+  setupPresenceSystem(groupId, userId) {
+    if (!window.FirebaseSync || !window.FirebaseSync.database) return;
+    
+    const memberRef = window.FirebaseSync.database.ref(`groupData/${groupId}/members/${userId}`);
+    
+    // Update online status
+    memberRef.child('isOnline').set(true);
+    memberRef.child('lastSeen').set(window.firebase.database.ServerValue.TIMESTAMP);
+    
+    // Set up disconnect handler
+    memberRef.child('isOnline').onDisconnect().set(false);
+    memberRef.child('lastSeen').onDisconnect().set(window.firebase.database.ServerValue.TIMESTAMP);
+    
+    // Periodic presence updates
+    setInterval(() => {
+      if (window.FirebaseSync.isConnected) {
+        memberRef.child('lastSeen').set(window.firebase.database.ServerValue.TIMESTAMP);
+      }
+    }, 30000); // Update every 30 seconds
   }
 
   async verifyGroupMembership(groupId) {

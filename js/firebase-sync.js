@@ -329,6 +329,10 @@ class FirebaseSync {
       }
     });
 
+    // Listen for group member changes
+    const membersRef = this.database.ref(`${groupPath}/members`);
+    membersRef.on('value', this.handleMembersUpdate.bind(this));
+
     console.log('[FirebaseSync] Group-based data listeners established for:', this.currentGroupId);
   }
 
@@ -688,6 +692,88 @@ class FirebaseSync {
         syncLog.removeChild(syncLog.lastChild);
       }
     }
+  }
+
+  handleMembersUpdate(snapshot) {
+    try {
+      const members = snapshot.val() || {};
+      console.log('[FirebaseSync] Group members updated:', Object.keys(members).length);
+      
+      // Update group members display
+      this.updateGroupMembersDisplay(members);
+      
+    } catch (error) {
+      console.error('[FirebaseSync] Error handling members update:', error);
+    }
+  }
+
+  updateGroupMembersDisplay(members) {
+    // Update Firebase sync page with current members
+    const membersContainer = document.getElementById('group-members-list');
+    if (!membersContainer) return;
+    
+    const memberEntries = Object.entries(members);
+    
+    if (memberEntries.length === 0) {
+      membersContainer.innerHTML = '<div class="no-members">No active members</div>';
+      return;
+    }
+    
+    const membersHtml = memberEntries.map(([userId, memberData]) => {
+      const isCurrentUser = userId === this.currentUser?.uid;
+      const statusClass = memberData.isOnline ? 'online' : 'offline';
+      const statusIcon = memberData.isOnline ? 'radio_button_checked' : 'radio_button_unchecked';
+      
+      return `
+        <div class="member-item ${statusClass} ${isCurrentUser ? 'current-user' : ''}">
+          <div class="member-avatar">
+            <span class="material-icons">${this.getRoleIcon(memberData.role)}</span>
+          </div>
+          <div class="member-info">
+            <div class="member-name">
+              ${memberData.name}
+              ${isCurrentUser ? ' (You)' : ''}
+            </div>
+            <div class="member-role">${this.formatRole(memberData.role)}</div>
+          </div>
+          <div class="member-status">
+            <span class="material-icons status-icon">${statusIcon}</span>
+            <span class="status-text">${memberData.isOnline ? 'Online' : 'Offline'}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    membersContainer.innerHTML = membersHtml;
+    
+    // Update member count in header
+    const memberCountElement = document.getElementById('group-member-count');
+    if (memberCountElement) {
+      const onlineCount = memberEntries.filter(([_, data]) => data.isOnline).length;
+      memberCountElement.textContent = `${onlineCount}/${memberEntries.length} online`;
+    }
+  }
+
+  getRoleIcon(role) {
+    const roleIcons = {
+      'security_officer': 'security',
+      'supervisor': 'supervisor_account',
+      'manager': 'account_box',
+      'admin': 'admin_panel_settings',
+      'guest': 'person'
+    };
+    return roleIcons[role] || 'person';
+  }
+
+  formatRole(role) {
+    const roleNames = {
+      'security_officer': 'Security Officer',
+      'supervisor': 'Supervisor',
+      'manager': 'Manager',
+      'admin': 'Administrator',
+      'guest': 'Guest'
+    };
+    return roleNames[role] || role;
   }
 
   getStatus() {
