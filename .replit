@@ -13,10 +13,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Security Access Manager"
+args = "Security Access App"
 
 [[workflows.workflow]]
-name = "Security Access Manager"
+name = "Security Access App"
 author = "agent"
 
 [[workflows.workflow.tasks]]
@@ -27,7 +27,12 @@ waitForPort = 5000
 [deployment]
 deploymentTarget = "static"
 publicDir = "/"
+run = ["sh", "-c", "node server.js"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3000

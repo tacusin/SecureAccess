@@ -357,29 +357,19 @@ class HTTPMeshSync {
 
   async testCoordinatorConnection(coordinatorAddress) {
     try {
-      // For browser environment, we'll simulate the connection test
-      // In a real implementation, this would try to reach the coordinator
-      const [ip, port] = coordinatorAddress.split(':');
+      const testEndpoint = `http://${coordinatorAddress}/discover`;
+      const response = await this.makeHTTPRequest(testEndpoint);
       
-      // Check if the IP is in a valid local network range
-      if (!ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.')) {
-        return {
-          success: false,
-          error: 'Coordinator must be on the same local network'
-        };
+      if (response.coordinatorId) {
+        this.showMessage('Connection test successful', 'success');
+        return true;
       }
       
-      // Simulate connection test delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, assume connection works
-      return { success: true };
-      
+      return false;
     } catch (error) {
-      return {
-        success: false,
-        error: 'Network connection failed'
-      };
+      console.error('[HTTPMeshSync] Connection test failed:', error);
+      this.showMessage('Connection test failed: ' + error.message, 'error');
+      return false;
     }
   }
 
