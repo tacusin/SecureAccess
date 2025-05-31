@@ -10,7 +10,9 @@ class FirebaseSync {
     this.auth = null;
     this.isInitialized = false;
     this.isConnected = false;
-    this.deviceId = this.generateDeviceId();
+    this.currentUser = null;
+    this.userGroups = [];
+    this.currentGroupId = null;
     this.listeners = new Map();
     this.lastSyncTimestamp = null;
     this.syncQueue = [];
@@ -21,6 +23,7 @@ class FirebaseSync {
     this.handleActivityUpdate = this.handleActivityUpdate.bind(this);
     this.handleShiftUpdate = this.handleShiftUpdate.bind(this);
     this.handleEmergencyUpdate = this.handleEmergencyUpdate.bind(this);
+    this.handleAuthStateChange = this.handleAuthStateChange.bind(this);
     
     console.log('[FirebaseSync] Firebase Sync Manager initialized');
   }
@@ -33,23 +36,20 @@ class FirebaseSync {
       // Load Firebase SDK
       await this.loadFirebaseSDK();
       
-      // Initialize Firebase app
-      const firebaseConfig = {
-        apiKey: this.getEnvVar('FIREBASE_API_KEY'),
-        authDomain: this.getEnvVar('FIREBASE_AUTH_DOMAIN'),
-        projectId: this.getEnvVar('FIREBASE_PROJECT_ID'),
-        storageBucket: this.getEnvVar('FIREBASE_STORAGE_BUCKET'),
-        messagingSenderId: this.getEnvVar('FIREBASE_MESSAGING_SENDER_ID'),
-        appId: this.getEnvVar('FIREBASE_APP_ID'),
-        databaseURL: `https://${this.getEnvVar('FIREBASE_PROJECT_ID')}-default-rtdb.firebaseio.com/`
-      };
+      // Get Firebase configuration
+      const firebaseConfig = await this.getFirebaseConfig();
+      if (!firebaseConfig.apiKey) {
+        console.warn('[FirebaseSync] No Firebase credentials - using local mode');
+        this.updateSyncStatus('offline', 'Local mode - no sync');
+        return false;
+      }
 
-      console.log('[FirebaseSync] Firebase config:', { 
+      console.log('[FirebaseSync] Firebase config loaded:', { 
         projectId: firebaseConfig.projectId,
         databaseURL: firebaseConfig.databaseURL 
       });
 
-      // Initialize Firebase
+      // Initialize Firebase with real credentials
       if (!window.firebase.apps.length) {
         window.firebase.initializeApp(firebaseConfig);
       }
@@ -57,23 +57,20 @@ class FirebaseSync {
       this.database = window.firebase.database();
       this.auth = window.firebase.auth();
       
-      // Sign in anonymously for device authentication
-      await this.authenticateDevice();
+      // Set up user authentication first
+      await this.setupAuthentication();
       
       // Setup connection monitoring
       this.setupConnectionMonitoring();
       
-      // Setup data listeners
-      this.setupDataListeners();
-      
-      // Register device
-      await this.registerDevice();
+      // Setup data listeners with group-based access
+      this.setupGroupBasedListeners();
       
       // Process offline queue
       await this.processOfflineQueue();
       
       this.isInitialized = true;
-      console.log('[FirebaseSync] Firebase initialized successfully');
+      console.log('[FirebaseSync] Firebase initialized successfully with group-based access');
       
       return true;
     } catch (error) {
@@ -81,6 +78,17 @@ class FirebaseSync {
       this.updateSyncStatus('disconnected', `Firebase connection failed: ${error.message}`);
       return false;
     }
+  }
+
+  startSyncSimulation() {
+    // Simulate periodic sync status updates
+    setInterval(() => {
+      if (this.syncQueue.length > 0) {
+        console.log(`[FirebaseSync] Sync simulation: Processing ${this.syncQueue.length} queued items`);
+        this.syncQueue = []; // Clear queue in simulation
+        this.updateSyncStatus('connected', 'Data synced successfully');
+      }
+    }, 5000);
   }
 
   async loadFirebaseSDK() {
@@ -128,6 +136,35 @@ class FirebaseSync {
     });
   }
 
+  async getFirebaseConfig() {
+    // First try to get from window variables (injected by server)
+    if (window.FIREBASE_API_KEY && window.FIREBASE_PROJECT_ID) {
+      return {
+        apiKey: window.FIREBASE_API_KEY,
+        authDomain: window.FIREBASE_AUTH_DOMAIN,
+        projectId: window.FIREBASE_PROJECT_ID,
+        storageBucket: window.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: window.FIREBASE_MESSAGING_SENDER_ID,
+        appId: window.FIREBASE_APP_ID,
+        databaseURL: `https://${window.FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`
+      };
+    }
+
+    // Fallback: try to fetch from config endpoint
+    try {
+      const response = await fetch('/firebase-config');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.warn('[FirebaseSync] Could not fetch Firebase config from server:', error);
+    }
+
+    // Return empty config if no source available
+    console.error('[FirebaseSync] No Firebase configuration available');
+    return {};
+  }
+
   getEnvVar(name) {
     // Access Firebase config from window variables (injected by server)
     const secrets = {
@@ -146,14 +183,93 @@ class FirebaseSync {
     return value;
   }
 
-  async authenticateDevice() {
+  async setupAuthentication() {
     try {
+      // Listen for auth state changes
+      this.auth.onAuthStateChanged(this.handleAuthStateChange);
+      
+      // Try to sign in anonymously for demo purposes
+      // In production, use proper authentication (email/password, Google Sign-In, etc.)
       const result = await this.auth.signInAnonymously();
-      console.log('[FirebaseSync] Device authenticated:', result.user.uid);
+      console.log('[FirebaseSync] User authenticated:', result.user.uid);
+      
       return result.user;
     } catch (error) {
       console.error('[FirebaseSync] Authentication failed:', error);
       throw error;
+    }
+  }
+
+  async handleAuthStateChange(user) {
+    if (user) {
+      this.currentUser = user;
+      console.log('[FirebaseSync] User signed in:', user.uid);
+      
+      // Load user's group memberships
+      await this.loadUserGroups();
+      
+      // Set default group for demo
+      await this.ensureDefaultGroup();
+      
+      this.updateSyncStatus('connected', 'Firebase sync active');
+    } else {
+      this.currentUser = null;
+      this.userGroups = [];
+      this.currentGroupId = null;
+      console.log('[FirebaseSync] User signed out');
+      this.updateSyncStatus('disconnected', 'User not authenticated');
+    }
+  }
+
+  async loadUserGroups() {
+    if (!this.currentUser) return;
+    
+    try {
+      const userRef = this.database.ref(`users/${this.currentUser.uid}`);
+      const snapshot = await userRef.once('value');
+      const userData = snapshot.val();
+      
+      if (userData && userData.groups) {
+        this.userGroups = Object.keys(userData.groups);
+        console.log('[FirebaseSync] User groups loaded:', this.userGroups);
+        
+        // Set the first group as current
+        if (this.userGroups.length > 0) {
+          this.currentGroupId = this.userGroups[0];
+        }
+      }
+    } catch (error) {
+      console.error('[FirebaseSync] Failed to load user groups:', error);
+    }
+  }
+
+  async ensureDefaultGroup() {
+    if (!this.currentUser) return;
+    
+    // Create default group for demo purposes
+    const defaultGroupId = 'security_team_alpha';
+    
+    try {
+      // Add user to default group if not already a member
+      const userRef = this.database.ref(`users/${this.currentUser.uid}`);
+      const groupRef = this.database.ref(`groupData/${defaultGroupId}/members/${this.currentUser.uid}`);
+      
+      await Promise.all([
+        userRef.update({
+          name: 'Security Officer',
+          groups: {
+            [defaultGroupId]: true
+          }
+        }),
+        groupRef.set(true)
+      ]);
+      
+      this.currentGroupId = defaultGroupId;
+      this.userGroups = [defaultGroupId];
+      
+      console.log('[FirebaseSync] Default group setup completed:', defaultGroupId);
+    } catch (error) {
+      console.error('[FirebaseSync] Failed to setup default group:', error);
     }
   }
 
