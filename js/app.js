@@ -214,6 +214,11 @@ class SecurityApp {
     if (window.ShiftManager) {
       await window.ShiftManager.init();
     }
+
+    // Initialize Firebase sync instead of mesh sync
+    if (window.FirebaseSync) {
+      await window.FirebaseSync.init();
+    }
     
     // Load initial data
     await this.loadPersonnelList();

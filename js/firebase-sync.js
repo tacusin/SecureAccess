@@ -110,8 +110,7 @@ class FirebaseSync {
   }
 
   getEnvVar(name) {
-    // In a real environment, these would come from environment variables
-    // For this demo, we'll use the provided secrets
+    // Access Firebase config from window variables (injected by server)
     const secrets = {
       FIREBASE_API_KEY: window.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: window.FIREBASE_AUTH_DOMAIN,
@@ -120,7 +119,12 @@ class FirebaseSync {
       FIREBASE_MESSAGING_SENDER_ID: window.FIREBASE_MESSAGING_SENDER_ID,
       FIREBASE_APP_ID: window.FIREBASE_APP_ID
     };
-    return secrets[name];
+    
+    const value = secrets[name];
+    if (!value) {
+      console.error(`[FirebaseSync] Missing Firebase config: ${name}`);
+    }
+    return value;
   }
 
   async authenticateDevice() {
