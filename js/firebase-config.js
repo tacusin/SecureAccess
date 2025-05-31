@@ -23,10 +23,16 @@ class FirebaseConfigManager {
     const joinGroupBtn = document.getElementById('join-group-btn');
     if (joinGroupBtn) {
       joinGroupBtn.addEventListener('click', () => {
+        console.log('[FirebaseConfig] Join group button clicked');
         if (window.SyncPasswordManager) {
+          console.log('[FirebaseConfig] Calling SyncPasswordManager.showSyncPasswordModal()');
           window.SyncPasswordManager.showSyncPasswordModal();
+        } else {
+          console.error('[FirebaseConfig] SyncPasswordManager not available');
         }
       });
+    } else {
+      console.warn('[FirebaseConfig] Join group button not found');
     }
 
     // Change group button
