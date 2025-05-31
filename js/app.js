@@ -1043,6 +1043,16 @@ class SecurityApp {
             timestamp: Date.now()
           });
         }
+        
+        // Also broadcast via HTTP mesh sync
+        if (window.HTTPMeshSync) {
+          window.HTTPMeshSync.broadcastEvent('check_out', {
+            personId: personId,
+            name: person.name,
+            role: person.role,
+            timestamp: Date.now()
+          });
+        }
       } else {
         await window.StorageManager.checkIn(personId);
         this.showToast(`${person.name} checked in successfully.`, 'success');
@@ -1050,6 +1060,16 @@ class SecurityApp {
         // Broadcast check-in event to mesh network
         if (window.MeshSync) {
           window.MeshSync.broadcastEvent('check_in', {
+            personId: personId,
+            name: person.name,
+            role: person.role,
+            timestamp: Date.now()
+          });
+        }
+        
+        // Also broadcast via HTTP mesh sync
+        if (window.HTTPMeshSync) {
+          window.HTTPMeshSync.broadcastEvent('check_in', {
             personId: personId,
             name: person.name,
             role: person.role,
