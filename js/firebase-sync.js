@@ -72,6 +72,9 @@ class FirebaseSync {
       this.isInitialized = true;
       console.log('[FirebaseSync] Firebase initialized successfully with group-based access');
       
+      // Setup profile button listener
+      this.setupProfileButton();
+      
       return true;
     } catch (error) {
       console.error('[FirebaseSync] Failed to initialize Firebase:', error);
@@ -813,5 +816,20 @@ class FirebaseSync {
 
 // Create global instance
 window.FirebaseSync = new FirebaseSync();
+
+// Add profile setup functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const profileBtn = document.getElementById('setup-user-profile-btn');
+  if (profileBtn) {
+    profileBtn.addEventListener('click', async () => {
+      if (window.SyncPassword) {
+        const userIdentity = await window.SyncPassword.getUserIdentity();
+        if (userIdentity && window.FirebaseSync.currentGroupId) {
+          await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
+        }
+      }
+    });
+  }
+});
 
 console.log('[FirebaseSync] Firebase Sync Manager loaded');
