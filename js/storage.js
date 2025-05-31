@@ -120,7 +120,7 @@ class StorageManager {
   }
 
   // Personnel Management
-  async addPersonnel(personnelData) {
+  async addPersonnel(personnelData, skipSync = false) {
     try {
       const person = {
         id: this.generateId(),
@@ -143,12 +143,17 @@ class StorageManager {
       this.data.personnel.push(person);
       await this.saveToStorage();
       
+      // Sync to Firebase if not from sync
+      if (!skipSync && window.FirebaseSync) {
+        await window.FirebaseSync.syncPersonnel(person);
+      }
+      
       // Log activity
       await this.logActivity('personnel_added', {
         personnelId: person.id,
         name: person.name,
         role: person.role
-      });
+      }, skipSync);
       
       console.log('[Storage] Personnel added:', person.name);
       return person;
@@ -159,7 +164,7 @@ class StorageManager {
     }
   }
 
-  async updatePersonnel(personnelId, updates) {
+  async updatePersonnel(personnelId, updates, skipSync = false) {
     try {
       const personIndex = this.data.personnel.findIndex(p => p.id === personnelId);
       if (personIndex === -1) {
@@ -176,12 +181,17 @@ class StorageManager {
       this.data.personnel[personIndex] = updatedPerson;
       await this.saveToStorage();
       
+      // Sync to Firebase if not from sync
+      if (!skipSync && window.FirebaseSync) {
+        await window.FirebaseSync.syncPersonnel(updatedPerson);
+      }
+      
       // Log activity
       await this.logActivity('personnel_updated', {
         personnelId: person.id,
         name: person.name,
         changes: updates
-      });
+      }, skipSync);
       
       console.log('[Storage] Personnel updated:', person.name);
       return updatedPerson;
@@ -413,7 +423,7 @@ class StorageManager {
   }
 
   // Activity Logging
-  async logActivity(action, data = {}) {
+  async logActivity(action, data = {}, skipSync = false) {
     try {
       const activity = {
         id: this.generateId(),
@@ -432,6 +442,12 @@ class StorageManager {
       }
       
       await this.saveToStorage();
+      
+      // Sync to Firebase if not from sync
+      if (!skipSync && window.FirebaseSync) {
+        await window.FirebaseSync.syncActivity(activity);
+      }
+      
       console.log('[Storage] Activity logged:', action);
       
     } catch (error) {
@@ -623,6 +639,97 @@ class StorageManager {
       checkedInAt: person.checkedInAt,
       emergencyContact: person.emergencyContact || 'Not provided'
     }));
+  }
+
+  // Firebase Sync Methods - Handle incoming data from Firebase
+  async updatePersonnelFromSync(personnelId, personnelData) {
+    try {
+      const existingIndex = this.data.personnel.findIndex(p => p.id === personnelId);
+      
+      if (existingIndex >= 0) {
+        // Update existing personnel
+        this.data.personnel[existingIndex] = {
+          ...this.data.personnel[existingIndex],
+          ...personnelData,
+          syncedAt: new Date().toISOString()
+        };
+      } else {
+        // Add new personnel from sync
+        this.data.personnel.push({
+          ...personnelData,
+          syncedAt: new Date().toISOString()
+        });
+      }
+      
+      await this.saveToStorage();
+      console.log('[Storage] Personnel synced from Firebase:', personnelData.name);
+      
+    } catch (error) {
+      console.error('[Storage] Error syncing personnel from Firebase:', error);
+    }
+  }
+
+  async addActivityFromSync(activityData) {
+    try {
+      // Check if activity already exists to prevent duplicates
+      const existingActivity = this.data.activities.find(a => a.id === activityData.id);
+      if (existingActivity) {
+        return;
+      }
+
+      this.data.activities.push({
+        ...activityData,
+        syncedAt: new Date().toISOString()
+      });
+
+      // Keep only recent activities
+      const maxActivities = 10000;
+      if (this.data.activities.length > maxActivities) {
+        this.data.activities = this.data.activities.slice(-maxActivities);
+      }
+
+      await this.saveToStorage();
+      console.log('[Storage] Activity synced from Firebase:', activityData.action);
+      
+    } catch (error) {
+      console.error('[Storage] Error syncing activity from Firebase:', error);
+    }
+  }
+
+  async updateShiftFromSync(shiftId, shiftData) {
+    try {
+      // Handle shift updates from Firebase
+      // This would integrate with the shift management system
+      console.log('[Storage] Shift synced from Firebase:', shiftId);
+      
+    } catch (error) {
+      console.error('[Storage] Error syncing shift from Firebase:', error);
+    }
+  }
+
+  async removePersonnel(personnelId, skipSync = false) {
+    try {
+      const personIndex = this.data.personnel.findIndex(p => p.id === personnelId);
+      if (personIndex === -1) {
+        throw new Error('Personnel not found');
+      }
+
+      const person = this.data.personnel[personIndex];
+      this.data.personnel.splice(personIndex, 1);
+      await this.saveToStorage();
+
+      // Log activity
+      await this.logActivity('personnel_deleted', {
+        personnelId: person.id,
+        name: person.name
+      }, skipSync);
+
+      console.log('[Storage] Personnel removed:', person.name);
+      
+    } catch (error) {
+      console.error('[Storage] Error removing personnel:', error);
+      throw new Error('Failed to remove personnel');
+    }
   }
 }
 
