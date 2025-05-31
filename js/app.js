@@ -1498,7 +1498,14 @@ class SecurityApp {
       <span>${message}</span>
     `;
     
-    document.getElementById('toast-container').appendChild(toast);
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      toastContainer.className = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
+    toastContainer.appendChild(toast);
     
     setTimeout(() => {
       toast.remove();

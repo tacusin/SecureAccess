@@ -2714,3 +2714,62 @@ body {
   color: hsl(var(--primary));
   font-weight: 500;
 }
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--outline));
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 300px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.toast.success {
+  background: hsl(var(--success) / 0.1);
+  border-color: hsl(var(--success));
+  color: hsl(var(--success));
+}
+
+.toast.error {
+  background: hsl(var(--error) / 0.1);
+  border-color: hsl(var(--error));
+  color: hsl(var(--error));
+}
+
+.toast.warning {
+  background: hsl(var(--warning) / 0.1);
+  border-color: hsl(var(--warning));
+  color: hsl(var(--warning));
+}
+
+.toast.info {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
