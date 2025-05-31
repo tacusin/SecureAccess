@@ -246,7 +246,7 @@ class SyncPasswordManager {
               [userId]: {
                 name: userIdentity.name,
                 role: userIdentity.role,
-                deviceId: window.FirebaseSync.deviceId,
+                deviceId: window.FirebaseSync.deviceId || this.generateDeviceId(),
                 joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
                 lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
                 isOnline: true
@@ -269,7 +269,7 @@ class SyncPasswordManager {
           await memberRef.set({
             name: userIdentity.name,
             role: userIdentity.role,
-            deviceId: window.FirebaseSync.deviceId,
+            deviceId: window.FirebaseSync.deviceId || this.generateDeviceId(),
             joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
             lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
             isOnline: true
@@ -501,6 +501,16 @@ class SyncPasswordManager {
       
       settingsArea.insertBefore(groupBtn, settingsArea.firstChild);
     }
+  }
+
+  generateDeviceId() {
+    // Generate a unique device ID if one doesn't exist
+    let deviceId = localStorage.getItem('deviceId');
+    if (!deviceId) {
+      deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+      localStorage.setItem('deviceId', deviceId);
+    }
+    return deviceId;
   }
 
   getCurrentGroup() {
