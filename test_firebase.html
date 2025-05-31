@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Test</title>
+</head>
+<body>
+    <h1>Firebase Test</h1>
+    <div id="status">Testing Firebase connection...</div>
+    
+    <script>
+        // Set up Firebase environment variables
+        window.FIREBASE_API_KEY = 'AIzaSyAHbOm7CjrqJhvYqlOdJTgDu3Y7Oc4I_YE';
+        window.FIREBASE_AUTH_DOMAIN = 'security-access-manager.firebaseapp.com';
+        window.FIREBASE_PROJECT_ID = 'security-access-manager';
+        window.FIREBASE_STORAGE_BUCKET = 'security-access-manager.firebasestorage.app';
+        window.FIREBASE_MESSAGING_SENDER_ID = '945728473329';
+        window.FIREBASE_APP_ID = '1:945728473329:web:7d4a45a0e3b2f8c9e8f1a2';
+    </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    
+    <script>
+        try {
+            const firebaseConfig = {
+                apiKey: window.FIREBASE_API_KEY,
+                authDomain: window.FIREBASE_AUTH_DOMAIN,
+                projectId: window.FIREBASE_PROJECT_ID,
+                storageBucket: window.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: window.FIREBASE_MESSAGING_SENDER_ID,
+                appId: window.FIREBASE_APP_ID,
+                databaseURL: `https://${window.FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            
+            // Test connection
+            database.ref('.info/connected').on('value', (snapshot) => {
+                const connected = snapshot.val();
+                document.getElementById('status').innerHTML = connected ? 
+                    '✅ Firebase connected successfully!' : 
+                    '❌ Firebase disconnected';
+            });
+            
+            // Test write
+            database.ref('test').set({
+                message: 'Firebase test successful',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                console.log('Test write successful');
+            }).catch((error) => {
+                console.error('Test write failed:', error);
+                document.getElementById('status').innerHTML = '❌ Firebase write failed: ' + error.message;
+            });
+            
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            document.getElementById('status').innerHTML = '❌ Firebase initialization failed: ' + error.message;
+        }
+    </script>
+</body>
+</html>

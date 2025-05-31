@@ -21,7 +21,6 @@ class FirebaseSync {
     this.handleActivityUpdate = this.handleActivityUpdate.bind(this);
     this.handleShiftUpdate = this.handleShiftUpdate.bind(this);
     this.handleEmergencyUpdate = this.handleEmergencyUpdate.bind(this);
-    this.handleConnectionChange = this.handleConnectionChange.bind(this);
     
     console.log('[FirebaseSync] Firebase Sync Manager initialized');
   }
@@ -29,6 +28,7 @@ class FirebaseSync {
   async init() {
     try {
       console.log('[FirebaseSync] Initializing Firebase...');
+      this.updateSyncStatus('connecting', 'Connecting to Firebase...');
       
       // Load Firebase SDK
       await this.loadFirebaseSDK();
@@ -44,13 +44,18 @@ class FirebaseSync {
         databaseURL: `https://${this.getEnvVar('FIREBASE_PROJECT_ID')}-default-rtdb.firebaseio.com/`
       };
 
+      console.log('[FirebaseSync] Firebase config:', { 
+        projectId: firebaseConfig.projectId,
+        databaseURL: firebaseConfig.databaseURL 
+      });
+
       // Initialize Firebase
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
       }
       
-      this.database = firebase.database();
-      this.auth = firebase.auth();
+      this.database = window.firebase.database();
+      this.auth = window.firebase.auth();
       
       // Sign in anonymously for device authentication
       await this.authenticateDevice();
@@ -70,13 +75,10 @@ class FirebaseSync {
       this.isInitialized = true;
       console.log('[FirebaseSync] Firebase initialized successfully');
       
-      // Update UI
-      this.updateSyncStatus('connected', 'Firebase sync active');
-      
       return true;
     } catch (error) {
       console.error('[FirebaseSync] Failed to initialize Firebase:', error);
-      this.updateSyncStatus('error', `Firebase init failed: ${error.message}`);
+      this.updateSyncStatus('disconnected', `Firebase connection failed: ${error.message}`);
       return false;
     }
   }
@@ -84,27 +86,44 @@ class FirebaseSync {
   async loadFirebaseSDK() {
     return new Promise((resolve, reject) => {
       if (window.firebase) {
+        console.log('[FirebaseSync] Firebase SDK already loaded');
         resolve();
         return;
       }
 
+      console.log('[FirebaseSync] Loading Firebase SDK...');
+      
       // Load Firebase SDK
       const script = document.createElement('script');
       script.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
       script.onload = () => {
+        console.log('[FirebaseSync] Firebase app loaded');
         const dbScript = document.createElement('script');
         dbScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js';
         dbScript.onload = () => {
+          console.log('[FirebaseSync] Firebase database loaded');
           const authScript = document.createElement('script');
           authScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js';
-          authScript.onload = resolve;
-          authScript.onerror = reject;
+          authScript.onload = () => {
+            console.log('[FirebaseSync] Firebase auth loaded');
+            resolve();
+          };
+          authScript.onerror = (error) => {
+            console.error('[FirebaseSync] Failed to load Firebase auth:', error);
+            reject(error);
+          };
           document.head.appendChild(authScript);
         };
-        dbScript.onerror = reject;
+        dbScript.onerror = (error) => {
+          console.error('[FirebaseSync] Failed to load Firebase database:', error);
+          reject(error);
+        };
         document.head.appendChild(dbScript);
       };
-      script.onerror = reject;
+      script.onerror = (error) => {
+        console.error('[FirebaseSync] Failed to load Firebase app:', error);
+        reject(error);
+      };
       document.head.appendChild(script);
     });
   }
@@ -438,6 +457,27 @@ class FirebaseSync {
     if (syncIndicator) {
       syncIndicator.className = `sync-indicator ${status}`;
       syncIndicator.title = message;
+      
+      // Update icon based on status
+      const icon = syncIndicator.querySelector('.material-icons');
+      if (icon) {
+        switch (status) {
+          case 'connected':
+            icon.textContent = 'cloud_done';
+            break;
+          case 'connecting':
+            icon.textContent = 'cloud_sync';
+            break;
+          case 'disconnected':
+            icon.textContent = 'cloud_off';
+            break;
+          case 'offline':
+            icon.textContent = 'cloud_off';
+            break;
+          default:
+            icon.textContent = 'cloud_off';
+        }
+      }
     }
 
     // Show sync activity
