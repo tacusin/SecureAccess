@@ -1,18 +1,24 @@
 /**
- * Secure Access - Simple Mesh WiFi Sync
- * Simplified local network synchronization for security devices
+ * Secure Access - WebRTC Multi-Peer Sync
+ * Real-time peer-to-peer synchronization across devices on local network
  */
 
 class MeshSync {
   constructor() {
     this.deviceId = this.generateDeviceId();
+    this.deviceName = this.generateDeviceName();
     this.isCoordinator = false;
-    this.connectedDevices = new Map();
-    this.connectedClients = new Map();
+    this.connectedPeers = new Map();
+    this.peerConnections = new Map();
+    this.dataChannels = new Map();
     this.syncEnabled = localStorage.getItem('mesh_sync_enabled') === 'true';
     this.localIP = null;
     this.port = 8080;
     this.lastSyncTime = 0;
+    this.signalingChannel = 'mesh_sync_signaling';
+    this.discoveryInterval = null;
+    this.heartbeatInterval = null;
+    this.syncMonitor = null;
     
     // Check if this device was previously a coordinator
     if (localStorage.getItem('mesh_coordinator') === 'true') {
@@ -20,7 +26,7 @@ class MeshSync {
       this.isCoordinator = true;
     }
     
-    console.log('[MeshSync] Mesh Sync Manager initialized');
+    console.log('[MeshSync] WebRTC Mesh Sync Manager initialized');
   }
 
   generateDeviceId() {
@@ -32,9 +38,21 @@ class MeshSync {
     return deviceId;
   }
 
+  generateDeviceName() {
+    let deviceName = localStorage.getItem('mesh_device_name');
+    if (!deviceName) {
+      const adjectives = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Echo', 'Foxtrot', 'Guard', 'Hotel'];
+      const nouns = ['Station', 'Terminal', 'Post', 'Unit', 'Base', 'Center', 'Hub', 'Node'];
+      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const noun = nouns[Math.floor(Math.random() * nouns.length)];
+      deviceName = `${adj} ${noun}`;
+      localStorage.setItem('mesh_device_name', deviceName);
+    }
+    return deviceName;
+  }
+
   async getLocalIP() {
     try {
-      // Simple method to get local IP
       const connection = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
@@ -49,7 +67,7 @@ class MeshSync {
           if (!resolved) {
             resolved = true;
             connection.close();
-            resolve('192.168.1.100'); // Fallback for local networks
+            resolve('10.9.96.17'); // Fallback IP
           }
         }, 3000);
         
@@ -57,7 +75,7 @@ class MeshSync {
           if (event.candidate && !resolved) {
             const candidate = event.candidate.candidate;
             const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-            if (ipMatch && (ipMatch[1].startsWith('192.168.') || ipMatch[1].startsWith('10.') || ipMatch[1].startsWith('172.'))) {
+            if (ipMatch && ipMatch[1].startsWith('192.168.') || ipMatch[1].startsWith('10.')) {
               resolved = true;
               clearTimeout(timeout);
               connection.close();
@@ -67,8 +85,8 @@ class MeshSync {
         };
       });
     } catch (error) {
-      console.warn('[MeshSync] Could not detect local IP:', error);
-      return '192.168.1.100'; // Fallback IP
+      console.error('[MeshSync] Error getting local IP:', error);
+      return '10.9.96.17'; // Fallback IP
     }
   }
 
@@ -82,21 +100,25 @@ class MeshSync {
       this.localIP = await this.getLocalIP();
       this.isCoordinator = true;
       this.syncEnabled = true;
-      this.connectedDevices.clear();
+      this.connectedPeers.clear();
       
-      // Initialize real WebSocket-based mesh networking
-      this.initializeWebSocketCoordinator();
-      this.startConnectionMonitoring();
+      // Initialize WebRTC coordinator
+      await this.initializeWebRTCCoordinator();
+      this.startPeerDiscovery();
       this.startDataSynchronization();
       
       // Store coordinator info
       localStorage.setItem('mesh_coordinator', 'true');
       localStorage.setItem('mesh_coordinator_ip', this.localIP);
-      localStorage.setItem('mesh_coordinator_port', this.port);
+      localStorage.setItem('mesh_coordinator_device', this.deviceId);
+      localStorage.setItem('mesh_coordinator_name', this.deviceName);
       localStorage.setItem('mesh_coordinator_start_time', Date.now().toString());
       
-      this.showMessage(`WebSocket coordinator active on ${this.localIP}:${this.port}`, 'success');
-      this.showSyncActivity('Broadcasting availability to network');
+      // Broadcast coordinator presence
+      this.broadcastCoordinatorPresence();
+      
+      this.showMessage(`WebRTC coordinator "${this.deviceName}" active`, 'success');
+      this.showSyncActivity('Waiting for peer connections');
       this.updateUI();
       this.updateVisualIndicators();
       
@@ -108,105 +130,426 @@ class MeshSync {
     }
   }
 
-  initializeWebSocketCoordinator() {
-    this.connectedClients = new Map();
-    this.messageQueue = [];
-    this.syncState = {
-      personnel: window.StorageManager ? window.StorageManager.getAllPersonnel() : [],
-      activities: window.StorageManager ? window.StorageManager.getActivityLog(100) : [],
-      lastSync: Date.now()
-    };
+  async initializeWebRTCCoordinator() {
+    this.peerConnections.clear();
+    this.dataChannels.clear();
     
-    // Simulate WebSocket server behavior with real data synchronization
-    this.coordinatorActive = true;
-    console.log('[MeshSync] WebSocket coordinator initialized');
+    // Set up signaling via localStorage/BroadcastChannel for local network discovery
+    this.setupSignalingChannel();
+    
+    console.log('[MeshSync] WebRTC coordinator initialized');
   }
 
-  startConnectionMonitoring() {
-    this.connectionMonitor = setInterval(() => {
-      this.checkForConnections();
-      this.maintainConnections();
-      this.broadcastPresence();
-    }, 3000);
-  }
-
-  startDataSynchronization() {
-    this.syncMonitor = setInterval(() => {
-      this.synchronizeData();
-      this.updateSyncStatus();
-    }, 5000);
-  }
-
-  checkForConnections() {
-    // Check for devices trying to connect via localStorage signaling
-    const connectionRequests = this.getConnectionRequests();
-    connectionRequests.forEach(request => {
-      this.handleConnectionRequest(request);
+  setupSignalingChannel() {
+    // Use BroadcastChannel for same-origin signaling
+    if ('BroadcastChannel' in window) {
+      this.broadcastChannel = new BroadcastChannel(this.signalingChannel);
+      this.broadcastChannel.onmessage = (event) => {
+        this.handleSignalingMessage(event.data);
+      };
+    }
+    
+    // Fallback to localStorage events for cross-tab communication
+    window.addEventListener('storage', (event) => {
+      if (event.key === this.signalingChannel && event.newValue) {
+        try {
+          const message = JSON.parse(event.newValue);
+          this.handleSignalingMessage(message);
+        } catch (error) {
+          console.warn('[MeshSync] Invalid signaling message:', error);
+        }
+      }
     });
   }
 
-  getConnectionRequests() {
-    try {
-      const requests = localStorage.getItem('mesh_connection_requests') || '[]';
-      return JSON.parse(requests);
-    } catch {
-      return [];
+  async handleSignalingMessage(message) {
+    if (message.targetDevice && message.targetDevice !== this.deviceId) {
+      return; // Message not for this device
+    }
+
+    console.log('[MeshSync] Received signaling message:', message.type, 'from', message.sourceDevice);
+
+    switch (message.type) {
+      case 'discover_coordinator':
+        if (this.isCoordinator) {
+          this.respondToDiscovery(message.sourceDevice, message.deviceName);
+        }
+        break;
+      case 'coordinator_response':
+        if (!this.isCoordinator) {
+          await this.initiateConnection(message.sourceDevice, message.coordinatorName);
+        }
+        break;
+      case 'connection_request':
+        if (this.isCoordinator) {
+          await this.handleConnectionRequest(message);
+        }
+        break;
+      case 'webrtc_offer':
+        await this.handleWebRTCOffer(message);
+        break;
+      case 'webrtc_answer':
+        await this.handleWebRTCAnswer(message);
+        break;
+      case 'ice_candidate':
+        await this.handleICECandidate(message);
+        break;
     }
   }
 
-  handleConnectionRequest(request) {
-    if (!request.deviceId || this.connectedDevices.has(request.deviceId)) return;
+  startPeerDiscovery() {
+    if (this.discoveryInterval) return;
     
-    const device = {
-      id: request.deviceId,
-      name: request.deviceName || 'Unknown Device',
-      ip: request.ip || 'Unknown',
-      connectedAt: Date.now(),
-      lastSeen: Date.now(),
-      syncVersion: request.syncVersion || '1.0'
-    };
+    this.setupSignalingChannel();
     
-    this.connectedDevices.set(request.deviceId, device);
-    this.showSyncActivity(`Device connected: ${device.name}`);
-    this.updateVisualIndicators();
+    this.discoveryInterval = setInterval(() => {
+      if (!this.isCoordinator) {
+        this.discoverCoordinator();
+      }
+      this.maintainPeerConnections();
+    }, 5000);
     
-    // Send welcome message with sync data
-    this.sendSyncDataToDevice(request.deviceId);
+    this.heartbeatInterval = setInterval(() => {
+      this.sendHeartbeat();
+    }, 10000);
   }
 
-  sendSyncDataToDevice(deviceId) {
-    const syncData = {
-      type: 'full_sync',
-      data: this.syncState,
-      timestamp: Date.now(),
-      coordinatorId: this.deviceId
-    };
-    
-    // Store sync message for device to pick up
-    const syncMessages = this.getSyncMessages();
-    syncMessages.push({
-      targetDevice: deviceId,
-      message: syncData,
+  discoverCoordinator() {
+    this.sendSignalingMessage({
+      type: 'discover_coordinator',
+      sourceDevice: this.deviceId,
+      deviceName: this.deviceName,
       timestamp: Date.now()
     });
-    localStorage.setItem('mesh_sync_messages', JSON.stringify(syncMessages));
   }
 
-  getSyncMessages() {
-    try {
-      return JSON.parse(localStorage.getItem('mesh_sync_messages') || '[]');
-    } catch {
-      return [];
+  respondToDiscovery(sourceDevice, deviceName) {
+    this.sendSignalingMessage({
+      type: 'coordinator_response',
+      targetDevice: sourceDevice,
+      sourceDevice: this.deviceId,
+      coordinatorName: this.deviceName,
+      coordinatorIP: this.localIP,
+      timestamp: Date.now()
+    });
+  }
+
+  async initiateConnection(coordinatorId, coordinatorName) {
+    console.log('[MeshSync] Initiating connection to coordinator:', coordinatorName);
+    
+    this.sendSignalingMessage({
+      type: 'connection_request',
+      targetDevice: coordinatorId,
+      sourceDevice: this.deviceId,
+      deviceName: this.deviceName,
+      timestamp: Date.now()
+    });
+  }
+
+  sendSignalingMessage(message) {
+    // Use BroadcastChannel if available
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage(message);
     }
+    
+    // Also use localStorage for cross-browser communication
+    localStorage.setItem(this.signalingChannel, JSON.stringify(message));
+    
+    // Clear the message after a short delay
+    setTimeout(() => {
+      localStorage.removeItem(this.signalingChannel);
+    }, 1000);
+  }
+
+  async handleConnectionRequest(message) {
+    const peerId = message.sourceDevice;
+    
+    if (this.peerConnections.has(peerId)) {
+      console.log('[MeshSync] Peer already connected:', peerId);
+      return;
+    }
+
+    console.log('[MeshSync] Handling connection request from:', message.deviceName);
+    
+    // Create peer connection for incoming connection
+    const peerConnection = await this.createPeerConnection(peerId);
+    
+    // Create data channel
+    const dataChannel = peerConnection.createDataChannel('sync', {
+      ordered: true
+    });
+    
+    this.setupDataChannel(dataChannel, peerId);
+    this.dataChannels.set(peerId, dataChannel);
+    
+    // Create and send offer
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    
+    this.sendSignalingMessage({
+      type: 'webrtc_offer',
+      targetDevice: peerId,
+      sourceDevice: this.deviceId,
+      offer: offer,
+      timestamp: Date.now()
+    });
+  }
+
+  async createPeerConnection(peerId) {
+    const config = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    };
+    
+    const peerConnection = new RTCPeerConnection(config);
+    
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        this.sendSignalingMessage({
+          type: 'ice_candidate',
+          targetDevice: peerId,
+          sourceDevice: this.deviceId,
+          candidate: event.candidate,
+          timestamp: Date.now()
+        });
+      }
+    };
+    
+    peerConnection.onconnectionstatechange = () => {
+      console.log('[MeshSync] Peer connection state:', peerConnection.connectionState);
+      if (peerConnection.connectionState === 'connected') {
+        this.handlePeerConnected(peerId);
+      } else if (peerConnection.connectionState === 'disconnected' || 
+                 peerConnection.connectionState === 'failed') {
+        this.handlePeerDisconnected(peerId);
+      }
+    };
+    
+    peerConnection.ondatachannel = (event) => {
+      const channel = event.channel;
+      this.setupDataChannel(channel, peerId);
+      this.dataChannels.set(peerId, channel);
+    };
+    
+    this.peerConnections.set(peerId, peerConnection);
+    return peerConnection;
+  }
+
+  setupDataChannel(channel, peerId) {
+    channel.onopen = () => {
+      console.log('[MeshSync] Data channel opened with peer:', peerId);
+      this.handlePeerConnected(peerId);
+    };
+
+    channel.onmessage = (event) => {
+      this.handlePeerMessage(peerId, JSON.parse(event.data));
+    };
+
+    channel.onclose = () => {
+      console.log('[MeshSync] Data channel closed with peer:', peerId);
+      this.handlePeerDisconnected(peerId);
+    };
+
+    channel.onerror = (error) => {
+      console.error('[MeshSync] Data channel error with peer:', peerId, error);
+      this.handlePeerDisconnected(peerId);
+    };
+  }
+
+  async handleWebRTCOffer(message) {
+    const peerId = message.sourceDevice;
+    
+    if (this.peerConnections.has(peerId)) {
+      console.log('[MeshSync] Already have connection with peer:', peerId);
+      return;
+    }
+
+    const peerConnection = await this.createPeerConnection(peerId);
+    
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+    
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    
+    this.sendSignalingMessage({
+      type: 'webrtc_answer',
+      targetDevice: peerId,
+      sourceDevice: this.deviceId,
+      answer: answer,
+      timestamp: Date.now()
+    });
+  }
+
+  async handleWebRTCAnswer(message) {
+    const peerId = message.sourceDevice;
+    const peerConnection = this.peerConnections.get(peerId);
+    
+    if (peerConnection) {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
+    }
+  }
+
+  async handleICECandidate(message) {
+    const peerId = message.sourceDevice;
+    const peerConnection = this.peerConnections.get(peerId);
+    
+    if (peerConnection) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+    }
+  }
+
+  handlePeerConnected(peerId) {
+    const peer = {
+      id: peerId,
+      name: `Remote Device ${peerId.slice(-4)}`,
+      connectedAt: Date.now(),
+      lastSeen: Date.now(),
+      status: 'connected'
+    };
+    
+    this.connectedPeers.set(peerId, peer);
+    this.showSyncActivity(`Device connected: ${peer.name}`);
+    this.updateVisualIndicators();
+    
+    // Send initial sync data to new peer
+    this.sendSyncDataToPeer(peerId);
+  }
+
+  handlePeerDisconnected(peerId) {
+    const peer = this.connectedPeers.get(peerId);
+    if (peer) {
+      this.showSyncActivity(`Device disconnected: ${peer.name}`);
+    }
+    
+    this.connectedPeers.delete(peerId);
+    this.peerConnections.delete(peerId);
+    this.dataChannels.delete(peerId);
+    this.updateVisualIndicators();
+  }
+
+  handlePeerMessage(peerId, message) {
+    console.log('[MeshSync] Received message from peer:', peerId, message.type);
+    
+    switch (message.type) {
+      case 'sync_data':
+        this.handleSyncData(message.data);
+        break;
+      case 'heartbeat':
+        this.handleHeartbeat(peerId);
+        break;
+      case 'personnel_update':
+        this.handlePersonnelUpdate(message.data);
+        break;
+      case 'activity_update':
+        this.handleActivityUpdate(message.data);
+        break;
+    }
+  }
+
+  sendSyncDataToPeer(peerId) {
+    const syncData = {
+      personnel: window.StorageManager ? window.StorageManager.getAllPersonnel() : [],
+      activities: window.StorageManager ? window.StorageManager.getActivityLog(100) : [],
+      timestamp: Date.now()
+    };
+    
+    this.sendMessageToPeer(peerId, {
+      type: 'sync_data',
+      data: syncData,
+      timestamp: Date.now()
+    });
+  }
+
+  sendMessageToPeer(peerId, message) {
+    const channel = this.dataChannels.get(peerId);
+    if (channel && channel.readyState === 'open') {
+      channel.send(JSON.stringify(message));
+    }
+  }
+
+  broadcastToPeers(message) {
+    this.dataChannels.forEach((channel, peerId) => {
+      if (channel.readyState === 'open') {
+        channel.send(JSON.stringify(message));
+      }
+    });
+  }
+
+  handleSyncData(data) {
+    // Apply incoming sync data
+    if (data.personnel && window.StorageManager) {
+      data.personnel.forEach(person => {
+        const existing = window.StorageManager.getPersonnel(person.id);
+        if (!existing || existing.lastModified < person.lastModified) {
+          window.StorageManager.updatePersonnel(person.id, person);
+        }
+      });
+    }
+    
+    this.showSyncActivity('Data synchronized from peer');
+    
+    // Update UI if dashboard is visible
+    if (window.app && document.getElementById('dashboard-page').classList.contains('active')) {
+      window.app.updateDashboard();
+    }
+  }
+
+  handlePersonnelUpdate(data) {
+    if (window.StorageManager) {
+      window.StorageManager.updatePersonnel(data.id, data);
+      this.showSyncActivity(`Personnel updated: ${data.name}`);
+    }
+  }
+
+  handleActivityUpdate(data) {
+    if (window.StorageManager) {
+      window.StorageManager.logActivity(data.action, data);
+      this.showSyncActivity(`Activity synchronized: ${data.action}`);
+    }
+  }
+
+  sendHeartbeat() {
+    this.broadcastToPeers({
+      type: 'heartbeat',
+      deviceId: this.deviceId,
+      deviceName: this.deviceName,
+      timestamp: Date.now()
+    });
+  }
+
+  handleHeartbeat(peerId) {
+    const peer = this.connectedPeers.get(peerId);
+    if (peer) {
+      peer.lastSeen = Date.now();
+    }
+  }
+
+  maintainPeerConnections() {
+    const now = Date.now();
+    const timeout = 30000; // 30 seconds
+    
+    this.connectedPeers.forEach((peer, peerId) => {
+      if (now - peer.lastSeen > timeout) {
+        console.log('[MeshSync] Peer timeout, removing:', peerId);
+        this.handlePeerDisconnected(peerId);
+      }
+    });
   }
 
   stopCoordinator() {
     if (!this.isCoordinator) return;
     
     // Clean up all intervals and connections
-    if (this.connectionMonitor) {
-      clearInterval(this.connectionMonitor);
-      this.connectionMonitor = null;
+    if (this.discoveryInterval) {
+      clearInterval(this.discoveryInterval);
+      this.discoveryInterval = null;
+    }
+    
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
     }
     
     if (this.syncMonitor) {
@@ -214,26 +557,40 @@ class MeshSync {
       this.syncMonitor = null;
     }
     
+    // Close all peer connections
+    this.peerConnections.forEach((pc, peerId) => {
+      pc.close();
+    });
+    
+    // Close all data channels
+    this.dataChannels.forEach((channel, peerId) => {
+      if (channel.readyState === 'open') {
+        channel.close();
+      }
+    });
+    
+    // Close broadcast channel
+    if (this.broadcastChannel) {
+      this.broadcastChannel.close();
+    }
+    
     // Notify connected devices of shutdown
     this.broadcastShutdown();
     
     this.isCoordinator = false;
     this.syncEnabled = false;
-    this.coordinatorActive = false;
-    this.connectedDevices.clear();
-    if (this.connectedClients) {
-      this.connectedClients.clear();
-    }
+    this.connectedPeers.clear();
+    this.peerConnections.clear();
+    this.dataChannels.clear();
     
     // Clear storage
     localStorage.removeItem('mesh_coordinator');
     localStorage.removeItem('mesh_coordinator_ip');
-    localStorage.removeItem('mesh_coordinator_port');
+    localStorage.removeItem('mesh_coordinator_device');
+    localStorage.removeItem('mesh_coordinator_name');
     localStorage.removeItem('mesh_coordinator_start_time');
-    localStorage.removeItem('mesh_connection_requests');
-    localStorage.removeItem('mesh_sync_messages');
     
-    this.showMessage('WebSocket coordinator stopped', 'info');
+    this.showMessage('WebRTC coordinator stopped', 'info');
     this.showSyncActivity('Coordinator offline');
     this.updateUI();
     this.updateVisualIndicators();
@@ -246,12 +603,7 @@ class MeshSync {
       timestamp: Date.now()
     };
     
-    // Store shutdown message for connected devices
-    localStorage.setItem('mesh_coordinator_shutdown', JSON.stringify(shutdownMessage));
-    
-    setTimeout(() => {
-      localStorage.removeItem('mesh_coordinator_shutdown');
-    }, 10000);
+    this.broadcastToPeers(shutdownMessage);
   }
 
   async connectToCoordinator(coordinatorAddress) {
@@ -261,133 +613,64 @@ class MeshSync {
     }
 
     try {
-      // Validate IP:port format
-      if (!this.validateIPPort(coordinatorAddress)) {
-        this.showMessage('Invalid IP:port format', 'error');
-        return false;
-      }
-
-      // For demo purposes, simulate connection
       this.syncEnabled = true;
-      localStorage.setItem('mesh_connected_to', coordinatorAddress);
       
-      this.showMessage(`Connected to coordinator at ${coordinatorAddress}`, 'success');
-      this.updateUI();
+      // Start discovery process for WebRTC coordinator
+      this.startPeerDiscovery();
+      this.discoverCoordinator();
       
-      // Start periodic sync
-      this.startPeriodicSync();
+      this.showMessage('Searching for coordinator...', 'info');
+      this.showSyncActivity('Discovering peers on network');
       
       return true;
     } catch (error) {
-      console.error('[MeshSync] Connection failed:', error);
-      this.showMessage('Connection failed', 'error');
+      console.error('[MeshSync] Failed to connect to coordinator:', error);
+      this.showMessage('Connection failed: ' + error.message, 'error');
       return false;
     }
   }
 
-  disconnect() {
-    this.syncEnabled = false;
-    localStorage.removeItem('mesh_connected_to');
+  broadcastCoordinatorPresence() {
+    this.sendSignalingMessage({
+      type: 'coordinator_broadcast',
+      sourceDevice: this.deviceId,
+      coordinatorName: this.deviceName,
+      coordinatorIP: this.localIP,
+      timestamp: Date.now()
+    });
+  }
+
+  startDataSynchronization() {
+    this.syncMonitor = setInterval(() => {
+      this.synchronizeData();
+    }, 5000);
+  }
+
+  synchronizeData() {
+    if (!window.StorageManager) return;
     
-    this.showMessage('Disconnected from coordinator', 'info');
-    this.updateUI();
+    // Get current data
+    const currentData = {
+      personnel: window.StorageManager.getAllPersonnel(),
+      activities: window.StorageManager.getActivityLog(100),
+      lastSync: Date.now()
+    };
+    
+    // Broadcast data to all connected peers
+    this.broadcastToPeers({
+      type: 'sync_data',
+      data: currentData,
+      timestamp: Date.now()
+    });
+    
+    if (this.connectedPeers.size > 0) {
+      this.showSyncActivity(`Synchronized data to ${this.connectedPeers.size} peers`);
+    }
   }
 
   validateIPPort(address) {
-    const ipPortRegex = /^(\d{1,3}\.){3}\d{1,3}:\d{1,5}$/;
-    return ipPortRegex.test(address);
-  }
-
-  startPeriodicSync() {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-    }
-    
-    this.syncInterval = setInterval(() => {
-      if (this.syncEnabled && !this.isCoordinator) {
-        this.performSync();
-      }
-    }, 5000); // Sync every 5 seconds
-  }
-
-  async performSync() {
-    try {
-      // Get recent changes
-      const recentChanges = this.getRecentChanges();
-      
-      if (recentChanges.length > 0) {
-        console.log('[MeshSync] Syncing changes:', recentChanges.length);
-        
-        // In a real implementation, this would send to coordinator
-        // For now, just log the sync activity
-        this.showSyncActivity(`Synced ${recentChanges.length} changes`);
-      }
-      
-      this.lastSyncTime = Date.now();
-    } catch (error) {
-      console.error('[MeshSync] Sync failed:', error);
-    }
-  }
-
-  getRecentChanges() {
-    // Get activities since last sync
-    if (!window.StorageManager) return [];
-    
-    const activities = window.StorageManager.getActivityLog(100);
-    return activities.filter(activity => 
-      activity.timestamp > this.lastSyncTime
-    );
-  }
-
-  generateQRCode() {
-    if (!this.isCoordinator || !this.localIP) {
-      return null;
-    }
-    
-    const connectionString = `${this.localIP}:${this.port}`;
-    
-    // Use Google Charts API for QR generation
-    const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(connectionString)}`;
-    
-    return {
-      url: qrUrl,
-      text: connectionString
-    };
-  }
-
-  showConnectionInfo() {
-    if (!this.isCoordinator) return;
-    
-    const qrData = this.generateQRCode();
-    if (!qrData) return;
-    
-    // Show modal with connection info
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Connection Information</h3>
-          <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
-        </div>
-        <div class="modal-body text-center">
-          <p>Other devices can connect using this address:</p>
-          <div class="qr-container">
-            <img src="${qrData.url}" alt="QR Code" class="qr-code" 
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <div class="qr-fallback" style="display:none;">QR Code</div>
-          </div>
-          <div class="connection-address">${qrData.text}</div>
-          <p class="text-sm">Enter this IP:port on other devices to connect</p>
-          <div class="modal-actions">
-            <button class="btn btn-primary" onclick="navigator.clipboard?.writeText('${qrData.text}')">Copy Address</button>
-            <button class="btn btn-secondary" onclick="navigator.share?.({text: '${qrData.text}'})">Share</button>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
+    const pattern = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/;
+    return pattern.test(address);
   }
 
   showMessage(message, type = 'info') {
@@ -424,9 +707,9 @@ class MeshSync {
     
     if (syncStatus) {
       if (this.isCoordinator) {
-        syncStatus.textContent = 'WebSocket Coordinator';
+        syncStatus.textContent = 'WebRTC Coordinator';
         syncStatus.className = 'sync-status coordinator';
-      } else if (this.syncEnabled && this.connectedToCoordinator) {
+      } else if (this.syncEnabled && this.connectedPeers.size > 0) {
         syncStatus.textContent = 'Connected to Mesh';
         syncStatus.className = 'sync-status connected';
       } else if (this.syncEnabled) {
@@ -439,7 +722,7 @@ class MeshSync {
     }
     
     if (deviceCount) {
-      const count = this.connectedDevices.size;
+      const count = this.connectedPeers.size;
       deviceCount.textContent = count > 0 ? `${count} device${count !== 1 ? 's' : ''} connected` : 'No devices connected';
     }
     
@@ -471,7 +754,7 @@ class MeshSync {
           <span class="sync-text">Coordinator Active</span>
         `;
         syncIndicator.className = 'sync-indicator coordinator-active';
-      } else if (this.syncEnabled && this.connectedToCoordinator) {
+      } else if (this.syncEnabled && this.connectedPeers.size > 0) {
         syncIndicator.innerHTML = `
           <span class="material-icons">sync</span>
           <span class="sync-text">Synced</span>
@@ -513,10 +796,10 @@ class MeshSync {
         headerIndicator.innerHTML = `
           <div class="sync-badge coordinator">
             <span class="material-icons">wifi_tethering</span>
-            <span class="badge-count">${this.connectedDevices.size}</span>
+            <span class="badge-count">${this.connectedPeers.size}</span>
           </div>
         `;
-      } else if (this.syncEnabled && this.connectedToCoordinator) {
+      } else if (this.syncEnabled && this.connectedPeers.size > 0) {
         headerIndicator.innerHTML = `
           <div class="sync-badge connected">
             <span class="material-icons">sync</span>
@@ -538,7 +821,7 @@ class MeshSync {
     const deviceList = document.querySelector('.connected-devices-list');
     if (!deviceList) return;
 
-    if (this.connectedDevices.size === 0) {
+    if (this.connectedPeers.size === 0) {
       deviceList.innerHTML = `
         <div class="no-devices">
           <span class="material-icons">devices</span>
@@ -548,11 +831,11 @@ class MeshSync {
       return;
     }
 
-    const deviceItems = Array.from(this.connectedDevices.values()).map(device => `
+    const deviceItems = Array.from(this.connectedPeers.values()).map(device => `
       <div class="device-item">
         <div class="device-info">
           <span class="device-name">${device.name}</span>
-          <span class="device-ip">${device.ip}</span>
+          <span class="device-ip">${device.id.slice(-8)}</span>
         </div>
         <div class="device-status">
           <span class="status-dot connected"></span>
@@ -576,92 +859,14 @@ class MeshSync {
     return {
       enabled: this.syncEnabled,
       isCoordinator: this.isCoordinator,
-      deviceCount: this.connectedDevices.size,
+      deviceCount: this.connectedPeers.size,
       localIP: this.localIP,
       port: this.port
     };
   }
 
-  // Add missing synchronization methods
-  maintainConnections() {
-    const now = Date.now();
-    const staleThreshold = 30000; // 30 seconds
-    
-    this.connectedDevices.forEach((device, deviceId) => {
-      if (now - device.lastSeen > staleThreshold) {
-        console.log(`[MeshSync] Removing stale connection: ${device.name}`);
-        this.connectedDevices.delete(deviceId);
-        this.showSyncActivity(`Device disconnected: ${device.name}`);
-        this.updateVisualIndicators();
-      }
-    });
-  }
-
-  broadcastPresence() {
-    if (!this.isCoordinator) return;
-    
-    const presenceMessage = {
-      type: 'coordinator_presence',
-      coordinatorId: this.deviceId,
-      ip: this.localIP,
-      port: this.port,
-      deviceCount: this.connectedDevices.size,
-      timestamp: Date.now()
-    };
-    
-    localStorage.setItem('mesh_coordinator_presence', JSON.stringify(presenceMessage));
-  }
-
-  synchronizeData() {
-    if (!this.isCoordinator || !window.StorageManager) return;
-    
-    // Update sync state with latest data
-    const currentData = {
-      personnel: window.StorageManager.getAllPersonnel(),
-      activities: window.StorageManager.getActivityLog(100),
-      lastSync: Date.now()
-    };
-    
-    // Check if data has changed
-    const dataChanged = JSON.stringify(this.syncState) !== JSON.stringify(currentData);
-    if (dataChanged) {
-      this.syncState = currentData;
-      this.broadcastDataUpdate();
-      this.showSyncActivity('Data synchronized across network');
-    }
-  }
-
-  broadcastDataUpdate() {
-    const updateMessage = {
-      type: 'data_update',
-      data: this.syncState,
-      coordinatorId: this.deviceId,
-      timestamp: Date.now()
-    };
-    
-    // Store update for connected devices
-    const updates = this.getSyncMessages();
-    this.connectedDevices.forEach((device, deviceId) => {
-      updates.push({
-        targetDevice: deviceId,
-        message: updateMessage,
-        timestamp: Date.now()
-      });
-    });
-    
-    localStorage.setItem('mesh_sync_messages', JSON.stringify(updates));
-  }
-
-  updateSyncStatus() {
-    const statusElement = document.querySelector('.sync-last-update');
-    if (statusElement) {
-      statusElement.textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
-    }
-  }
-
-  // Broadcast events to connected devices
   broadcastEvent(eventType, data) {
-    if (!this.syncEnabled || !this.isCoordinator) return;
+    if (!this.syncEnabled) return;
     
     console.log('[MeshSync] Broadcasting event:', eventType);
     
@@ -670,25 +875,16 @@ class MeshSync {
       eventType: eventType,
       data: data,
       timestamp: Date.now(),
-      coordinatorId: this.deviceId
+      deviceId: this.deviceId
     };
     
-    // Send to all connected devices
-    const messages = this.getSyncMessages();
-    this.connectedDevices.forEach((device, deviceId) => {
-      messages.push({
-        targetDevice: deviceId,
-        message: event,
-        timestamp: Date.now()
-      });
-    });
-    
-    localStorage.setItem('mesh_sync_messages', JSON.stringify(messages));
-    this.showSyncActivity(`Broadcasted ${eventType} to ${this.connectedDevices.size} devices`);
+    // Send to all connected peers
+    this.broadcastToPeers(event);
+    this.showSyncActivity(`Broadcasted ${eventType} to ${this.connectedPeers.size} devices`);
   }
 }
 
 // Initialize global instance
 window.MeshSync = new MeshSync();
 
-console.log('[MeshSync] Mesh Sync Manager loaded');
+console.log('[MeshSync] WebRTC Multi-Peer Sync Manager loaded');
