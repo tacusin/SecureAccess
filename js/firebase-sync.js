@@ -252,6 +252,9 @@ class FirebaseSync {
       this.currentGroupId = syncGroup;
       this.userGroups = [syncGroup];
       console.log('[FirebaseSync] Using sync password group:', syncGroup);
+      
+      // Process any queued items now that we have a group
+      await this.processOfflineQueue();
       return;
     }
     

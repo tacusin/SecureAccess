@@ -211,6 +211,9 @@ class SyncPasswordManager {
       // Restart listeners for new group
       window.FirebaseSync.setupGroupBasedListeners();
       
+      // Process any queued sync items now that we have a group
+      await window.FirebaseSync.processOfflineQueue();
+      
       console.log('[SyncPassword] Firebase group membership established');
       
     } catch (error) {
