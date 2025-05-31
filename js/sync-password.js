@@ -144,10 +144,26 @@ class SyncPasswordManager {
       
     } catch (error) {
       console.error('[SyncPassword] Error joining group:', error);
-      this.showError('Failed to join group. Please try again.');
+      console.error('[SyncPassword] Full error context:', {
+        groupId,
+        userId: window.FirebaseSync?.currentUser?.uid,
+        hasDatabase: !!window.FirebaseSync?.database,
+        errorCode: error?.code,
+        errorMessage: error?.message
+      });
       
-      submitBtn.textContent = 'Join Group';
-      submitBtn.disabled = false;
+      // Don't rethrow the error, just show user-friendly message
+      if (error?.code === 'PERMISSION_DENIED') {
+        this.showError('Access denied. Please check Firebase permissions.');
+      } else {
+        this.showError('Failed to join group. Connection or permission issue.');
+      }
+      
+      const submitBtn = document.getElementById('submit-sync-password');
+      if (submitBtn) {
+        submitBtn.textContent = 'Join Group';
+        submitBtn.disabled = false;
+      }
     }
   }
 
@@ -195,6 +211,7 @@ class SyncPasswordManager {
 
   async setupFirebaseGroupMembership(groupId) {
     if (!window.FirebaseSync || !window.FirebaseSync.currentUser) {
+      console.warn('[SyncPassword] Firebase or user not available for group membership');
       return;
     }
 
@@ -208,37 +225,61 @@ class SyncPasswordManager {
     }
     
     try {
-      // First ensure the group exists with proper structure
+      console.log('[SyncPassword] Setting up membership for group:', groupId, 'user:', userId);
+      
+      // First, try to read the group to check if it exists and we have access
       const groupRef = window.FirebaseSync.database.ref(`groupData/${groupId}`);
-      const groupSnapshot = await groupRef.once('value');
       
-      if (!groupSnapshot.exists()) {
-        // Create the group structure first
-        await groupRef.set({
-          metadata: {
-            created: window.firebase.database.ServerValue.TIMESTAMP,
-            createdBy: userId
-          },
-          members: {},
-          personnel: {},
-          activities: {},
-          occupancy: {
-            count: 0,
-            timestamp: window.firebase.database.ServerValue.TIMESTAMP
-          }
-        });
+      try {
+        const groupSnapshot = await groupRef.once('value');
+        console.log('[SyncPassword] Group exists:', groupSnapshot.exists());
+        
+        if (!groupSnapshot.exists()) {
+          console.log('[SyncPassword] Creating new group structure');
+          // Create the group structure first - add ourselves as the first member
+          const newGroupData = {
+            metadata: {
+              created: window.firebase.database.ServerValue.TIMESTAMP,
+              createdBy: userId
+            },
+            members: {
+              [userId]: {
+                name: userIdentity.name,
+                role: userIdentity.role,
+                deviceId: window.FirebaseSync.deviceId,
+                joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
+                lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
+                isOnline: true
+              }
+            },
+            personnel: {},
+            activities: {},
+            occupancy: {
+              count: 0,
+              timestamp: window.firebase.database.ServerValue.TIMESTAMP
+            }
+          };
+          
+          await groupRef.set(newGroupData);
+          console.log('[SyncPassword] New group created successfully');
+        } else {
+          // Group exists, just add ourselves as a member
+          console.log('[SyncPassword] Adding user to existing group');
+          const memberRef = window.FirebaseSync.database.ref(`groupData/${groupId}/members/${userId}`);
+          await memberRef.set({
+            name: userIdentity.name,
+            role: userIdentity.role,
+            deviceId: window.FirebaseSync.deviceId,
+            joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
+            lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
+            isOnline: true
+          });
+          console.log('[SyncPassword] User added to existing group');
+        }
+      } catch (groupError) {
+        console.error('[SyncPassword] Group operation failed:', groupError);
+        throw groupError;
       }
-      
-      // Add user to group members with identity
-      const memberRef = window.FirebaseSync.database.ref(`groupData/${groupId}/members/${userId}`);
-      await memberRef.set({
-        name: userIdentity.name,
-        role: userIdentity.role,
-        deviceId: window.FirebaseSync.deviceId,
-        joinedAt: window.firebase.database.ServerValue.TIMESTAMP,
-        lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
-        isOnline: true
-      });
       
       // Update user's groups list
       const userRef = window.FirebaseSync.database.ref(`users/${userId}/groups/${groupId}`);
@@ -270,13 +311,21 @@ class SyncPasswordManager {
       
     } catch (error) {
       console.error('[SyncPassword] Failed to setup Firebase membership:', error);
+      console.error('[SyncPassword] Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       
       // Check if it's a permission error
       if (error.code === 'PERMISSION_DENIED') {
         console.warn('[SyncPassword] Permission denied - Firebase security rules may need adjustment');
         this.showError('Permission denied when joining group. Check Firebase security settings.');
-      } else {
+      } else if (error.message) {
         this.showError(`Failed to join group: ${error.message}`);
+      } else {
+        this.showError('Failed to join group due to an unknown error. Please check your connection.');
       }
       
       throw error;
