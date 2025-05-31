@@ -2506,6 +2506,18 @@ SecurityApp.prototype.updateSyncUI = function(status) {
   } else {
     startServerBtn.style.display = 'inline-flex';
     stopServerBtn.style.display = 'none';
+    
+    // Reset start server button to default state when not coordinator
+    if (startServerBtn) {
+      startServerBtn.innerHTML = `
+        <span class="material-icons">router</span>
+        Start as Server
+      `;
+      startServerBtn.classList.remove('success');
+      startServerBtn.classList.add('primary');
+      startServerBtn.disabled = false;
+    }
+    
     if (status.enabled) {
       clientControls.style.display = 'block';
     }
@@ -2514,8 +2526,14 @@ SecurityApp.prototype.updateSyncUI = function(status) {
 
 SecurityApp.prototype.enableSync = function() {
   if (window.MeshSync) {
+    // Ensure clean state when enabling sync
     window.MeshSync.syncEnabled = true;
+    window.MeshSync.isCoordinator = false;
     localStorage.setItem('mesh_sync_enabled', 'true');
+    localStorage.removeItem('mesh_coordinator');
+    localStorage.removeItem('mesh_coordinator_ip');
+    localStorage.removeItem('mesh_coordinator_port');
+    
     this.showToast('Mesh sync enabled', 'success');
     this.updateSyncPage();
   }
