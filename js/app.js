@@ -2512,9 +2512,9 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Network Sync Management Methods
 SecurityApp.prototype.updateSyncPage = async function() {
-  if (!window.MeshSync) return;
+  if (!window.HTTPMeshSync) return;
   
-  const status = window.MeshSync.getStatus();
+  const status = window.HTTPMeshSync.getStatus();
   this.updateSyncUI(status);
   this.loadSyncActivityLog();
   this.updateMeshConnectionInfo();
@@ -2567,66 +2567,65 @@ SecurityApp.prototype.updateSyncUI = function(status) {
 };
 
 SecurityApp.prototype.enableSync = function() {
-  if (window.MeshSync) {
+  if (window.HTTPMeshSync) {
     // Ensure clean state when enabling sync
-    window.MeshSync.syncEnabled = true;
-    window.MeshSync.isCoordinator = false;
-    localStorage.setItem('mesh_sync_enabled', 'true');
-    localStorage.removeItem('mesh_coordinator');
-    localStorage.removeItem('mesh_coordinator_ip');
-    localStorage.removeItem('mesh_coordinator_port');
+    window.HTTPMeshSync.syncEnabled = true;
+    window.HTTPMeshSync.isCoordinator = false;
+    localStorage.setItem('http_mesh_sync_enabled', 'true');
+    localStorage.removeItem('http_mesh_coordinator');
+    localStorage.removeItem('http_mesh_coordinator_ip');
+    localStorage.removeItem('http_mesh_coordinator_port');
     
-    this.showToast('Mesh sync enabled', 'success');
+    this.showToast('HTTP mesh sync enabled', 'success');
     this.updateSyncPage();
   }
 };
 
 SecurityApp.prototype.disableSync = function() {
-  if (window.MeshSync) {
-    window.MeshSync.syncEnabled = false;
-    localStorage.setItem('mesh_sync_enabled', 'false');
+  if (window.HTTPMeshSync) {
+    window.HTTPMeshSync.syncEnabled = false;
+    localStorage.setItem('http_mesh_sync_enabled', 'false');
     
     // Stop coordinator if running
-    if (window.MeshSync.isCoordinator) {
-      window.MeshSync.stopCoordinator();
+    if (window.HTTPMeshSync.isCoordinator) {
+      window.HTTPMeshSync.stopCoordinator();
     }
     
-    this.showToast('Mesh sync disabled', 'info');
+    this.showToast('HTTP mesh sync disabled', 'info');
     this.updateSyncPage();
   }
 };
 
 SecurityApp.prototype.startSyncServer = async function() {
-  if (window.MeshSync) {
+  if (window.HTTPMeshSync) {
     try {
-      this.showToast('Starting coordinator...', 'info');
-      const success = await window.MeshSync.startCoordinator();
+      this.showToast('Starting HTTP coordinator...', 'info');
+      const success = await window.HTTPMeshSync.startCoordinator();
       this.updateSyncPage();
       if (success) {
         // Update button to show active state
         const startServerBtn = document.getElementById('start-server-btn');
         if (startServerBtn) {
           startServerBtn.innerHTML = `
-            <span class="material-icons">wifi_tethering</span>
-            Coordinator Active
+            <span class="material-icons">router</span>
+            HTTP Coordinator Active
           `;
           startServerBtn.classList.remove('primary');
           startServerBtn.classList.add('success');
         }
-        this.showMeshConnectionQR();
-        this.showToast('Coordinator started successfully!', 'success');
+        this.showToast('HTTP coordinator started successfully!', 'success');
       }
     } catch (error) {
       this.showError('Failed to start coordinator: ' + error.message);
     }
   } else {
-    this.showError('Mesh sync not available');
+    this.showError('HTTP mesh sync not available');
   }
 };
 
 SecurityApp.prototype.stopSyncServer = function() {
-  if (window.MeshSync && window.MeshSync.isCoordinator) {
-    window.MeshSync.stopCoordinator();
+  if (window.HTTPMeshSync && window.HTTPMeshSync.isCoordinator) {
+    window.HTTPMeshSync.stopCoordinator();
     
     // Reset button to original state
     const startServerBtn = document.getElementById('start-server-btn');
@@ -2643,7 +2642,7 @@ SecurityApp.prototype.stopSyncServer = function() {
     }
     
     this.updateSyncPage();
-    this.showToast('Coordinator stopped', 'info');
+    this.showToast('HTTP coordinator stopped', 'info');
   }
 };
 
@@ -2658,17 +2657,17 @@ SecurityApp.prototype.connectToSyncServer = async function() {
 
   // Validate IP:port format
   if (!this.validateIPPort(serverAddress)) {
-    this.showError('Please enter valid IP:port format (e.g., 192.168.1.100:8080)');
+    this.showError('Please enter valid IP:port format (e.g., 192.168.1.100:8082)');
     return;
   }
   
-  if (window.MeshSync) {
-    this.showToast('Connecting to coordinator...', 'info');
-    const success = await window.MeshSync.connectToCoordinator(serverAddress);
+  if (window.HTTPMeshSync) {
+    this.showToast('Connecting to HTTP coordinator...', 'info');
+    const success = await window.HTTPMeshSync.connectToCoordinator(serverAddress);
     this.updateSyncPage();
     
     if (success) {
-      this.showToast('Connected to coordinator!', 'success');
+      this.showToast('Connected to HTTP coordinator!', 'success');
     }
   }
 };
@@ -2717,31 +2716,33 @@ SecurityApp.prototype.scanSyncQR = async function() {
   }
 };
 
-SecurityApp.prototype.showMeshConnectionQR = function() {
-  if (window.MeshSync) {
-    window.MeshSync.showConnectionInfo();
-  }
-};
-
 SecurityApp.prototype.updateMeshConnectionInfo = function() {
-  if (!window.MeshSync) return;
+  if (!window.HTTPMeshSync) return;
   
-  const status = window.MeshSync.getStatus();
+  const status = window.HTTPMeshSync.getStatus();
   const connectionInfo = document.querySelector('.connection-info');
+  const coordinatorInfo = document.querySelector('.coordinator-connection-info');
   
-  if (connectionInfo && status.isCoordinator && status.localIP) {
+  if (status.isCoordinator && status.localIP) {
     const connectionAddress = `${status.localIP}:${status.port}`;
-    connectionInfo.innerHTML = `
-      <div class="coordinator-info">
-        <h4>Coordinator Active</h4>
-        <p>Other devices can connect using:</p>
-        <div class="connection-url">${connectionAddress}</div>
-        <button onclick="app.showMeshConnectionQR()" class="btn btn-primary">
-          <span class="material-icons">qr_code</span>
-          Show QR Code
-        </button>
-      </div>
-    `;
+    
+    if (connectionInfo) {
+      connectionInfo.innerHTML = `
+        <div class="coordinator-info">
+          <h4>HTTP Coordinator Active</h4>
+          <p>Share this address with other devices on the same network:</p>
+          <div class="connection-url">${connectionAddress}</div>
+          <p class="connection-help">
+            Other devices can enter this address to sync data automatically.
+          </p>
+        </div>
+      `;
+    }
+    
+    // Also update the coordinator connection info section
+    if (coordinatorInfo) {
+      window.HTTPMeshSync.updateCoordinatorInfo();
+    }
   } else if (connectionInfo) {
     connectionInfo.innerHTML = '';
   }
