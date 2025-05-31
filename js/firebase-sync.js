@@ -72,9 +72,6 @@ class FirebaseSync {
       this.isInitialized = true;
       console.log('[FirebaseSync] Firebase initialized successfully with group-based access');
       
-      // Setup profile button listener
-      this.setupProfileButton();
-      
       return true;
     } catch (error) {
       console.error('[FirebaseSync] Failed to initialize Firebase:', error);
