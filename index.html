@@ -14,8 +14,8 @@
     <link rel="apple-touch-icon" href="generated-icon.png">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="stylesheet" href="css/themes.css?v=2">
     
     <!-- Material Design Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -645,19 +645,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/camera.js"></script>
-    <script src="js/export.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/emergency.js"></script>
-    <script src="js/tutorial.js"></script>
-    <script src="js/ocr.js"></script>
-    <script src="js/qr-generator.js"></script>
-    <script src="js/reports.js"></script>
-    <script src="js/shifts.js"></script>
-    <script src="js/sync-password.js"></script>
-    <script src="js/firebase-sync.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/storage.js?v=2"></script>
+    <script src="js/camera.js?v=2"></script>
+    <script src="js/export.js?v=2"></script>
+    <script src="js/dashboard.js?v=2"></script>
+    <script src="js/emergency.js?v=2"></script>
+    <script src="js/tutorial.js?v=2"></script>
+    <script src="js/ocr.js?v=2"></script>
+    <script src="js/qr-generator.js?v=2"></script>
+    <script src="js/reports.js?v=2"></script>
+    <script src="js/shifts.js?v=2"></script>
+    <script src="js/sync-password.js?v=2"></script>
+    <script src="js/firebase-sync.js?v=2"></script>
+    <script src="js/firebase-config.js?v=2"></script>
+    <script src="js/app.js?v=2"></script>
+    
+    <!-- Fallback to force show app if stuck on loading -->
+    <script>
+    setTimeout(function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const app = document.getElementById('app');
+        if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+            console.log('[Fallback] Forcing app to show after timeout');
+            loadingScreen.style.display = 'none';
+            if (app) {
+                app.classList.remove('hidden');
+            }
+        }
+    }, 5000);
+    </script>
 </body>
 </html>

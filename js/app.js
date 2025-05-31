@@ -69,6 +69,11 @@ class SecurityApp {
       
     } catch (error) {
       console.error('[App] Error initializing application:', error);
+      
+      // Force show the app even if initialization fails
+      console.log('[App] Forcing app to show despite initialization error...');
+      this.hideLoadingScreen();
+      
       this.showError('Failed to initialize application. Please refresh the page.');
     }
   }
