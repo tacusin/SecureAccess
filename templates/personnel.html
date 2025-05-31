@@ -1,0 +1,116 @@
+<!-- Personnel Management Page Template -->
+<div class="page-header">
+    <h2>Personnel Management</h2>
+    <div class="header-actions">
+        <button class="btn btn-primary" data-action="add-personnel">
+            <span class="material-icons">person_add</span>
+            Add Personnel
+        </button>
+        <button class="btn btn-secondary" data-action="export-personnel">
+            <span class="material-icons">download</span>
+            Export
+        </button>
+    </div>
+</div>
+
+<!-- Personnel Stats -->
+<div class="personnel-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <span class="material-icons">people</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="total-personnel">0</div>
+            <div class="stat-label">Total Personnel</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <span class="material-icons">login</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="checked-in-count">0</div>
+            <div class="stat-label">Checked In</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <span class="material-icons">person_add_alt_1</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="visitors-count">0</div>
+            <div class="stat-label">Visitors Today</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <span class="material-icons">business</span>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="employees-count">0</div>
+            <div class="stat-label">Employees</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="personnel-controls">
+    <div class="search-container">
+        <div class="search-input-container">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" id="personnel-search" placeholder="Search personnel..." class="search-input">
+        </div>
+        <div class="filter-container">
+            <select id="personnel-status-filter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="checked-in">Checked In</option>
+                <option value="checked-out">Checked Out</option>
+            </select>
+            <select id="personnel-role-filter" class="filter-select">
+                <option value="all">All Roles</option>
+                <option value="employee">Employees</option>
+                <option value="visitor">Visitors</option>
+                <option value="contractor">Contractors</option>
+                <option value="security">Security</option>
+            </select>
+            <select id="personnel-sort" class="filter-select">
+                <option value="name">Sort by Name</option>
+                <option value="role">Sort by Role</option>
+                <option value="status">Sort by Status</option>
+                <option value="recent">Recently Added</option>
+            </select>
+        </div>
+    </div>
+    <div class="bulk-controls">
+        <button class="btn btn-text" id="select-all-personnel">Select All</button>
+        <button class="btn btn-text" id="clear-personnel-selection">Clear Selection</button>
+    </div>
+</div>
+
+<!-- Personnel List -->
+<div class="personnel-list-container">
+    <div id="personnel-grid" class="personnel-grid">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div id="personnel-bulk-actions" class="bulk-actions-bar hidden">
+    <div class="bulk-info">
+        <span id="personnel-selected-count">0</span> selected
+    </div>
+    <div class="bulk-buttons">
+        <button class="btn btn-primary" id="bulk-checkin-personnel">
+            <span class="material-icons">login</span>
+            Check In
+        </button>
+        <button class="btn btn-secondary" id="bulk-checkout-personnel">
+            <span class="material-icons">logout</span>
+            Check Out
+        </button>
+        <button class="btn btn-danger" id="bulk-delete-personnel">
+            <span class="material-icons">delete</span>
+            Delete
+        </button>
+    </div>
+</div>

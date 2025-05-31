@@ -1,0 +1,127 @@
+<!-- Shifts Management Page Template -->
+<div class="page-header">
+    <h2>Shift Management</h2>
+    <div class="header-actions">
+        <button class="btn btn-primary" id="start-shift-btn">
+            <span class="material-icons">play_arrow</span>
+            Start Shift
+        </button>
+        <button class="btn btn-secondary" id="end-shift-btn">
+            <span class="material-icons">stop</span>
+            End Shift
+        </button>
+        <button class="btn btn-secondary" id="handover-btn">
+            <span class="material-icons">swap_horiz</span>
+            Handover
+        </button>
+    </div>
+</div>
+
+<!-- Current Shift Status -->
+<div class="current-shift-section">
+    <div class="shift-status-card">
+        <div class="status-header">
+            <h3>Current Shift</h3>
+            <div class="shift-indicator" id="shift-status-indicator">
+                <span class="status-dot"></span>
+                <span id="shift-status-text">No Active Shift</span>
+            </div>
+        </div>
+        <div id="current-shift-details" class="shift-details hidden">
+            <div class="shift-info">
+                <div class="info-item">
+                    <span class="label">Officer:</span>
+                    <span id="current-officer">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Started:</span>
+                    <span id="shift-start-time">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Duration:</span>
+                    <span id="shift-duration">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Location:</span>
+                    <span id="shift-location">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Handovers -->
+<div class="handovers-section">
+    <div class="section-header">
+        <h3>Pending Handovers</h3>
+        <span class="handover-count" id="pending-handovers-count">0</span>
+    </div>
+    <div id="pending-handovers" class="handovers-list">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Shift History -->
+<div class="shift-history-section">
+    <div class="section-header">
+        <h3>Recent Shifts</h3>
+        <div class="history-controls">
+            <select id="shift-filter" class="filter-select">
+                <option value="all">All Shifts</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+            <button class="btn btn-secondary" data-action="export-shifts">
+                <span class="material-icons">download</span>
+                Export
+            </button>
+        </div>
+    </div>
+    <div id="shift-history" class="shifts-list">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Shift Statistics -->
+<div class="shift-stats-section">
+    <h3>Shift Statistics</h3>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <span class="material-icons">schedule</span>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number" id="avg-shift-duration">0h</div>
+                <div class="stat-label">Avg Shift Duration</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <span class="material-icons">today</span>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number" id="shifts-today">0</div>
+                <div class="stat-label">Shifts Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <span class="material-icons">swap_horiz</span>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number" id="total-handovers">0</div>
+                <div class="stat-label">Total Handovers</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <span class="material-icons">security</span>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number" id="active-officers">0</div>
+                <div class="stat-label">Active Officers</div>
+            </div>
+        </div>
+    </div>
+</div>

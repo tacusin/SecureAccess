@@ -1,0 +1,139 @@
+<!-- Emergency Management Page Template -->
+<div class="page-header emergency-header">
+    <h2>Emergency Management</h2>
+    <div class="emergency-status" id="emergency-status">
+        <span class="status-indicator" id="emergency-indicator"></span>
+        <span id="emergency-status-text">Normal Operations</span>
+    </div>
+</div>
+
+<!-- Emergency Controls -->
+<div class="emergency-controls">
+    <button class="btn btn-danger emergency-btn" id="activate-emergency-btn">
+        <span class="material-icons">warning</span>
+        Activate Emergency Mode
+    </button>
+    <button class="btn btn-success emergency-btn hidden" id="deactivate-emergency-btn">
+        <span class="material-icons">check_circle</span>
+        Deactivate Emergency Mode
+    </button>
+</div>
+
+<!-- Emergency Actions -->
+<div class="emergency-actions">
+    <div class="action-grid">
+        <button class="emergency-action-card" id="evacuation-list-btn">
+            <span class="material-icons">list_alt</span>
+            <div class="action-content">
+                <h3>Generate Evacuation List</h3>
+                <p>Create list of all people currently in building</p>
+            </div>
+        </button>
+        <button class="emergency-action-card" id="missing-persons-btn">
+            <span class="material-icons">person_search</span>
+            <div class="action-content">
+                <h3>Identify Missing Persons</h3>
+                <p>Check for people who haven't checked out</p>
+            </div>
+        </button>
+        <button class="emergency-action-card" id="bulk-checkout-emergency-btn">
+            <span class="material-icons">logout</span>
+            <div class="action-content">
+                <h3>Emergency Bulk Check-Out</h3>
+                <p>Check out all remaining personnel</p>
+            </div>
+        </button>
+        <button class="emergency-action-card" id="alert-services-btn">
+            <span class="material-icons">emergency</span>
+            <div class="action-content">
+                <h3>Alert Emergency Services</h3>
+                <p>Contact fire department and security</p>
+            </div>
+        </button>
+    </div>
+</div>
+
+<!-- Evacuation Status -->
+<div class="evacuation-section hidden" id="evacuation-section">
+    <div class="section-header">
+        <h3>Evacuation Status</h3>
+        <div class="evacuation-stats">
+            <span class="stat">
+                <span id="total-occupants">0</span> Total
+            </span>
+            <span class="stat">
+                <span id="evacuated-count">0</span> Evacuated
+            </span>
+            <span class="stat">
+                <span id="missing-count">0</span> Missing
+            </span>
+        </div>
+    </div>
+    
+    <!-- Evacuation List -->
+    <div id="evacuation-list" class="evacuation-list">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Missing Persons -->
+<div class="missing-persons-section hidden" id="missing-persons-section">
+    <div class="section-header">
+        <h3>Missing Persons</h3>
+        <div class="missing-stats">
+            <span class="critical-count" id="critical-missing">0</span> people unaccounted for
+        </div>
+    </div>
+    
+    <!-- Missing Persons List -->
+    <div id="missing-persons-list" class="missing-persons-list">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Emergency Actions Bar -->
+<div class="emergency-actions-bar hidden" id="emergency-actions-bar">
+    <button class="btn btn-primary" id="print-evacuation-btn">
+        <span class="material-icons">print</span>
+        Print Evacuation List
+    </button>
+    <button class="btn btn-secondary" id="export-evacuation-btn">
+        <span class="material-icons">download</span>
+        Export Data
+    </button>
+    <button class="btn btn-danger" id="contact-authorities-btn">
+        <span class="material-icons">phone</span>
+        Contact Authorities
+    </button>
+</div>
+
+<!-- Emergency Information -->
+<div class="emergency-info">
+    <div class="info-card">
+        <h4>Emergency Procedures</h4>
+        <ul>
+            <li>Activate emergency mode immediately</li>
+            <li>Generate evacuation list of all occupants</li>
+            <li>Account for all personnel at assembly points</li>
+            <li>Contact emergency services if needed</li>
+            <li>Report missing persons to authorities</li>
+        </ul>
+    </div>
+    <div class="info-card">
+        <h4>Emergency Contacts</h4>
+        <div class="contact-list">
+            <div class="contact">
+                <span class="contact-label">Fire Department:</span>
+                <span class="contact-number">911</span>
+            </div>
+            <div class="contact">
+                <span class="contact-label">Security Office:</span>
+                <span class="contact-number">(555) 123-4567</span>
+            </div>
+            <div class="contact">
+                <span class="contact-label">Building Management:</span>
+                <span class="contact-number">(555) 987-6543</span>
+            </div>
+        </div>
+    </div>
+</div>

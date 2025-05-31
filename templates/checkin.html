@@ -1,0 +1,97 @@
+<!-- Check In/Out Page Template -->
+<div class="page-header">
+    <h2>Check In/Out</h2>
+    <div class="header-actions">
+        <button class="btn btn-primary" data-action="scan-qr">
+            <span class="material-icons">qr_code_scanner</span>
+            Scan QR
+        </button>
+        <button class="btn btn-secondary" data-action="scan-id">
+            <span class="material-icons">credit_card</span>
+            Scan ID
+        </button>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="search-section">
+    <div class="search-container">
+        <div class="search-input-container">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" id="person-search" placeholder="Search by name, email, or ID number..." class="search-input">
+            <button class="clear-search-btn" id="clear-search">
+                <span class="material-icons">clear</span>
+            </button>
+        </div>
+        <div class="search-filters">
+            <select id="status-filter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="checked-in">Checked In</option>
+                <option value="checked-out">Checked Out</option>
+            </select>
+            <select id="role-filter" class="filter-select">
+                <option value="all">All Roles</option>
+                <option value="employee">Employees</option>
+                <option value="visitor">Visitors</option>
+                <option value="contractor">Contractors</option>
+                <option value="security">Security</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <button class="quick-action-card" data-action="quick-checkin">
+        <span class="material-icons">login</span>
+        <div class="action-content">
+            <h3>Quick Check-In</h3>
+            <p>Fast check-in for registered personnel</p>
+        </div>
+    </button>
+    <button class="quick-action-card" data-action="bulk-checkout">
+        <span class="material-icons">logout</span>
+        <div class="action-content">
+            <h3>Bulk Check-Out</h3>
+            <p>Check out multiple people at once</p>
+        </div>
+    </button>
+</div>
+
+<!-- Personnel List -->
+<div class="personnel-section">
+    <div class="section-header">
+        <h3>Personnel</h3>
+        <div class="list-controls">
+            <button class="btn btn-primary" data-action="add-personnel">
+                <span class="material-icons">person_add</span>
+                Add Person
+            </button>
+            <button class="btn btn-secondary" data-action="add-visitor">
+                <span class="material-icons">person_add_alt_1</span>
+                Add Visitor
+            </button>
+        </div>
+    </div>
+    <div id="personnel-list" class="person-list">
+        <!-- Dynamically populated -->
+    </div>
+</div>
+
+<!-- Bulk Actions (hidden by default) -->
+<div id="bulk-actions" class="bulk-actions hidden">
+    <div class="bulk-header">
+        <span id="selected-count">0</span> selected
+        <button class="btn btn-text" id="clear-selection">Clear</button>
+    </div>
+    <div class="bulk-buttons">
+        <button class="btn btn-primary" id="bulk-checkin">
+            <span class="material-icons">login</span>
+            Check In Selected
+        </button>
+        <button class="btn btn-secondary" id="bulk-checkout">
+            <span class="material-icons">logout</span>
+            Check Out Selected
+        </button>
+    </div>
+</div>

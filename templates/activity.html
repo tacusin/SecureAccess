@@ -1,0 +1,108 @@
+<!-- Activity Log Page Template -->
+<div class="page-header">
+    <h2>Activity Log</h2>
+    <div class="header-actions">
+        <button class="btn btn-secondary" data-action="export-activity">
+            <span class="material-icons">download</span>
+            Export
+        </button>
+        <button class="btn btn-danger" data-action="clear-activity">
+            <span class="material-icons">delete_sweep</span>
+            Clear Log
+        </button>
+    </div>
+</div>
+
+<!-- Activity Filters -->
+<div class="activity-filters">
+    <div class="filter-row">
+        <select id="activity-type-filter" class="filter-select">
+            <option value="all">All Activities</option>
+            <option value="check-in">Check-ins</option>
+            <option value="check-out">Check-outs</option>
+            <option value="added">Added Personnel</option>
+            <option value="updated">Updated Personnel</option>
+            <option value="emergency">Emergency Events</option>
+        </select>
+        <select id="activity-role-filter" class="filter-select">
+            <option value="all">All Roles</option>
+            <option value="employee">Employees</option>
+            <option value="visitor">Visitors</option>
+            <option value="contractor">Contractors</option>
+            <option value="security">Security</option>
+        </select>
+        <input type="date" id="activity-date-filter" class="filter-date">
+        <button class="btn btn-secondary" id="apply-filters-btn">
+            <span class="material-icons">filter_list</span>
+            Apply Filters
+        </button>
+        <button class="btn btn-text" id="clear-filters-btn">Clear</button>
+    </div>
+</div>
+
+<!-- Activity Stats -->
+<div class="activity-stats">
+    <div class="stat-item">
+        <span class="stat-number" id="total-activities">0</span>
+        <span class="stat-label">Total Activities</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" id="today-activities">0</span>
+        <span class="stat-label">Today</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" id="checkin-activities">0</span>
+        <span class="stat-label">Check-ins</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" id="checkout-activities">0</span>
+        <span class="stat-label">Check-outs</span>
+    </div>
+</div>
+
+<!-- Bulk Selection Controls -->
+<div class="activity-controls">
+    <div class="bulk-controls">
+        <button class="btn btn-text" id="bulk-select-btn">Bulk Select</button>
+        <button class="btn btn-text" id="select-all-activities" class="hidden">Select All</button>
+        <button class="btn btn-text" id="clear-activity-selection" class="hidden">Clear Selection</button>
+    </div>
+    <div class="view-controls">
+        <button class="btn btn-text view-toggle active" data-view="list">
+            <span class="material-icons">list</span>
+        </button>
+        <button class="btn btn-text view-toggle" data-view="timeline">
+            <span class="material-icons">timeline</span>
+        </button>
+    </div>
+</div>
+
+<!-- Activity List -->
+<div id="activity-list" class="activity-list">
+    <!-- Dynamically populated -->
+</div>
+
+<!-- Bulk Actions Bar -->
+<div id="activity-bulk-actions" class="bulk-actions-bar hidden">
+    <div class="bulk-info">
+        <span id="activity-selected-count">0</span> selected
+    </div>
+    <div class="bulk-buttons">
+        <button class="btn btn-secondary" id="bulk-undo-btn">
+            <span class="material-icons">undo</span>
+            Undo Selected
+        </button>
+        <button class="btn btn-danger" id="bulk-delete-btn">
+            <span class="material-icons">delete</span>
+            Delete Selected
+        </button>
+    </div>
+</div>
+
+<!-- Load More Button -->
+<div class="load-more-container">
+    <button class="btn btn-secondary" id="load-more-activities">
+        <span class="material-icons">expand_more</span>
+        Load More Activities
+    </button>
+</div>
