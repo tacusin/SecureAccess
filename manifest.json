@@ -1,0 +1,26 @@
+{
+  "name": "Secure Access",
+  "short_name": "SecureAccess",
+  "description": "Enterprise-grade web application for security officers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "generated-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "generated-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["security", "business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

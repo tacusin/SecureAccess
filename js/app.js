@@ -21,22 +21,32 @@ class SecurityApp {
     try {
       console.log('[App] Initializing Secure Access');
       
-      // Unregister any existing service worker to prevent 404 errors
+      // Register PWA Service Worker (no-cache mode)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          if (registrations.length > 0) {
-            console.log('[App] Unregistering', registrations.length, 'service worker(s)');
-            for(let registration of registrations) {
-              registration.unregister().then(function(success) {
-                if (success) {
-                  console.log('[App] Service worker unregistered successfully');
-                }
-              });
-            }
-          }
-        });
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/'
+          });
+          
+          console.log('[App] Service Worker registered successfully:', registration.scope);
+          
+          // Handle service worker updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[App] New service worker available');
+                this.showToast('App update available. Refresh to update.', 'info');
+              }
+            });
+          });
+          
+        } catch (error) {
+          console.error('[App] Service Worker registration failed:', error);
+        }
+      } else {
+        console.log('[App] Service Worker not supported');
       }
-      console.log('[App] Service worker registration disabled for development');
       
       // Initialize storage
       await window.StorageManager.init();
@@ -49,6 +59,11 @@ class SecurityApp {
       
       // Initialize components
       await this.initializeComponents();
+      
+      // Initialize PWA install manager
+      if (window.PWAInstallManager) {
+        await window.PWAInstallManager.init();
+      }
       
       // Hide loading screen
       this.hideLoadingScreen();
