@@ -208,17 +208,31 @@ class HTTPMeshSync {
     }
   }
 
-  async simulateHTTPRequest(url, options) {
-    // Simulate HTTP request by checking localStorage for device responses
-    const deviceKey = `mesh_device_response_${url.split('//')[1].split(':')[0]}`;
-    const response = localStorage.getItem(deviceKey);
-    
-    if (response) {
-      return JSON.parse(response);
+  async makeHTTPRequest(url, options = {}) {
+    try {
+      console.log(`[HTTPMeshSync] Making ${options.method || 'GET'} request to ${url}`);
+      
+      const response = await fetch(url, {
+        method: options.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        },
+        body: options.body,
+        ...options
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(`[HTTPMeshSync] Request successful to ${url}`);
+      return data;
+    } catch (error) {
+      console.error(`[HTTPMeshSync] Request failed to ${url}:`, error);
+      throw error;
     }
-    
-    // If no response, device is not available
-    throw new Error('Device not available');
   }
 
   registerDevice(deviceInfo) {
@@ -380,15 +394,24 @@ class HTTPMeshSync {
     
     const registerEndpoint = `http://${this.coordinatorAddress}/register`;
     
-    // Simulate registration with coordinator
-    const deviceKey = `mesh_device_response_${this.coordinatorAddress.split(':')[0]}`;
-    localStorage.setItem(deviceKey, JSON.stringify({
-      success: true,
-      message: 'Device registered successfully',
-      deviceInfo: registrationData
-    }));
-    
-    console.log('[HTTPMeshSync] Registered with coordinator');
+    try {
+      const response = await this.makeHTTPRequest(registerEndpoint, {
+        method: 'POST',
+        body: JSON.stringify(registrationData)
+      });
+      
+      if (response.success) {
+        console.log('[HTTPMeshSync] Registered with coordinator');
+        this.showMessage('Successfully registered with coordinator', 'success');
+        return true;
+      } else {
+        throw new Error(response.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('[HTTPMeshSync] Registration failed:', error);
+      this.showMessage('Failed to register with coordinator: ' + error.message, 'error');
+      return false;
+    }
   }
 
   startClientSync() {
@@ -399,14 +422,16 @@ class HTTPMeshSync {
 
   async requestSyncFromCoordinator() {
     try {
-      const syncEndpoint = `http://${this.coordinatorAddress}${this.syncEndpoint}`;
-      const response = await this.simulateHTTPRequest(syncEndpoint);
+      const syncEndpoint = `http://${this.coordinatorAddress}${this.syncEndpoint}?deviceId=${this.deviceId}`;
+      const response = await this.makeHTTPRequest(syncEndpoint);
       
-      if (response.syncData) {
+      if (response.success && response.syncData) {
         this.applySyncData(response.syncData);
+        this.showSyncActivity('Received data from coordinator');
       }
     } catch (error) {
-      console.warn('[HTTPMeshSync] Failed to sync with coordinator');
+      console.warn('[HTTPMeshSync] Failed to sync with coordinator:', error.message);
+      this.showMessage('Sync failed: ' + error.message, 'warning');
     }
   }
 
