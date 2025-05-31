@@ -398,104 +398,102 @@
             <!-- Network Sync Page -->
             <div id="sync-page" class="page">
                 <div class="page-header">
-                    <h2>Network Sync</h2>
-                    <div class="sync-status-bar">
+                    <h2>Firebase Sync</h2>
+                    <div class="firebase-status-bar">
                         <div class="sync-info">
-                            <span class="sync-status" id="sync-status">Disabled</span>
+                            <span class="firebase-status" id="firebase-status">Not Connected</span>
+                            <span class="group-info">Group: <span id="current-group">None</span></span>
                             <span class="device-count">Devices: <span id="connected-devices-count">0</span></span>
-                            <span class="sync-latency">Latency: <span id="sync-latency">--</span></span>
                         </div>
-                        <div class="sync-indicator" id="sync-indicator">
-                            <span class="material-icons">sync</span>
+                        <div class="sync-indicator" id="firebase-indicator">
+                            <span class="material-icons">cloud_off</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="sync-controls">
+                <div class="firebase-controls">
                     <div class="control-group">
-                        <h3>Sync Mode</h3>
-                        <div class="sync-mode-buttons">
-                            <button id="enable-sync-btn" class="action-button primary">
-                                <span class="material-icons">sync</span>
-                                Enable Sync
+                        <h3>Security Group</h3>
+                        <div class="group-controls">
+                            <button id="join-group-btn" class="action-button primary">
+                                <span class="material-icons">group_add</span>
+                                Join/Create Group
                             </button>
-                            <button id="disable-sync-btn" class="action-button secondary" style="display: none;">
-                                <span class="material-icons">sync_disabled</span>
-                                Disable Sync
+                            <button id="change-group-btn" class="action-button secondary" style="display: none;">
+                                <span class="material-icons">group</span>
+                                Change Group
                             </button>
-                            <button id="generate-sync-qr-btn" class="action-button primary">
+                            <button id="show-group-qr-btn" class="action-button secondary">
                                 <span class="material-icons">qr_code</span>
-                                Generate Sync QR
+                                Show Group QR
                             </button>
+                        </div>
+                        <div class="current-group-display" id="current-group-display" style="display: none;">
+                            <div class="group-badge">
+                                <span class="material-icons">group</span>
+                                <span id="group-name-display">No Group</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="control-group" id="server-controls" style="display: none;">
-                        <h3>Server Mode</h3>
-                        <div class="server-buttons">
-                            <button id="start-server-btn" class="action-button primary">
-                                <span class="material-icons">router</span>
-                                Start as Server
-                            </button>
-                            <button id="stop-server-btn" class="action-button danger" style="display: none;">
-                                <span class="material-icons">stop</span>
-                                Stop Server
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="control-group" id="client-controls" style="display: none;">
-                        <h3>Connect to Server</h3>
-                        <div class="connection-form">
-                            <div class="input-group">
-                                <input type="text" id="server-ip-input" placeholder="Enter coordinator IP:port (e.g., 192.168.1.100:8080)" class="form-input">
-                                <button id="connect-btn" class="action-button primary">
-                                    <span class="material-icons">link</span>
-                                    Connect
+                    <div class="control-group">
+                        <h3>Firebase Configuration</h3>
+                        <div class="firebase-config-form">
+                            <div class="config-status" id="firebase-config-status">
+                                <span class="material-icons status-icon">cloud_off</span>
+                                <span class="status-text">Firebase not configured</span>
+                            </div>
+                            
+                            <div class="config-buttons">
+                                <button id="configure-firebase-btn" class="action-button primary">
+                                    <span class="material-icons">settings</span>
+                                    Configure Firebase
+                                </button>
+                                <button id="test-connection-btn" class="action-button secondary" disabled>
+                                    <span class="material-icons">wifi_protected_setup</span>
+                                    Test Connection
+                                </button>
+                                <button id="reset-config-btn" class="action-button danger" style="display: none;">
+                                    <span class="material-icons">restart_alt</span>
+                                    Reset Config
                                 </button>
                             </div>
-                            <button id="scan-qr-connect-btn" class="action-button secondary">
-                                <span class="material-icons">qr_code_scanner</span>
-                                Scan QR Code
-                            </button>
                         </div>
                     </div>
 
-                    <div class="control-group" id="discovered-devices" style="display: none;">
-                        <h3>Discovered Devices</h3>
-                        <div id="device-list" class="device-list">
-                            <!-- Discovered devices will appear here -->
+                    <div class="control-group">
+                        <h3>Sync Activity</h3>
+                        <div class="sync-activity-container">
+                            <div class="activity-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Last Sync</span>
+                                    <span class="stat-value" id="last-sync-time">Never</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Queue Size</span>
+                                    <span class="stat-value" id="sync-queue-size">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Synced</span>
+                                    <span class="stat-value" id="total-synced">0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="sync-log-container">
+                                <div class="log-header">
+                                    <h4>Recent Activity</h4>
+                                    <button id="clear-firebase-log-btn" class="icon-button">
+                                        <span class="material-icons">clear_all</span>
+                                    </button>
+                                </div>
+                                <div id="firebase-sync-log" class="sync-log">
+                                    <div class="log-item">
+                                        <span class="log-time">--:--</span>
+                                        <span class="log-message">Waiting for Firebase connection...</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Coordinator Connection Info -->
-                    <div class="coordinator-connection-info" id="coordinator-connection-info">
-                        <!-- Connection details will appear here when coordinator is active -->
-                    </div>
-                    
-                    <!-- General Connection Info -->
-                    <div class="connection-info" id="connection-info">
-                        <!-- Connection status will appear here -->
-                    </div>
-                </div>
-
-                <div class="sync-activity">
-                    <h3>Sync Activity</h3>
-                    <div class="activity-filters">
-                        <select id="sync-activity-filter" class="form-select">
-                            <option value="all">All Events</option>
-                            <option value="check-in">Check-ins</option>
-                            <option value="check-out">Check-outs</option>
-                            <option value="personnel">Personnel Updates</option>
-                            <option value="emergency">Emergency Events</option>
-                        </select>
-                        <button id="clear-sync-log-btn" class="action-button secondary">
-                            <span class="material-icons">clear_all</span>
-                            Clear Log
-                        </button>
-                    </div>
-                    <div id="sync-activity-log" class="sync-log">
-                        <!-- Sync activity will appear here -->
                     </div>
                 </div>
             </div>
@@ -647,6 +645,7 @@
     <script src="js/shifts.js"></script>
     <script src="js/sync-password.js"></script>
     <script src="js/firebase-sync.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

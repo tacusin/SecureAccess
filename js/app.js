@@ -220,6 +220,11 @@ class SecurityApp {
       await window.SyncPasswordManager.init();
     }
 
+    // Initialize Firebase configuration manager
+    if (window.FirebaseConfigManager) {
+      await window.FirebaseConfigManager.init();
+    }
+
     // Initialize Firebase sync instead of mesh sync
     if (window.FirebaseSync) {
       await window.FirebaseSync.init();
