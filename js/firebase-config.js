@@ -17,30 +17,7 @@ class FirebaseConfigManager {
   }
 
   setupEventListeners() {
-    // Configure Firebase button
-    const configBtn = document.getElementById('configure-firebase-btn');
-    if (configBtn) {
-      configBtn.addEventListener('click', () => this.showConfigModal());
-    }
-
-    // Add fallback event delegation for dynamically created buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.id === 'configure-firebase-btn' || e.target.closest('#configure-firebase-btn')) {
-        this.showConfigModal();
-      }
-    });
-
-    // Test connection button
-    const testBtn = document.getElementById('test-connection-btn');
-    if (testBtn) {
-      testBtn.addEventListener('click', () => this.testConnection());
-    }
-
-    // Reset config button
-    const resetBtn = document.getElementById('reset-config-btn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => this.resetConfig());
-    }
+    // Firebase configuration UI removed - using environment credentials only
 
     // Join group button
     const joinGroupBtn = document.getElementById('join-group-btn');
