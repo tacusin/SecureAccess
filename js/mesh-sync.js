@@ -8,6 +8,7 @@ class MeshSync {
     this.deviceId = this.generateDeviceId();
     this.isCoordinator = false;
     this.connectedDevices = new Map();
+    this.connectedClients = new Map();
     this.syncEnabled = localStorage.getItem('mesh_sync_enabled') === 'true';
     this.localIP = null;
     this.port = 8080;
@@ -220,7 +221,9 @@ class MeshSync {
     this.syncEnabled = false;
     this.coordinatorActive = false;
     this.connectedDevices.clear();
-    this.connectedClients.clear();
+    if (this.connectedClients) {
+      this.connectedClients.clear();
+    }
     
     // Clear storage
     localStorage.removeItem('mesh_coordinator');
