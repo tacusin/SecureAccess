@@ -451,7 +451,6 @@ class ExportManager {
       
       const exportData = {
         exportedAt: new Date().toISOString(),
-        version: '1.0.0',
         app: 'Security Access Manager'
       };
       

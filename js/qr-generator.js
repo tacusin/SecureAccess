@@ -77,8 +77,7 @@ class QRGenerator {
         name: person.name,
         role: person.role,
         company: person.company || '',
-        timestamp: new Date().toISOString(),
-        version: '1.0'
+        timestamp: new Date().toISOString()
       };
 
       // Use QR code API service
@@ -121,7 +120,6 @@ class QRGenerator {
         protocol: 'http',
         syncEndpoint: '/p2p-sync',
         timestamp: new Date().toISOString(),
-        version: '1.0',
         description: 'Security Access Sync Host'
       };
 

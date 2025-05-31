@@ -2653,8 +2653,7 @@ SecurityApp.prototype.exportAllData = function() {
       personnel: window.StorageManager.getAllPersonnel(),
       activities: window.StorageManager.getActivityLog(1000),
       settings: window.StorageManager.getAllSettings(),
-      timestamp: new Date().toISOString(),
-      version: '1.0'
+      timestamp: new Date().toISOString()
     };
     
     const dataStr = JSON.stringify(allData, null, 2);

@@ -90,8 +90,7 @@ class StorageManager {
     try {
       // Save main data
       localStorage.setItem(this.storageKey, JSON.stringify({
-        lastSaved: new Date().toISOString(),
-        version: '1.0.0'
+        lastSaved: new Date().toISOString()
       }));
       
       // Save personnel data
@@ -480,8 +479,7 @@ class StorageManager {
         personnel: this.data.personnel,
         activities: this.data.activities,
         settings: this.data.settings,
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
+        exportedAt: new Date().toISOString()
       };
       
       return JSON.stringify(exportData, null, 2);
