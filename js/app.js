@@ -47,7 +47,11 @@ class SecurityApp {
       console.log('[App] Event listeners setup complete');
       
       // Apply saved theme
-      this.applyTheme(this.currentTheme);
+      try {
+        this.applyTheme(this.currentTheme);
+      } catch (e) {
+        console.warn('[App] Theme application failed:', e);
+      }
       
       // Initialize components
       await this.initializeComponents();
@@ -56,10 +60,16 @@ class SecurityApp {
       this.hideLoadingScreen();
       
       // Check if first time user and show tutorial
-      if (!localStorage.getItem('tutorial_completed')) {
-        setTimeout(() => {
-          window.TutorialManager.start();
-        }, 1000);
+      try {
+        if (!localStorage.getItem('tutorial_completed')) {
+          setTimeout(() => {
+            if (window.TutorialManager && window.TutorialManager.start) {
+              window.TutorialManager.start();
+            }
+          }, 1000);
+        }
+      } catch (e) {
+        console.warn('[App] Tutorial setup failed:', e);
       }
       
       console.log('[App] Application initialized successfully');
