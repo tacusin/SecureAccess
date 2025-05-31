@@ -49,6 +49,11 @@ class SecurityApp {
         console.log('[App] Personnel module initialized');
       }
 
+      if (window.ActivityModule) {
+        await window.ActivityModule.init();
+        console.log('[App] Activity module initialized');
+      }
+
       // Initialize storage
       await window.StorageManager.init();
       
@@ -260,8 +265,10 @@ class SecurityApp {
       await window.FirebaseSync.init();
     }
     
-    // Load initial data
-    await this.loadPersonnelList();
+    // Load initial data using the new modular approach
+    if (window.PersonnelModule && window.PersonnelModule.initialized) {
+      await this.loadPersonnelList();
+    }
     await this.updateDashboard();
   }
 
