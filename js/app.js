@@ -203,57 +203,101 @@ class SecurityApp {
     try {
       // Initialize dashboard
       if (window.DashboardManager) {
-        await window.DashboardManager.init();
+        try {
+          await window.DashboardManager.init();
+        } catch (e) {
+          console.warn('[App] Dashboard initialization failed:', e);
+        }
       }
       
       // Initialize camera
       if (window.CameraManager) {
-        await window.CameraManager.init();
+        try {
+          await window.CameraManager.init();
+        } catch (e) {
+          console.warn('[App] Camera initialization failed:', e);
+        }
       }
       
       // Initialize emergency module
       if (window.EmergencyManager) {
-        await window.EmergencyManager.init();
+        try {
+          await window.EmergencyManager.init();
+        } catch (e) {
+          console.warn('[App] Emergency initialization failed:', e);
+        }
       }
       
       // Initialize OCR manager
       if (window.OCRManager) {
-        await window.OCRManager.init();
+        try {
+          await window.OCRManager.init();
+        } catch (e) {
+          console.warn('[App] OCR initialization failed:', e);
+        }
       }
       
       // Initialize QR generator
       if (window.QRGenerator) {
-        await window.QRGenerator.init();
+        try {
+          await window.QRGenerator.init();
+        } catch (e) {
+          console.warn('[App] QR initialization failed:', e);
+        }
       }
       
       // Initialize reports manager
       if (window.ReportsManager) {
-        await window.ReportsManager.init();
+        try {
+          await window.ReportsManager.init();
+        } catch (e) {
+          console.warn('[App] Reports initialization failed:', e);
+        }
       }
       
       // Initialize shift manager
       if (window.ShiftManager) {
-        await window.ShiftManager.init();
+        try {
+          await window.ShiftManager.init();
+        } catch (e) {
+          console.warn('[App] Shift initialization failed:', e);
+        }
       }
 
       // Initialize sync password manager
       if (window.SyncPasswordManager) {
-        await window.SyncPasswordManager.init();
+        try {
+          await window.SyncPasswordManager.init();
+        } catch (e) {
+          console.warn('[App] SyncPassword initialization failed:', e);
+        }
       }
 
       // Initialize Firebase configuration manager
       if (window.FirebaseConfigManager) {
-        await window.FirebaseConfigManager.init();
+        try {
+          await window.FirebaseConfigManager.init();
+        } catch (e) {
+          console.warn('[App] FirebaseConfig initialization failed:', e);
+        }
       }
 
       // Initialize Firebase sync instead of mesh sync
       if (window.FirebaseSync) {
-        await window.FirebaseSync.init();
+        try {
+          await window.FirebaseSync.init();
+        } catch (e) {
+          console.warn('[App] FirebaseSync initialization failed:', e);
+        }
       }
       
       // Load initial data
-      await this.loadPersonnelList();
-      await this.updateDashboard();
+      try {
+        await this.loadPersonnelList();
+        await this.updateDashboard();
+      } catch (e) {
+        console.warn('[App] Initial data loading failed:', e);
+      }
       
     } catch (error) {
       console.error('[App] Error in component initialization:', error);
