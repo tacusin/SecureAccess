@@ -634,12 +634,58 @@ class FirebaseSync {
   showSyncActivity(message) {
     console.log('[FirebaseSync]', message);
     
+    // Update sync activity UI elements
+    this.updateSyncActivityUI();
+    
     // Show toast notification for important sync events
     if (window.app && typeof window.app.showToast === 'function') {
       if (message.includes('connected') || message.includes('synced')) {
         window.app.showToast(message, 'success');
       } else if (message.includes('error') || message.includes('failed')) {
         window.app.showToast(message, 'error');
+      }
+    }
+  }
+
+  updateSyncActivityUI() {
+    // Update last sync time
+    const lastSyncElement = document.getElementById('last-sync-time');
+    if (lastSyncElement) {
+      lastSyncElement.textContent = new Date().toLocaleTimeString();
+    }
+    
+    // Update queue size
+    const queueSizeElement = document.getElementById('sync-queue-size');
+    if (queueSizeElement) {
+      queueSizeElement.textContent = this.syncQueue.length;
+    }
+    
+    // Update total synced counter
+    const totalSyncedElement = document.getElementById('total-synced');
+    if (totalSyncedElement) {
+      const currentCount = parseInt(totalSyncedElement.textContent) || 0;
+      totalSyncedElement.textContent = currentCount + 1;
+    }
+    
+    // Add activity to sync log
+    const syncLog = document.getElementById('firebase-sync-log');
+    if (syncLog) {
+      const activityItem = document.createElement('div');
+      activityItem.className = 'sync-log-item';
+      activityItem.innerHTML = `
+        <div class="sync-log-icon">
+          <span class="material-icons">sync</span>
+        </div>
+        <div class="sync-log-details">
+          <div class="sync-log-action">Firebase Sync</div>
+          <div class="sync-log-time">${new Date().toLocaleTimeString()}</div>
+        </div>
+      `;
+      syncLog.insertBefore(activityItem, syncLog.firstChild);
+      
+      // Keep only last 10 items
+      while (syncLog.children.length > 10) {
+        syncLog.removeChild(syncLog.lastChild);
       }
     }
   }
