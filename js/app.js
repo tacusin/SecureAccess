@@ -97,6 +97,9 @@ class SecurityApp {
       button.addEventListener('click', (e) => this.handleQuickAction(e));
     });
     
+    // Profile setup button
+    this.setupProfileButtonListener();
+    
     // Modal handling
     document.getElementById('modal-overlay').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) {
@@ -2834,6 +2837,40 @@ SecurityApp.prototype.clearAllLocalStorage = async function() {
       this.showError('Failed to clear data: ' + error.message);
     }
   }
+};
+
+SecurityApp.prototype.setupProfileButtonListener = function() {
+  // Setup listener for profile button with retry mechanism
+  const attachListener = () => {
+    const profileBtn = document.getElementById('setup-user-profile-btn');
+    if (profileBtn && !profileBtn.hasAttribute('data-listener-attached')) {
+      profileBtn.setAttribute('data-listener-attached', 'true');
+      profileBtn.addEventListener('click', async () => {
+        console.log('[App] Setup Profile button clicked');
+        if (window.SyncPassword) {
+          try {
+            const userIdentity = await window.SyncPassword.getUserIdentity();
+            if (userIdentity && window.FirebaseSync && window.FirebaseSync.currentGroupId) {
+              await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
+              this.showToast('Profile setup completed successfully!', 'success');
+            } else {
+              this.showToast('Please join a security group first', 'warning');
+            }
+          } catch (error) {
+            console.error('[App] Profile setup failed:', error);
+            this.showError('Failed to setup profile: ' + error.message);
+          }
+        }
+      });
+      console.log('[App] Profile button listener attached');
+    }
+  };
+
+  // Try multiple times to attach the listener
+  attachListener();
+  setTimeout(attachListener, 500);
+  setTimeout(attachListener, 1000);
+  setTimeout(attachListener, 2000);
 };
 
 SecurityApp.prototype.exportAllData = function() {
