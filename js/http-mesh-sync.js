@@ -44,47 +44,46 @@ class HTTPMeshSync {
 
   async getLocalIP() {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip;
-    } catch (error) {
-      // Fallback to WebRTC method for local IP
-      try {
-        const connection = new RTCPeerConnection({
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-        });
+      // Use WebRTC to get local IP for better accuracy
+      const connection = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      
+      connection.createDataChannel('');
+      const offer = await connection.createOffer();
+      await connection.setLocalDescription(offer);
+      
+      return new Promise((resolve, reject) => {
+        let resolved = false;
+        const timeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            connection.close();
+            // Return a common local IP range as fallback
+            resolve('192.168.1.100');
+          }
+        }, 3000);
         
-        connection.createDataChannel('');
-        const offer = await connection.createOffer();
-        await connection.setLocalDescription(offer);
-        
-        return new Promise((resolve, reject) => {
-          let resolved = false;
-          const timeout = setTimeout(() => {
-            if (!resolved) {
-              resolved = true;
-              connection.close();
-              resolve('192.168.1.100'); // Fallback IP
-            }
-          }, 3000);
-          
-          connection.onicecandidate = (event) => {
-            if (event.candidate && !resolved) {
-              const candidate = event.candidate.candidate;
-              const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-              if (ipMatch && (ipMatch[1].startsWith('192.168.') || ipMatch[1].startsWith('10.'))) {
+        connection.onicecandidate = (event) => {
+          if (event.candidate && !resolved) {
+            const candidate = event.candidate.candidate;
+            const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+            if (ipMatch) {
+              const ip = ipMatch[1];
+              // Prefer local network IPs
+              if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
                 resolved = true;
                 clearTimeout(timeout);
                 connection.close();
-                resolve(ipMatch[1]);
+                resolve(ip);
               }
             }
-          };
-        });
-      } catch (rtcError) {
-        console.error('[HTTPMeshSync] Error getting local IP:', rtcError);
-        return '192.168.1.100';
-      }
+          }
+        };
+      });
+    } catch (error) {
+      console.error('[HTTPMeshSync] Error getting local IP:', error);
+      return '192.168.1.100';
     }
   }
 
