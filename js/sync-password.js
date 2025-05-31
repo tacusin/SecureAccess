@@ -29,6 +29,10 @@ class SyncPasswordManager {
       if (e.target.id === 'change-group-btn') {
         this.showSyncPasswordModal();
       }
+      if (e.target.id === 'join-group-btn') {
+        console.log('[SyncPassword] Join group button clicked via delegation');
+        this.showSyncPasswordModal();
+      }
     });
   }
 
