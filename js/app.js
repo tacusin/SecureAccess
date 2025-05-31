@@ -38,6 +38,17 @@ class SecurityApp {
       }
       console.log('[App] Service worker registration disabled for development');
       
+      // Initialize core modules first
+      if (window.CoreModule) {
+        await window.CoreModule.init();
+        console.log('[App] Core module initialized');
+      }
+
+      if (window.PersonnelModule) {
+        await window.PersonnelModule.init();
+        console.log('[App] Personnel module initialized');
+      }
+
       // Initialize storage
       await window.StorageManager.init();
       
@@ -1491,25 +1502,11 @@ class SecurityApp {
 
   // UI Feedback
   showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-      <span class="material-icons">${this.getToastIcon(type)}</span>
-      <span>${message}</span>
-    `;
-    
-    let toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-      toastContainer = document.createElement('div');
-      toastContainer.id = 'toast-container';
-      toastContainer.className = 'toast-container';
-      document.body.appendChild(toastContainer);
+    if (window.CoreModule) {
+      window.CoreModule.showToast(message, type);
+    } else {
+      console.log(`[Toast] ${type.toUpperCase()}: ${message}`);
     }
-    toastContainer.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.remove();
-    }, 5000);
   }
 
   getToastIcon(type) {
@@ -1523,7 +1520,11 @@ class SecurityApp {
   }
 
   showError(message) {
-    this.showToast(message, 'error');
+    if (window.CoreModule) {
+      window.CoreModule.showError(message);
+    } else {
+      console.error(`[Error] ${message}`);
+    }
   }
 
   // OCR and QR Code functionality
