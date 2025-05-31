@@ -344,6 +344,18 @@ class SecurityApp {
   }
 
   async updatePageContent(pageId) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+    });
+
+    // Show target page
+    const targetPage = document.getElementById(`${pageId}-page`);
+    if (targetPage) {
+      targetPage.classList.add('active');
+    }
+
+    // Update page-specific content
     switch (pageId) {
       case 'dashboard':
         await this.updateDashboard();
@@ -357,9 +369,6 @@ class SecurityApp {
       case 'personnel':
         await this.loadAllPersonnel();
         break;
-      case 'reports':
-        // Reports page content is static
-        break;
       case 'emergency':
         if (window.EmergencyManager) {
           await window.EmergencyManager.updateContent();
@@ -367,9 +376,6 @@ class SecurityApp {
         break;
       case 'activity':
         await this.updateActivityPage();
-        break;
-      case 'sync-page':
-        await this.updateSyncPage();
         break;
     }
   }

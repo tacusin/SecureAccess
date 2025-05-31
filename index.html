@@ -107,13 +107,57 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dynamic Content Container -->
-            <div id="main-content" class="page-container">
-                <!-- Dynamic content will be loaded here -->
-                <div class="loading-template">
-                    <div class="loading-spinner"></div>
-                    <p>Loading page...</p>
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <div class="occupancy-counter">
+                        <div class="counter-card">
+                            <span class="counter-number" id="current-occupancy">0</span>
+                            <span class="counter-label">Current Occupancy</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="action-button primary" data-action="quick-checkin">
+                                <span class="material-icons">login</span>
+                                Quick Check-In
+                            </button>
+                            <button class="action-button secondary" data-action="bulk-checkout">
+                                <span class="material-icons">logout</span>
+                                Bulk Check-Out
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Today's Activity</h3>
+                        <div class="stats-grid">
+                            <div class="stat">
+                                <span class="stat-number" id="todays-checkins">0</span>
+                                <span class="stat-label">Check-ins</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" id="todays-checkouts">0</span>
+                                <span class="stat-label">Check-outs</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card full-width">
+                        <h3>Current Occupants</h3>
+                        <div id="current-occupants-list" class="occupants-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Other pages would go here in the original structure -->
 
         </main>
 
@@ -134,489 +178,10 @@
     </div>
 
     <!-- Scripts -->
-                            <span class="material-icons">schedule</span>
-                            Start Shift
-                        </button>
-                        <button id="end-shift-btn" class="action-button secondary">
-                            <span class="material-icons">stop</span>
-                            End Shift
-                        </button>
-                        <button id="handover-btn" class="action-button secondary">
-                            <span class="material-icons">assignment</span>
-                            Create Handover
-                        </button>
-                    </div>
-                </div>
-
-                <div class="shifts-grid">
-                    <!-- Current Shift Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Current Shift</h3>
-                            <span class="shift-status" id="shift-status">No Active Shift</span>
-                        </div>
-                        <div class="card-body" id="current-shift-info">
-                            <div class="no-shift-message">
-                                <span class="material-icons">schedule</span>
-                                <p>No shift is currently active</p>
-                                <button class="action-button primary" onclick="app.showStartShiftModal()">
-                                    Start New Shift
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pending Handovers Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Pending Handovers</h3>
-                            <span class="handover-count" id="handover-count">0</span>
-                        </div>
-                        <div class="card-body">
-                            <div id="pending-handovers" class="handover-list">
-                                <div class="no-handovers-message">
-                                    <span class="material-icons">assignment_turned_in</span>
-                                    <p>No pending handovers</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Shift History Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Recent Shifts</h3>
-                            <button class="icon-button" onclick="app.showShiftHistory()">
-                                <span class="material-icons">history</span>
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="shift-history" class="shift-list">
-                                <!-- Shift history will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Check-In/Out Page -->
-            <div id="checkin-page" class="page">
-                <div class="page-header">
-                    <h2>Check In/Out</h2>
-                    <div class="search-container">
-                        <input type="text" id="person-search" placeholder="Search personnel..." class="search-input">
-                        <span class="material-icons search-icon">search</span>
-                    </div>
-                </div>
-                
-                <div class="checkin-actions">
-                    <button id="scan-qr-btn" class="action-button secondary">
-                        <span class="material-icons">qr_code_scanner</span>
-                        Scan QR Code
-                    </button>
-                    <button id="scan-id-btn" class="action-button secondary">
-                        <span class="material-icons">document_scanner</span>
-                        Scan ID Card
-                    </button>
-                    <button id="add-visitor-btn" class="action-button primary">
-                        <span class="material-icons">person_add</span>
-                        Add Visitor
-                    </button>
-                </div>
-                
-                <div id="personnel-list" class="personnel-list">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Personnel Management Page -->
-            <div id="personnel-page" class="page">
-                <div class="page-header">
-                    <h2>Personnel Management</h2>
-                    <div class="header-actions">
-                        <button id="export-personnel-btn" class="action-button secondary">
-                            <span class="material-icons">download</span>
-                            Export
-                        </button>
-                        <button id="add-personnel-btn" class="action-button primary">
-                            <span class="material-icons">person_add</span>
-                            Add Personnel
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="filters">
-                    <select id="role-filter" class="filter-select">
-                        <option value="">All Roles</option>
-                        <option value="employee">Employee</option>
-                        <option value="contractor">Contractor</option>
-                        <option value="visitor">Visitor</option>
-                        <option value="vip">VIP</option>
-                    </select>
-                    <select id="status-filter" class="filter-select">
-                        <option value="">All Status</option>
-                        <option value="checked-in">Checked In</option>
-                        <option value="checked-out">Checked Out</option>
-                    </select>
-                </div>
-                
-                <div id="all-personnel-list" class="personnel-grid">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Reports Page -->
-            <div id="reports-page" class="page">
-                <div class="page-header">
-                    <h2>Reports & Analytics</h2>
-                    <div class="header-actions">
-                        <button id="generate-report-btn" class="action-button primary">
-                            <span class="material-icons">description</span>
-                            Generate Report
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="reports-grid">
-                    <div class="card">
-                        <h3>Occupancy Trends</h3>
-                        <div class="chart-container">
-                            <canvas id="occupancy-chart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Visit Duration</h3>
-                        <div class="chart-container">
-                            <canvas id="duration-chart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Advanced Reports</h3>
-                        <div class="report-options">
-                            <button class="report-btn" data-report="occupancy-summary">
-                                <span class="material-icons">analytics</span>
-                                Occupancy Summary
-                            </button>
-                            <button class="report-btn" data-report="personnel-activity">
-                                <span class="material-icons">people</span>
-                                Personnel Activity
-                            </button>
-                            <button class="report-btn" data-report="security-audit">
-                                <span class="material-icons">security</span>
-                                Security Audit
-                            </button>
-                            <button class="report-btn" data-report="visitor-analytics">
-                                <span class="material-icons">insights</span>
-                                Visitor Analytics
-                            </button>
-                            <button class="report-btn" data-report="time-tracking">
-                                <span class="material-icons">schedule</span>
-                                Time Tracking
-                            </button>
-                            <button class="report-btn" data-report="compliance">
-                                <span class="material-icons">verified</span>
-                                Compliance Report
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Export Options</h3>
-                        <div class="export-options">
-                            <button class="export-btn" data-format="csv">
-                                <span class="material-icons">description</span>
-                                CSV Export
-                            </button>
-                            <button class="export-btn" data-format="pdf">
-                                <span class="material-icons">picture_as_pdf</span>
-                                PDF Report
-                            </button>
-                            <button class="export-btn" data-format="json">
-                                <span class="material-icons">code</span>
-                                JSON Data
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Emergency Page -->
-            <div id="emergency-page" class="page">
-                <div class="page-header emergency-header">
-                    <h2>Emergency Mode</h2>
-                    <div class="emergency-status">
-                        <span class="material-icons">warning</span>
-                        Emergency protocols active
-                    </div>
-                </div>
-                
-                <div class="emergency-actions">
-                    <button id="evacuation-list-btn" class="emergency-action-btn">
-                        <span class="material-icons">list</span>
-                        Generate Evacuation List
-                    </button>
-                    <button id="missing-persons-btn" class="emergency-action-btn">
-                        <span class="material-icons">person_search</span>
-                        Missing Persons
-                    </button>
-                    <button id="bulk-checkout-emergency-btn" class="emergency-action-btn">
-                        <span class="material-icons">logout</span>
-                        Emergency Checkout All
-                    </button>
-                </div>
-                
-                <div id="emergency-content" class="emergency-content">
-                    <!-- Emergency content will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Network Sync Page -->
-            <div id="sync-page" class="page">
-                <div class="page-header">
-                    <h2>Firebase Sync</h2>
-                    <div class="firebase-status-bar">
-                        <div class="sync-info">
-                            <span class="firebase-status" id="firebase-status">Not Connected</span>
-                            <span class="group-info">Group: <span id="current-group">None</span></span>
-                            <span class="device-count">Devices: <span id="connected-devices-count">0</span></span>
-                        </div>
-                        <div class="sync-indicator" id="firebase-indicator">
-                            <span class="material-icons">cloud_off</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="firebase-controls">
-                    <div class="control-group">
-                        <h3>Security Group</h3>
-                        <div class="group-controls">
-                            <button id="join-group-btn" class="action-button primary">
-                                <span class="material-icons">group_add</span>
-                                Join/Create Group
-                            </button>
-                            <button id="change-group-btn" class="action-button secondary" style="display: none;">
-                                <span class="material-icons">group</span>
-                                Change Group
-                            </button>
-                            <button id="show-group-qr-btn" class="action-button secondary">
-                                <span class="material-icons">qr_code</span>
-                                Show Group QR
-                            </button>
-                        </div>
-                        <div class="current-group-display" id="current-group-display" style="display: none;">
-                            <div class="group-badge">
-                                <span class="material-icons">group</span>
-                                <span id="group-name-display">No Group</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <h3>Firebase Configuration</h3>
-                        <div class="firebase-config-form">
-                            <div class="config-status" id="firebase-config-status">
-                                <span class="material-icons status-icon">cloud_off</span>
-                                <span class="status-text">Firebase not configured</span>
-                            </div>
-                            
-                            <div class="config-buttons">
-                                <button id="configure-firebase-btn" class="action-button primary">
-                                    <span class="material-icons">settings</span>
-                                    Configure Firebase
-                                </button>
-                                <button id="test-connection-btn" class="action-button secondary" disabled>
-                                    <span class="material-icons">wifi_protected_setup</span>
-                                    Test Connection
-                                </button>
-                                <button id="reset-config-btn" class="action-button danger" style="display: none;">
-                                    <span class="material-icons">restart_alt</span>
-                                    Reset Config
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <h3>Sync Activity</h3>
-                        <div class="sync-activity-container">
-                            <div class="activity-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Last Sync</span>
-                                    <span class="stat-value" id="last-sync-time">Never</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Queue Size</span>
-                                    <span class="stat-value" id="sync-queue-size">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Total Synced</span>
-                                    <span class="stat-value" id="total-synced">0</span>
-                                </div>
-                            </div>
-                            
-                            <div class="sync-log-container">
-                                <div class="log-header">
-                                    <h4>Group Members</h4>
-                                    <span id="group-member-count" class="member-count">0/0 online</span>
-                                </div>
-                                <div id="group-members-list" class="members-list">
-                                    <div class="no-members">
-                                        <p>Complete your profile to see group members</p>
-                                        <button id="setup-user-profile-btn" class="action-button primary">
-                                            <span class="material-icons">person_add</span>
-                                            Setup Profile
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="sync-log-container">
-                                <div class="log-header">
-                                    <h4>Recent Activity</h4>
-                                    <button id="clear-firebase-log-btn" class="icon-button">
-                                        <span class="material-icons">clear_all</span>
-                                    </button>
-                                </div>
-                                <div id="firebase-sync-log" class="sync-log">
-                                    <div class="log-item">
-                                        <span class="log-time">--:--</span>
-                                        <span class="log-message">Waiting for Firebase connection...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activity Log Page -->
-            <div id="activity-page" class="page">
-                <div class="page-header">
-                    <h2>Activity Log</h2>
-                    <div class="header-actions">
-                        <button id="clear-activity-btn" class="action-button secondary">
-                            <span class="material-icons">delete_sweep</span>
-                            Clear Old Logs
-                        </button>
-                        <button id="bulk-select-btn" class="action-button primary">
-                            <span class="material-icons">check_box</span>
-                            Select Items
-                        </button>
-                        <button id="bulk-delete-btn" class="action-button danger" style="display: none;">
-                            <span class="material-icons">delete</span>
-                            Delete Selected
-                        </button>
-                    </div>
-                </div>
-
-                <div class="activity-filters">
-                    <div class="filter-group">
-                        <select id="activity-type-filter" class="filter-select">
-                            <option value="all">All Activities</option>
-                            <option value="check_in">Check Ins</option>
-                            <option value="check_out">Check Outs</option>
-                            <option value="personnel_added">Personnel Added</option>
-                            <option value="personnel_updated">Personnel Updated</option>
-                            <option value="personnel_deleted">Personnel Deleted</option>
-                            <option value="shift_start">Shift Started</option>
-                            <option value="shift_end">Shift Ended</option>
-                            <option value="emergency">Emergency Events</option>
-                        </select>
-                        <input type="date" id="activity-date-filter" class="filter-input">
-                        <button id="apply-filters-btn" class="action-button secondary">
-                            <span class="material-icons">filter_list</span>
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-
-                <div class="activity-stats">
-                    <div class="stat-card">
-                        <span class="stat-label">Today's Activities</span>
-                        <span id="today-activities-count" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Undoable Actions</span>
-                        <span id="undoable-actions-count" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Total Logged</span>
-                        <span id="total-activities-count" class="stat-value">0</span>
-                    </div>
-                </div>
-
-                <div class="activity-log-container">
-                    <div id="activity-log-list" class="activity-log-list">
-                        <!-- Activity items will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Help Page -->
-            <div id="help-page" class="page">
-                <div class="page-header">
-                    <h2>Help & Tutorial</h2>
-                    <button id="start-tutorial-btn" class="action-button primary">
-                        <span class="material-icons">school</span>
-                        Start Tutorial
-                    </button>
-                </div>
-                
-                <div class="help-content">
-                    <div class="help-section">
-                        <h3>Quick Start Guide</h3>
-                        <ol>
-                            <li>Add personnel to the system using the Personnel page</li>
-                            <li>Use the Check In/Out page for daily operations</li>
-                            <li>Monitor occupancy from the Dashboard</li>
-                            <li>Access Emergency mode when needed</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="help-section">
-                        <h3>Features</h3>
-                        <ul>
-                            <li>Touch-optimized interface</li>
-                            <li>Offline functionality</li>
-                            <li>Photo capture for personnel</li>
-                            <li>Real-time occupancy tracking</li>
-                            <li>Emergency evacuation tools</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div id="modal-content" class="modal-content">
-            <!-- Modal content will be dynamically loaded -->
-        </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- Fab Menu -->
-    <div class="fab-menu">
-        <button id="fab-main" class="fab primary">
-            <span class="material-icons">add</span>
-        </button>
-    </div>
-
-    <!-- Auto-save indicator -->
-    <div id="save-indicator" class="save-indicator hidden">
-        <span class="material-icons">cloud_done</span>
-        <span>Saved</span>
-    </div>
-
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
     <script src="js/storage.js?v=2"></script>
     <script src="js/camera.js?v=2"></script>
     <script src="js/export.js?v=2"></script>
