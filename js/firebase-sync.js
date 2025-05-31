@@ -246,31 +246,17 @@ class FirebaseSync {
   async ensureDefaultGroup() {
     if (!this.currentUser) return;
     
-    // Create default group for demo purposes
-    const defaultGroupId = 'security_team_alpha';
-    
-    try {
-      // Add user to default group if not already a member
-      const userRef = this.database.ref(`users/${this.currentUser.uid}`);
-      const groupRef = this.database.ref(`groupData/${defaultGroupId}/members/${this.currentUser.uid}`);
-      
-      await Promise.all([
-        userRef.update({
-          name: 'Security Officer',
-          groups: {
-            [defaultGroupId]: true
-          }
-        }),
-        groupRef.set(true)
-      ]);
-      
-      this.currentGroupId = defaultGroupId;
-      this.userGroups = [defaultGroupId];
-      
-      console.log('[FirebaseSync] Default group setup completed:', defaultGroupId);
-    } catch (error) {
-      console.error('[FirebaseSync] Failed to setup default group:', error);
+    // Check if sync password manager has set a group
+    const syncGroup = window.SyncPasswordManager?.getCurrentGroup();
+    if (syncGroup) {
+      this.currentGroupId = syncGroup;
+      this.userGroups = [syncGroup];
+      console.log('[FirebaseSync] Using sync password group:', syncGroup);
+      return;
     }
+    
+    // Wait for sync password manager to set up group
+    console.log('[FirebaseSync] Waiting for sync password group selection...');
   }
 
   setupConnectionMonitoring() {

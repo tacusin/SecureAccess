@@ -215,6 +215,11 @@ class SecurityApp {
       await window.ShiftManager.init();
     }
 
+    // Initialize sync password manager
+    if (window.SyncPasswordManager) {
+      await window.SyncPasswordManager.init();
+    }
+
     // Initialize Firebase sync instead of mesh sync
     if (window.FirebaseSync) {
       await window.FirebaseSync.init();

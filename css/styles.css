@@ -239,6 +239,28 @@ body {
   font-size: 18px;
 }
 
+/* Sync password styles */
+.current-group-info {
+  padding: var(--spacing-md);
+  background: hsl(var(--primary) / 0.1);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-md);
+  color: hsl(var(--on-surface));
+}
+
+.form-help {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--on-surface-variant));
+  margin-top: var(--spacing-xs);
+  line-height: 1.4;
+}
+
+.app-title > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 /* Navigation */
 .nav-drawer {
   grid-area: nav;
