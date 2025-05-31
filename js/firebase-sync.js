@@ -821,7 +821,16 @@ function attachProfileButtonListener() {
     profileBtn.setAttribute('data-listener-attached', 'true');
     profileBtn.addEventListener('click', async () => {
       console.log('[FirebaseSync] Setup Profile button clicked');
-      if (window.SyncPassword) {
+      
+      // Clear any cached identity to force modal to show
+      localStorage.removeItem('userIdentity');
+      
+      // Show profile modal directly using app's modal system
+      if (window.app && window.app.showProfileSetupModal) {
+        console.log('[FirebaseSync] Using app modal system');
+        window.app.showProfileSetupModal();
+      } else if (window.SyncPassword) {
+        console.log('[FirebaseSync] Using SyncPassword modal system');
         try {
           const userIdentity = await window.SyncPassword.getUserIdentity();
           if (userIdentity && window.FirebaseSync.currentGroupId) {
