@@ -302,29 +302,45 @@ class FirebaseSync {
     });
   }
 
-  setupDataListeners() {
-    // Listen for personnel changes
-    const personnelRef = this.database.ref('personnel');
+  setupGroupBasedListeners() {
+    if (!this.currentGroupId) {
+      console.warn('[FirebaseSync] No group ID available for listeners');
+      return;
+    }
+
+    const groupPath = `groupData/${this.currentGroupId}`;
+    
+    // Listen for personnel changes within the group
+    const personnelRef = this.database.ref(`${groupPath}/personnel`);
     personnelRef.on('child_added', this.handlePersonnelUpdate);
     personnelRef.on('child_changed', this.handlePersonnelUpdate);
     personnelRef.on('child_removed', (snapshot) => {
       this.handlePersonnelUpdate(snapshot, 'removed');
     });
 
-    // Listen for activity changes
-    const activitiesRef = this.database.ref('activities');
+    // Listen for activity changes within the group
+    const activitiesRef = this.database.ref(`${groupPath}/activities`);
     activitiesRef.on('child_added', this.handleActivityUpdate);
 
-    // Listen for shift changes
-    const shiftsRef = this.database.ref('shifts');
+    // Listen for shift changes within the group
+    const shiftsRef = this.database.ref(`${groupPath}/shifts`);
     shiftsRef.on('child_added', this.handleShiftUpdate);
     shiftsRef.on('child_changed', this.handleShiftUpdate);
 
-    // Listen for emergency updates
-    const emergencyRef = this.database.ref('emergency');
+    // Listen for emergency updates within the group
+    const emergencyRef = this.database.ref(`${groupPath}/emergency`);
     emergencyRef.on('value', this.handleEmergencyUpdate);
 
-    console.log('[FirebaseSync] Data listeners established');
+    // Listen for occupancy updates within the group
+    const occupancyRef = this.database.ref(`${groupPath}/occupancy`);
+    occupancyRef.on('value', (snapshot) => {
+      const occupancyData = snapshot.val();
+      if (occupancyData && window.app) {
+        window.app.updateDashboard();
+      }
+    });
+
+    console.log('[FirebaseSync] Group-based data listeners established for:', this.currentGroupId);
   }
 
   handlePersonnelUpdate(snapshot, eventType = 'changed') {
@@ -437,21 +453,21 @@ class FirebaseSync {
     }
   }
 
-  // Sync methods called by StorageManager
+  // Group-based sync methods called by StorageManager
   async syncPersonnel(personnel) {
-    if (!this.isInitialized || !this.isConnected) {
+    if (!this.isInitialized || !this.isConnected || !this.currentGroupId) {
       this.queueSync('personnel', personnel);
       return;
     }
 
     try {
-      const personnelRef = this.database.ref(`personnel/${personnel.id}`);
+      const personnelRef = this.database.ref(`groupData/${this.currentGroupId}/personnel/${personnel.id}`);
       await personnelRef.set({
         ...personnel,
-        deviceId: this.deviceId,
-        syncTimestamp: firebase.database.ServerValue.TIMESTAMP
+        userId: this.currentUser.uid,
+        syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
       });
-      console.log('[FirebaseSync] Personnel synced:', personnel.id);
+      console.log('[FirebaseSync] Personnel synced to group:', personnel.id);
     } catch (error) {
       console.error('[FirebaseSync] Failed to sync personnel:', error);
       this.queueSync('personnel', personnel);
@@ -459,19 +475,19 @@ class FirebaseSync {
   }
 
   async syncActivity(activity) {
-    if (!this.isInitialized || !this.isConnected) {
+    if (!this.isInitialized || !this.isConnected || !this.currentGroupId) {
       this.queueSync('activity', activity);
       return;
     }
 
     try {
-      const activityRef = this.database.ref('activities').push();
+      const activityRef = this.database.ref(`groupData/${this.currentGroupId}/activities`).push();
       await activityRef.set({
         ...activity,
-        deviceId: this.deviceId,
-        syncTimestamp: firebase.database.ServerValue.TIMESTAMP
+        userId: this.currentUser.uid,
+        syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
       });
-      console.log('[FirebaseSync] Activity synced:', activity.action);
+      console.log('[FirebaseSync] Activity synced to group:', activity.action);
     } catch (error) {
       console.error('[FirebaseSync] Failed to sync activity:', error);
       this.queueSync('activity', activity);
@@ -479,19 +495,19 @@ class FirebaseSync {
   }
 
   async syncShift(shift) {
-    if (!this.isInitialized || !this.isConnected) {
+    if (!this.isInitialized || !this.isConnected || !this.currentGroupId) {
       this.queueSync('shift', shift);
       return;
     }
 
     try {
-      const shiftRef = this.database.ref(`shifts/${shift.id}`);
+      const shiftRef = this.database.ref(`groupData/${this.currentGroupId}/shifts/${shift.id}`);
       await shiftRef.set({
         ...shift,
-        deviceId: this.deviceId,
-        syncTimestamp: firebase.database.ServerValue.TIMESTAMP
+        userId: this.currentUser.uid,
+        syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
       });
-      console.log('[FirebaseSync] Shift synced:', shift.id);
+      console.log('[FirebaseSync] Shift synced to group:', shift.id);
     } catch (error) {
       console.error('[FirebaseSync] Failed to sync shift:', error);
       this.queueSync('shift', shift);
@@ -499,22 +515,42 @@ class FirebaseSync {
   }
 
   async syncEmergency(emergencyData) {
-    if (!this.isInitialized || !this.isConnected) {
+    if (!this.isInitialized || !this.isConnected || !this.currentGroupId) {
       this.queueSync('emergency', emergencyData);
       return;
     }
 
     try {
-      const emergencyRef = this.database.ref('emergency');
+      const emergencyRef = this.database.ref(`groupData/${this.currentGroupId}/emergency`);
       await emergencyRef.set({
         ...emergencyData,
-        deviceId: this.deviceId,
-        syncTimestamp: firebase.database.ServerValue.TIMESTAMP
+        userId: this.currentUser.uid,
+        syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
       });
-      console.log('[FirebaseSync] Emergency state synced');
+      console.log('[FirebaseSync] Emergency state synced to group');
     } catch (error) {
       console.error('[FirebaseSync] Failed to sync emergency state:', error);
       this.queueSync('emergency', emergencyData);
+    }
+  }
+
+  async syncOccupancy(occupancyData) {
+    if (!this.isInitialized || !this.isConnected || !this.currentGroupId) {
+      this.queueSync('occupancy', occupancyData);
+      return;
+    }
+
+    try {
+      const occupancyRef = this.database.ref(`groupData/${this.currentGroupId}/occupancy`);
+      await occupancyRef.set({
+        ...occupancyData,
+        userId: this.currentUser.uid,
+        syncTimestamp: window.firebase.database.ServerValue.TIMESTAMP
+      });
+      console.log('[FirebaseSync] Occupancy synced to group');
+    } catch (error) {
+      console.error('[FirebaseSync] Failed to sync occupancy:', error);
+      this.queueSync('occupancy', occupancyData);
     }
   }
 

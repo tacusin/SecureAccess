@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name'])"
+      }
+    },
+    
+    "groupData": {
+      "$groupId": {
+        ".read": "auth != null && root.child('groupData').child($groupId).child('members').child(auth.uid).exists()",
+        ".write": "auth != null && root.child('groupData').child($groupId).child('members').child(auth.uid).exists()",
+        ".validate": "newData.exists()",
+        
+        "members": {
+          "$memberUid": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        
+        "personnel": {
+          "$personnelId": {
+            ".validate": "newData.hasChildren(['name', 'role', 'status']) && newData.child('userId').val() === auth.uid"
+          }
+        },
+        
+        "activities": {
+          "$activityId": {
+            ".validate": "newData.hasChildren(['action', 'timestamp']) && newData.child('userId').val() === auth.uid"
+          }
+        },
+        
+        "shifts": {
+          "$shiftId": {
+            ".validate": "newData.hasChildren(['startTime']) && newData.child('userId').val() === auth.uid"
+          }
+        },
+        
+        "emergency": {
+          ".validate": "newData.hasChildren(['status']) && newData.child('userId').val() === auth.uid"
+        },
+        
+        "occupancy": {
+          ".validate": "newData.hasChildren(['count', 'timestamp']) && newData.child('userId').val() === auth.uid"
+        }
+      }
+    },
+    
+    ".read": false,
+    ".write": false
+  }
+}
