@@ -1028,12 +1028,34 @@ class SecurityApp {
       const person = window.StorageManager.getPersonnel(personId);
       if (!person) return;
       
-      if (person.status === 'checked-in') {
+      const wasCheckedIn = person.status === 'checked-in';
+      
+      if (wasCheckedIn) {
         await window.StorageManager.checkOut(personId);
         this.showToast(`${person.name} checked out successfully.`, 'success');
+        
+        // Broadcast check-out event to mesh network
+        if (window.MeshSync) {
+          window.MeshSync.broadcastEvent('check_out', {
+            personId: personId,
+            name: person.name,
+            role: person.role,
+            timestamp: Date.now()
+          });
+        }
       } else {
         await window.StorageManager.checkIn(personId);
         this.showToast(`${person.name} checked in successfully.`, 'success');
+        
+        // Broadcast check-in event to mesh network
+        if (window.MeshSync) {
+          window.MeshSync.broadcastEvent('check_in', {
+            personId: personId,
+            name: person.name,
+            role: person.role,
+            timestamp: Date.now()
+          });
+        }
       }
       
       // Update displays
