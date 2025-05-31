@@ -2851,28 +2851,8 @@ SecurityApp.prototype.setupProfileButtonListener = function() {
         // Clear any existing user identity to force the modal to show
         localStorage.removeItem('userIdentity');
         
-        if (window.SyncPassword) {
-          try {
-            console.log('[App] Calling getUserIdentity...');
-            const userIdentity = await window.SyncPassword.getUserIdentity();
-            console.log('[App] User identity received:', userIdentity);
-            
-            if (userIdentity && window.FirebaseSync && window.FirebaseSync.currentGroupId) {
-              console.log('[App] Setting up Firebase membership...');
-              await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
-              this.showToast('Profile setup completed successfully!', 'success');
-            } else {
-              console.log('[App] No group or identity found');
-              this.showToast('Please join a security group first', 'warning');
-            }
-          } catch (error) {
-            console.error('[App] Profile setup failed:', error);
-            this.showError('Failed to setup profile: ' + error.message);
-          }
-        } else {
-          console.error('[App] SyncPassword not available');
-          this.showError('Profile system not available');
-        }
+        // Show the profile setup modal directly
+        this.showProfileSetupModal();
       });
       console.log('[App] Profile button listener attached');
     }
@@ -2883,6 +2863,92 @@ SecurityApp.prototype.setupProfileButtonListener = function() {
   setTimeout(attachListener, 500);
   setTimeout(attachListener, 1000);
   setTimeout(attachListener, 2000);
+};
+
+SecurityApp.prototype.showProfileSetupModal = function() {
+  const modalContent = `
+    <div class="modal-header">
+      <h3>Setup Your Profile</h3>
+      <p>Please identify yourself to join the security group</p>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="user-name-input">Your Name</label>
+        <input type="text" id="user-name-input" placeholder="Enter your full name" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label for="user-role-select">Your Role</label>
+        <select id="user-role-select" class="form-input">
+          <option value="security_officer">Security Officer</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Administrator</option>
+          <option value="guest">Guest</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="submit-user-identity" class="action-button primary">
+        Join Group
+      </button>
+      <button id="cancel-user-identity" class="action-button secondary">
+        Cancel
+      </button>
+    </div>
+  `;
+  
+  this.showModal(modalContent);
+  
+  // Handle form submission
+  const submitBtn = document.getElementById('submit-user-identity');
+  const cancelBtn = document.getElementById('cancel-user-identity');
+  const nameInput = document.getElementById('user-name-input');
+  const roleSelect = document.getElementById('user-role-select');
+  
+  const handleSubmit = async () => {
+    const name = nameInput.value.trim();
+    if (!name) {
+      this.showError('Please enter your name');
+      return;
+    }
+    
+    const identity = {
+      name: name,
+      role: roleSelect.value,
+      timestamp: Date.now()
+    };
+    
+    try {
+      // Store identity locally
+      localStorage.setItem('userIdentity', JSON.stringify(identity));
+      
+      // Setup Firebase membership
+      if (window.SyncPassword && window.FirebaseSync && window.FirebaseSync.currentGroupId) {
+        await window.SyncPassword.setupFirebaseGroupMembership(window.FirebaseSync.currentGroupId);
+        this.showToast('Profile setup completed successfully!', 'success');
+      } else {
+        this.showToast('Please join a security group first', 'warning');
+      }
+      
+      this.closeModal();
+    } catch (error) {
+      console.error('[App] Profile setup failed:', error);
+      this.showError('Failed to setup profile: ' + error.message);
+    }
+  };
+  
+  const handleCancel = () => {
+    this.closeModal();
+  };
+  
+  submitBtn.addEventListener('click', handleSubmit);
+  cancelBtn.addEventListener('click', handleCancel);
+  nameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSubmit();
+  });
+  
+  // Focus name input
+  setTimeout(() => nameInput.focus(), 100);
 };
 
 SecurityApp.prototype.exportAllData = function() {
