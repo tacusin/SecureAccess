@@ -63,11 +63,27 @@ class FirebaseSync {
       // Setup connection monitoring
       this.setupConnectionMonitoring();
       
-      // Setup data listeners with group-based access
-      this.setupGroupBasedListeners();
+      // Check if user has a group, if not prompt for one
+      if (window.SyncPasswordManager) {
+        await window.SyncPasswordManager.init();
+        
+        // If still no group after sync password manager init, show a simple prompt
+        if (!window.SyncPasswordManager.getCurrentGroup()) {
+          this.showQuickGroupSetup();
+        } else {
+          this.currentGroupId = window.SyncPasswordManager.getCurrentGroup();
+        }
+      }
       
-      // Process offline queue
-      await this.processOfflineQueue();
+      // Setup data listeners with group-based access (only if we have a group)
+      if (this.currentGroupId) {
+        this.setupGroupBasedListeners();
+        
+        // Process offline queue
+        await this.processOfflineQueue();
+      } else {
+        console.log('[FirebaseSync] Waiting for group selection before setting up listeners');
+      }
       
       this.isInitialized = true;
       console.log('[FirebaseSync] Firebase initialized successfully with group-based access');
@@ -289,6 +305,20 @@ class FirebaseSync {
       this.isOnline = false;
       this.updateSyncStatus('offline', 'Network offline');
     });
+  }
+
+  showQuickGroupSetup() {
+    // Show a simple toast message with action to join a group
+    if (window.app && typeof window.app.showToast === 'function') {
+      window.app.showToast('Join a security group to enable data sync', 'info');
+    }
+    
+    // Add a prominent button to join group if not already present
+    setTimeout(() => {
+      if (window.SyncPasswordManager && !document.getElementById('sync-password-btn')) {
+        window.SyncPasswordManager.addSyncButton();
+      }
+    }, 1000);
   }
 
   setupGroupBasedListeners() {

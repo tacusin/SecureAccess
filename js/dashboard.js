@@ -32,10 +32,18 @@ class DashboardManager {
 
   async initializeCharts() {
     try {
-      // Wait for Chart.js to be available
+      // Wait for Chart.js to be available with retry limit
       if (typeof Chart === 'undefined') {
-        console.warn('[Dashboard] Chart.js not loaded yet, retrying...');
-        setTimeout(() => this.initializeCharts(), 1000);
+        if (!this.chartRetryCount) this.chartRetryCount = 0;
+        this.chartRetryCount++;
+        
+        if (this.chartRetryCount > 10) {
+          console.warn('[Dashboard] Chart.js failed to load after multiple attempts, skipping charts');
+          return;
+        }
+        
+        console.warn('[Dashboard] Chart.js not loaded yet, retrying... (' + this.chartRetryCount + '/10)');
+        setTimeout(() => this.initializeCharts(), 2000);
         return;
       }
       
