@@ -38,22 +38,6 @@ class SecurityApp {
       }
       console.log('[App] Service worker registration disabled for development');
       
-      // Initialize core modules first
-      if (window.CoreModule) {
-        await window.CoreModule.init();
-        console.log('[App] Core module initialized');
-      }
-
-      if (window.PersonnelModule) {
-        await window.PersonnelModule.init();
-        console.log('[App] Personnel module initialized');
-      }
-
-      if (window.ActivityModule) {
-        await window.ActivityModule.init();
-        console.log('[App] Activity module initialized');
-      }
-
       // Initialize storage
       await window.StorageManager.init();
       
@@ -265,10 +249,8 @@ class SecurityApp {
       await window.FirebaseSync.init();
     }
     
-    // Load initial data using the new modular approach
-    if (window.PersonnelModule && window.PersonnelModule.initialized) {
-      await this.loadPersonnelList();
-    }
+    // Load initial data
+    await this.loadPersonnelList();
     await this.updateDashboard();
   }
 
@@ -362,40 +344,33 @@ class SecurityApp {
   }
 
   async updatePageContent(pageId) {
-    try {
-      // Update page-specific content
-      switch (pageId) {
-        case 'dashboard':
-          await this.updateDashboard();
-          break;
-        case 'checkin':
-          await this.loadPersonnelList();
-          break;
-        case 'shifts':
-          await this.updateShiftsPage();
-          break;
-        case 'personnel':
-          await this.loadAllPersonnel();
-          break;
-        case 'emergency':
-          if (window.EmergencyManager) {
-            await window.EmergencyManager.updateContent();
-          }
-          break;
-        case 'activity':
-          if (window.ActivityModule && window.ActivityModule.initialized) {
-            window.ActivityModule.updateActivityPage();
-          }
-          break;
-        case 'sync':
-          this.updateSyncPage();
-          break;
-        case 'reports':
-          this.updateReportsPage();
-          break;
-      }
-    } catch (error) {
-      console.error(`[App] Error updating ${pageId} page:`, error);
+    switch (pageId) {
+      case 'dashboard':
+        await this.updateDashboard();
+        break;
+      case 'checkin':
+        await this.loadPersonnelList();
+        break;
+      case 'shifts':
+        await this.updateShiftsPage();
+        break;
+      case 'personnel':
+        await this.loadAllPersonnel();
+        break;
+      case 'reports':
+        // Reports page content is static
+        break;
+      case 'emergency':
+        if (window.EmergencyManager) {
+          await window.EmergencyManager.updateContent();
+        }
+        break;
+      case 'activity':
+        await this.updateActivityPage();
+        break;
+      case 'sync-page':
+        await this.updateSyncPage();
+        break;
     }
   }
 
@@ -1508,51 +1483,20 @@ class SecurityApp {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  updateSyncPage() {
-    const syncStatus = document.getElementById('sync-status');
-    if (syncStatus) {
-      if (window.FirebaseSync && window.FirebaseSync.getStatus) {
-        const status = window.FirebaseSync.getStatus();
-        syncStatus.innerHTML = `<p>Status: ${status.connected ? 'Connected' : 'Disconnected'}</p>`;
-      } else {
-        syncStatus.innerHTML = '<p>Sync service not available</p>';
-      }
-    }
-  }
-
-  updateReportsPage() {
-    // Reports page is mostly static, just ensure export buttons work
-    const exportButtons = document.querySelectorAll('#reports-page .export-btn');
-    exportButtons.forEach(btn => {
-      if (!btn.hasAttribute('data-listener-added')) {
-        btn.addEventListener('click', (e) => this.handleExport(e));
-        btn.setAttribute('data-listener-added', 'true');
-      }
-    });
-  }
-
-  async loadAllPersonnel() {
-    try {
-      if (window.PersonnelModule) {
-        const container = document.getElementById('all-personnel-list');
-        if (container) {
-          await window.PersonnelModule.updatePersonnelPage();
-        }
-      } else {
-        await this.loadPersonnelList();
-      }
-    } catch (error) {
-      console.error('[App] Error loading all personnel:', error);
-    }
-  }
-
   // UI Feedback
   showToast(message, type = 'info') {
-    if (window.CoreModule) {
-      window.CoreModule.showToast(message, type);
-    } else {
-      console.log(`[Toast] ${type.toUpperCase()}: ${message}`);
-    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <span class="material-icons">${this.getToastIcon(type)}</span>
+      <span>${message}</span>
+    `;
+    
+    document.getElementById('toast-container').appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 5000);
   }
 
   getToastIcon(type) {
@@ -1566,11 +1510,7 @@ class SecurityApp {
   }
 
   showError(message) {
-    if (window.CoreModule) {
-      window.CoreModule.showError(message);
-    } else {
-      console.error(`[Error] ${message}`);
-    }
+    this.showToast(message, 'error');
   }
 
   // OCR and QR Code functionality
