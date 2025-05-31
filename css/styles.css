@@ -1171,6 +1171,180 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* Real-time mesh sync visual indicators */
+.header-sync-status {
+  margin-right: var(--spacing-md);
+}
+
+.sync-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sync-badge.coordinator {
+  background: hsl(var(--success) / 0.2);
+  color: hsl(var(--success));
+  border: 2px solid hsl(var(--success));
+}
+
+.sync-badge.connected {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+}
+
+.sync-badge.searching {
+  background: hsl(var(--warning) / 0.2);
+  color: hsl(var(--warning));
+  border: 2px solid hsl(var(--warning));
+}
+
+.sync-badge .material-icons {
+  font-size: 16px;
+}
+
+.sync-badge .material-icons.rotating {
+  animation: rotate 2s linear infinite;
+}
+
+.badge-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: hsl(var(--error));
+  color: hsl(var(--on-error));
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+}
+
+.sync-status.coordinator {
+  background: hsl(var(--success));
+  color: hsl(var(--on-success));
+  animation: pulse 2s infinite;
+}
+
+.sync-status.searching {
+  background: hsl(var(--warning));
+  color: hsl(var(--on-warning));
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.sync-indicator.coordinator-active {
+  background: hsl(var(--success) / 0.1);
+  border: 1px solid hsl(var(--success));
+  color: hsl(var(--success));
+}
+
+.sync-indicator.connecting {
+  background: hsl(var(--warning) / 0.1);
+  border: 1px solid hsl(var(--warning));
+  color: hsl(var(--warning));
+}
+
+.sync-indicator.connecting .material-icons {
+  animation: rotate 2s linear infinite;
+}
+
+.connected-devices-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid hsl(var(--outline));
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.device-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid hsl(var(--outline) / 0.3);
+  transition: background-color 0.2s ease;
+}
+
+.device-item:hover {
+  background: hsl(var(--surface-variant) / 0.5);
+}
+
+.device-item:last-child {
+  border-bottom: none;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.device-name {
+  font-weight: 500;
+  color: hsl(var(--on-surface));
+}
+
+.device-ip {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--on-surface-variant));
+}
+
+.device-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--outline));
+}
+
+.status-dot.connected {
+  background: hsl(var(--success));
+  animation: pulse 2s infinite;
+}
+
+.connection-time {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--on-surface-variant));
+}
+
+.no-devices {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: hsl(var(--on-surface-variant));
+}
+
+.no-devices .material-icons {
+  font-size: 48px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.sync-last-update {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--on-surface-variant));
+  text-align: center;
+  padding: var(--spacing-sm);
+  border-top: 1px solid hsl(var(--outline) / 0.3);
+  margin-top: var(--spacing-md);
+}
+
 .sync-controls {
   display: flex;
   flex-direction: column;
