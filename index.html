@@ -106,62 +106,34 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Dashboard Page -->
-            <div id="dashboard-page" class="page active">
-                <div class="page-header">
-                    <h2>Dashboard</h2>
-                    <div class="occupancy-counter">
-                        <div class="counter-card">
-                            <span class="counter-number" id="current-occupancy">0</span>
-                            <span class="counter-label">Current Occupancy</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <h3>Quick Actions</h3>
-                        <div class="quick-actions">
-                            <button class="action-button primary" data-action="quick-checkin">
-                                <span class="material-icons">login</span>
-                                Quick Check-In
-                            </button>
-                            <button class="action-button secondary" data-action="bulk-checkout">
-                                <span class="material-icons">logout</span>
-                                Bulk Check-Out
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Today's Activity</h3>
-                        <div class="stats-grid">
-                            <div class="stat">
-                                <span class="stat-number" id="todays-checkins">0</span>
-                                <span class="stat-label">Check-ins</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-number" id="todays-checkouts">0</span>
-                                <span class="stat-label">Check-outs</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card full-width">
-                        <h3>Current Occupants</h3>
-                        <div id="current-occupants-list" class="occupants-list">
-                            <!-- Will be populated by JavaScript -->
-                        </div>
-                    </div>
+            <!-- Dynamic Content Container -->
+            <div id="main-content" class="page-container">
+                <!-- Dynamic content will be loaded here -->
+                <div class="loading-template">
+                    <div class="loading-spinner"></div>
+                    <p>Loading page...</p>
                 </div>
             </div>
 
-            <!-- Shifts Page -->
-            <div id="shifts-page" class="page">
-                <div class="page-header">
-                    <h2>Shift Management</h2>
-                    <div class="page-actions">
-                        <button id="start-shift-btn" class="action-button primary">
+        </main>
+
+        <!-- FAB (Floating Action Button) -->
+        <div class="fab-container">
+            <button id="fab-main" class="fab" aria-label="Add">
+                <span class="material-icons">add</span>
+            </button>
+        </div>
+
+        <!-- Modal Overlay -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div id="modal-content" class="modal-content">
+                <!-- Dynamic modal content -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
                             <span class="material-icons">schedule</span>
                             Start Shift
                         </button>
