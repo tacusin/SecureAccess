@@ -2597,35 +2597,35 @@ SecurityApp.prototype.disableSync = function() {
 };
 
 SecurityApp.prototype.startSyncServer = async function() {
-  if (window.HTTPMeshSync) {
+  if (window.PWAMeshSync) {
     try {
-      this.showToast('Starting HTTP coordinator...', 'info');
-      const success = await window.HTTPMeshSync.startCoordinator();
+      this.showToast('Starting PWA coordinator...', 'info');
+      const success = await window.PWAMeshSync.startCoordinator();
       this.updateSyncPage();
+      
       if (success) {
-        // Update button to show active state
         const startServerBtn = document.getElementById('start-server-btn');
         if (startServerBtn) {
           startServerBtn.innerHTML = `
             <span class="material-icons">router</span>
-            HTTP Coordinator Active
+            PWA Coordinator Active
           `;
           startServerBtn.classList.remove('primary');
           startServerBtn.classList.add('success');
         }
-        this.showToast('HTTP coordinator started successfully!', 'success');
+        this.showToast('PWA coordinator started successfully!', 'success');
       }
     } catch (error) {
       this.showError('Failed to start coordinator: ' + error.message);
     }
   } else {
-    this.showError('HTTP mesh sync not available');
+    this.showError('PWA mesh sync not available');
   }
 };
 
 SecurityApp.prototype.stopSyncServer = function() {
-  if (window.HTTPMeshSync && window.HTTPMeshSync.isCoordinator) {
-    window.HTTPMeshSync.stopCoordinator();
+  if (window.PWAMeshSync && window.PWAMeshSync.isCoordinator) {
+    window.PWAMeshSync.stopCoordinator();
     
     // Reset button to original state
     const startServerBtn = document.getElementById('start-server-btn');
@@ -2642,7 +2642,7 @@ SecurityApp.prototype.stopSyncServer = function() {
     }
     
     this.updateSyncPage();
-    this.showToast('HTTP coordinator stopped', 'info');
+    this.showToast('PWA coordinator stopped', 'info');
   }
 };
 
