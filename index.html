@@ -156,6 +156,179 @@
                 </div>
             </div>
 
+            <!-- Check In/Out Page -->
+            <div id="checkin-page" class="page">
+                <div class="page-header">
+                    <h2>Check In/Out</h2>
+                    <div class="page-actions">
+                        <button id="add-visitor-btn" class="btn btn-primary">
+                            <span class="material-icons">person_add</span>
+                            Add Visitor
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-bar">
+                    <div class="search-input-container">
+                        <span class="material-icons">search</span>
+                        <input type="text" id="person-search" placeholder="Search personnel...">
+                    </div>
+                </div>
+                
+                <div id="personnel-list" class="personnel-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Personnel Page -->
+            <div id="personnel-page" class="page">
+                <div class="page-header">
+                    <h2>Personnel Management</h2>
+                    <div class="page-actions">
+                        <button id="add-personnel-btn" class="btn btn-primary">
+                            <span class="material-icons">person_add</span>
+                            Add Personnel
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="all-personnel-list" class="personnel-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Activity Page -->
+            <div id="activity-page" class="page">
+                <div class="page-header">
+                    <h2>Activity Log</h2>
+                    <div class="page-actions">
+                        <button id="clear-activity-btn" class="btn btn-outline">
+                            <span class="material-icons">clear_all</span>
+                            Clear Log
+                        </button>
+                        <button id="bulk-select-btn" class="btn btn-outline">
+                            <span class="material-icons">checklist</span>
+                            Select
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="activity-filters">
+                    <select id="activity-filter">
+                        <option value="all">All Activities</option>
+                        <option value="check-in">Check-ins</option>
+                        <option value="check-out">Check-outs</option>
+                        <option value="add-person">New Personnel</option>
+                    </select>
+                    <input type="date" id="activity-date-filter">
+                </div>
+                
+                <div id="activity-list" class="activity-log">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Shifts Page -->
+            <div id="shifts-page" class="page">
+                <div class="page-header">
+                    <h2>Shifts Management</h2>
+                    <div class="page-actions">
+                        <button id="start-shift-btn" class="btn btn-primary">
+                            <span class="material-icons">play_arrow</span>
+                            Start Shift
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="shifts-content">
+                    <div class="current-shift-card">
+                        <h3>Current Shift</h3>
+                        <div id="current-shift-info">
+                            <p>No active shift</p>
+                        </div>
+                    </div>
+                    
+                    <div class="shift-history">
+                        <h3>Recent Shifts</h3>
+                        <div id="shift-history-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sync Page -->
+            <div id="sync-page" class="page">
+                <div class="page-header">
+                    <h2>Network Sync</h2>
+                </div>
+                
+                <div class="sync-content">
+                    <div class="sync-status-card">
+                        <h3>Sync Status</h3>
+                        <div id="sync-status">
+                            <p>Checking connection...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports-page" class="page">
+                <div class="page-header">
+                    <h2>Reports</h2>
+                </div>
+                
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Export Data</h3>
+                        <div class="export-buttons">
+                            <button class="btn export-btn" data-format="csv">
+                                <span class="material-icons">table_chart</span>
+                                Export CSV
+                            </button>
+                            <button class="btn export-btn" data-format="pdf">
+                                <span class="material-icons">picture_as_pdf</span>
+                                Export PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Page -->
+            <div id="emergency-page" class="page">
+                <div class="page-header">
+                    <h2>Emergency Operations</h2>
+                    <div class="emergency-status">
+                        <span id="emergency-indicator" class="status-indicator normal">Normal Operations</span>
+                    </div>
+                </div>
+                
+                <div class="emergency-content">
+                    <div class="emergency-actions">
+                        <button id="activate-emergency-btn" class="btn btn-danger">
+                            <span class="material-icons">warning</span>
+                            Activate Emergency Mode
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Page -->
+            <div id="help-page" class="page">
+                <div class="page-header">
+                    <h2>Help & Support</h2>
+                </div>
+                
+                <div class="help-content">
+                    <div class="help-section">
+                        <h3>Quick Start Guide</h3>
+                        <p>Learn how to use the security access management system.</p>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <!-- FAB (Floating Action Button) -->
