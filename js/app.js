@@ -2582,16 +2582,8 @@ SecurityApp.prototype.enableSync = function() {
 };
 
 SecurityApp.prototype.disableSync = function() {
-  if (window.HTTPMeshSync) {
-    window.HTTPMeshSync.syncEnabled = false;
-    localStorage.setItem('http_mesh_sync_enabled', 'false');
-    
-    // Stop coordinator if running
-    if (window.HTTPMeshSync.isCoordinator) {
-      window.HTTPMeshSync.stopCoordinator();
-    }
-    
-    this.showToast('HTTP mesh sync disabled', 'info');
+  if (window.PWAMeshSync) {
+    window.PWAMeshSync.disableSync();
     this.updateSyncPage();
   }
 };
