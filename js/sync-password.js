@@ -44,13 +44,20 @@ class SyncPasswordManager {
         await this.verifyGroupMembership(storedGroup);
       }
     } else {
-      this.showSyncPasswordModal();
+      // Add sync button if no group is set
+      this.addSyncButton();
     }
   }
 
   showSyncPasswordModal() {
     const modal = document.getElementById('modal-overlay');
     const content = document.getElementById('modal-content');
+    
+    if (!modal || !content) {
+      console.warn('[SyncPassword] Modal elements not found, adding sync button to header');
+      this.addSyncButton();
+      return;
+    }
     
     content.innerHTML = `
       <div class="modal-header">
@@ -247,6 +254,19 @@ class SyncPasswordManager {
 
     // Add change group button to settings
     this.addGroupControls();
+  }
+
+  addSyncButton() {
+    const settingsArea = document.querySelector('.app-bar-actions');
+    if (settingsArea && !document.getElementById('sync-password-btn')) {
+      const syncBtn = document.createElement('button');
+      syncBtn.id = 'sync-password-btn';
+      syncBtn.className = 'icon-button';
+      syncBtn.title = 'Join Sync Group';
+      syncBtn.innerHTML = '<span class="material-icons">group_add</span>';
+      
+      settingsArea.insertBefore(syncBtn, settingsArea.firstChild);
+    }
   }
 
   addGroupControls() {
