@@ -485,14 +485,182 @@ class CameraManager {
   // QR Code scanning (placeholder for future implementation)
   async scanQRCode() {
     try {
-      console.log('[Camera] QR Code scanning not yet implemented');
-      if (window.app) {
-        window.app.showToast('QR Code scanning coming soon!', 'info');
+      console.log('[Camera] Starting QR code scanning...');
+      
+      // Check if QR scanner is available
+      if (typeof QrScanner === 'undefined') {
+        throw new Error('QR Scanner library not loaded');
       }
-      return null;
+
+      return new Promise((resolve, reject) => {
+        // Create QR scanner modal
+        const modal = document.createElement('div');
+        modal.id = 'qr-scanner-modal';
+        modal.className = 'modal active';
+        modal.innerHTML = `
+          <div class="modal-content qr-scanner-content">
+            <div class="modal-header">
+              <h3>Scan QR Code</h3>
+              <button class="close-button" id="close-qr-scanner">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="qr-scanner-container">
+                <video id="qr-video" class="qr-scanner-video"></video>
+                <div class="qr-scanner-overlay">
+                  <div class="qr-scanner-frame"></div>
+                </div>
+              </div>
+              <div class="qr-scanner-status">
+                <p>Position the QR code within the frame</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="action-button secondary" id="cancel-qr-scan">Cancel</button>
+            </div>
+          </div>
+        `;
+
+        // Add styles for QR scanner
+        const style = document.createElement('style');
+        style.textContent = `
+          .qr-scanner-content {
+            width: 90vw;
+            max-width: 500px;
+            max-height: 90vh;
+          }
+          
+          .qr-scanner-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+          
+          .qr-scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          
+          .qr-scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+          }
+          
+          .qr-scanner-frame {
+            width: 200px;
+            height: 200px;
+            border: 3px solid hsl(var(--primary));
+            border-radius: 12px;
+            position: relative;
+          }
+          
+          .qr-scanner-frame::before,
+          .qr-scanner-frame::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid hsl(var(--primary));
+          }
+          
+          .qr-scanner-frame::before {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+          }
+          
+          .qr-scanner-frame::after {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+          }
+          
+          .qr-scanner-status {
+            text-align: center;
+            padding: var(--spacing-md);
+            color: hsl(var(--on-surface));
+          }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(modal);
+
+        const video = modal.querySelector('#qr-video');
+        const closeBtn = modal.querySelector('#close-qr-scanner');
+        const cancelBtn = modal.querySelector('#cancel-qr-scan');
+        const statusText = modal.querySelector('.qr-scanner-status p');
+
+        let qrScanner = null;
+
+        const cleanup = () => {
+          if (qrScanner) {
+            qrScanner.stop();
+            qrScanner.destroy();
+          }
+          document.body.removeChild(modal);
+          document.head.removeChild(style);
+        };
+
+        const handleClose = () => {
+          cleanup();
+          resolve(null);
+        };
+
+        closeBtn.addEventListener('click', handleClose);
+        cancelBtn.addEventListener('click', handleClose);
+
+        // Initialize QR Scanner
+        QrScanner.hasCamera().then(hasCamera => {
+          if (!hasCamera) {
+            statusText.textContent = 'No camera available';
+            setTimeout(handleClose, 2000);
+            return;
+          }
+
+          qrScanner = new QrScanner(video, result => {
+            console.log('[Camera] QR code detected:', result);
+            cleanup();
+            resolve(result);
+          }, {
+            returnDetailedScanResult: false,
+            highlightScanRegion: false,
+            highlightCodeOutline: false,
+          });
+
+          qrScanner.start().then(() => {
+            console.log('[Camera] QR scanner started successfully');
+            statusText.textContent = 'Position the QR code within the frame';
+          }).catch(error => {
+            console.error('[Camera] Failed to start QR scanner:', error);
+            statusText.textContent = 'Failed to start camera';
+            setTimeout(handleClose, 2000);
+          });
+        }).catch(error => {
+          console.error('[Camera] Camera check failed:', error);
+          statusText.textContent = 'Camera access denied';
+          setTimeout(handleClose, 2000);
+        });
+      });
     } catch (error) {
       console.error('[Camera] Error scanning QR code:', error);
-      throw new Error('Failed to scan QR code');
+      if (window.app) {
+        window.app.showToast('Failed to start QR scanner', 'error');
+      }
+      throw error;
     }
   }
 

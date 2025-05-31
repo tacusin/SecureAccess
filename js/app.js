@@ -1456,12 +1456,133 @@ class SecurityApp {
 
   async handleQRScan() {
     try {
-      this.showToast('QR code scanning will be available soon!', 'info');
-      // QR scanning would use camera to read QR codes
-      // For now, we'll focus on QR generation
+      console.log('[App] Starting QR code scan...');
+      
+      if (!window.CameraManager || !window.CameraManager.isAvailable()) {
+        this.showError('Camera not available for QR scanning');
+        return;
+      }
+
+      const qrResult = await window.CameraManager.scanQRCode();
+      
+      if (!qrResult) {
+        console.log('[App] QR scan cancelled or no result');
+        return;
+      }
+
+      console.log('[App] QR code scanned:', qrResult);
+      
+      // Try to parse the QR code data
+      let qrData;
+      try {
+        qrData = JSON.parse(qrResult);
+      } catch (parseError) {
+        // If it's not JSON, treat as plain text
+        qrData = { type: 'text', data: qrResult };
+      }
+
+      // Handle different types of QR codes
+      await this.processQRData(qrData);
+      
     } catch (error) {
       console.error('[App] Error during QR scan:', error);
       this.showError('Failed to scan QR code. Please try again.');
+    }
+  }
+
+  async processQRData(qrData) {
+    try {
+      console.log('[App] Processing QR data:', qrData);
+
+      if (qrData.type === 'person') {
+        // Handle person QR code
+        await this.handlePersonQR(qrData);
+      } else if (qrData.type === 'sync-host') {
+        // Handle sync host QR code
+        await this.handleSyncHostQR(qrData);
+      } else if (qrData.type === 'text' || typeof qrData === 'string') {
+        // Handle plain text QR codes
+        this.showToast(`QR Code: ${qrData.data || qrData}`, 'info');
+      } else {
+        // Unknown QR code type
+        this.showToast('Unknown QR code format', 'warning');
+      }
+    } catch (error) {
+      console.error('[App] Error processing QR data:', error);
+      this.showError('Failed to process QR code data');
+    }
+  }
+
+  async handlePersonQR(qrData) {
+    try {
+      console.log('[App] Processing person QR code:', qrData);
+      
+      // Find the person by ID
+      const person = window.StorageManager.getPersonnel(qrData.id);
+      
+      if (!person) {
+        this.showError(`Person not found: ${qrData.name}`);
+        return;
+      }
+
+      // Check if person is checked in or out
+      const isCheckedIn = person.status === 'checked-in';
+      
+      if (isCheckedIn) {
+        await this.togglePersonStatus(person.id);
+        this.showToast(`${person.name} checked out successfully`, 'success');
+      } else {
+        await this.togglePersonStatus(person.id);
+        this.showToast(`${person.name} checked in successfully`, 'success');
+      }
+
+      // Update the current page if we're on checkin page
+      if (document.getElementById('checkin-page').classList.contains('active')) {
+        await this.loadPersonnelList();
+      }
+      
+      // Update dashboard
+      await this.updateDashboard();
+      
+    } catch (error) {
+      console.error('[App] Error handling person QR:', error);
+      this.showError('Failed to process person QR code');
+    }
+  }
+
+  async handleSyncHostQR(qrData) {
+    try {
+      console.log('[App] Processing sync host QR code:', qrData);
+      
+      if (!qrData.hostIP || !qrData.port) {
+        this.showError('Invalid sync host QR code');
+        return;
+      }
+
+      const connectionString = `${qrData.hostIP}:${qrData.port}`;
+      
+      // Try to connect to the sync host
+      if (window.P2PSync) {
+        const connected = await window.P2PSync.connectToPeer(connectionString);
+        if (connected) {
+          this.showToast(`Connected to sync host: ${connectionString}`, 'success');
+        } else {
+          this.showError(`Failed to connect to sync host: ${connectionString}`);
+        }
+      } else if (window.MeshSync) {
+        const connected = await window.MeshSync.connectToCoordinator(connectionString);
+        if (connected) {
+          this.showToast(`Connected to mesh coordinator: ${connectionString}`, 'success');
+        } else {
+          this.showError(`Failed to connect to mesh coordinator: ${connectionString}`);
+        }
+      } else {
+        this.showError('Sync functionality not available');
+      }
+      
+    } catch (error) {
+      console.error('[App] Error handling sync host QR:', error);
+      this.showError('Failed to connect to sync host');
     }
   }
 
