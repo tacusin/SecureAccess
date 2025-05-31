@@ -42,7 +42,9 @@ class SecurityApp {
       await window.StorageManager.init();
       
       // Setup event listeners
+      console.log('[App] Setting up event listeners...');
       this.setupEventListeners();
+      console.log('[App] Event listeners setup complete');
       
       // Apply saved theme
       this.applyTheme(this.currentTheme);
@@ -75,7 +77,13 @@ class SecurityApp {
 
   setupEventListeners() {
     // Navigation
-    document.getElementById('menu-btn').addEventListener('click', () => this.toggleNav());
+    const menuBtn = document.getElementById('menu-btn');
+    if (menuBtn) {
+      menuBtn.addEventListener('click', () => this.toggleNav());
+    } else {
+      console.warn('[App] Menu button not found');
+    }
+    
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => this.handleNavigation(e));
     });
@@ -98,11 +106,14 @@ class SecurityApp {
     this.setupProfileButtonListener();
     
     // Modal handling
-    document.getElementById('modal-overlay').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        this.closeModal();
-      }
-    });
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          this.closeModal();
+        }
+      });
+    }
     
     // Online/offline status
     window.addEventListener('online', () => this.handleOnlineStatus(true));
@@ -118,7 +129,10 @@ class SecurityApp {
     document.getElementById('generate-sync-qr-btn')?.addEventListener('click', this.handleGenerateSyncQR.bind(this));
     
     // FAB menu
-    document.getElementById('fab-main').addEventListener('click', () => this.handleFabClick());
+    const fabMain = document.getElementById('fab-main');
+    if (fabMain) {
+      fabMain.addEventListener('click', () => this.handleFabClick());
+    }
     
     // Personnel management
     document.getElementById('add-personnel-btn')?.addEventListener('click', () => this.showAddPersonnelModal());
