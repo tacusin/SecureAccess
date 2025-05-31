@@ -74,109 +74,35 @@ class SecurityApp {
 
 
   setupEventListeners() {
-    // Navigation
-    document.getElementById('menu-btn').addEventListener('click', () => this.toggleNav());
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => this.handleNavigation(e));
-    });
-    
-    // Theme toggle
-    document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
-    
-    // Emergency button
-    document.getElementById('emergency-btn').addEventListener('click', () => this.navigateTo('emergency'));
-    
-    // Search functionality
-    const searchInput = document.getElementById('person-search');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => this.handleSearch(e));
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.setupEventListeners());
+      return;
     }
     
-    // Quick actions
-    document.querySelectorAll('[data-action]').forEach(button => {
-      button.addEventListener('click', (e) => this.handleQuickAction(e));
-    });
-    
-    // Modal handling
-    document.getElementById('modal-overlay').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        this.closeModal();
+    // Navigation - use event delegation for safety
+    document.body.addEventListener('click', (e) => {
+      if (e.target.id === 'menu-btn' || e.target.closest('#menu-btn')) {
+        this.toggleNav();
+        return;
+      }
+      
+      const navItem = e.target.closest('.nav-item');
+      if (navItem) {
+        this.handleNavigation(e);
+        return;
+      }
+      
+      const actionBtn = e.target.closest('[data-action]');
+      if (actionBtn) {
+        this.handleQuickAction(e);
+        return;
       }
     });
     
-    // Online/offline status
+    // Basic global event listeners only
     window.addEventListener('online', () => this.handleOnlineStatus(true));
     window.addEventListener('offline', () => this.handleOnlineStatus(false));
-    
-    // Auto-save
-    document.addEventListener('input', () => this.handleAutoSave());
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
-    
-    // Generate Sync QR button
-    document.getElementById('generate-sync-qr-btn')?.addEventListener('click', this.handleGenerateSyncQR.bind(this));
-    
-    // FAB menu
-    document.getElementById('fab-main').addEventListener('click', () => this.handleFabClick());
-    
-    // Personnel management
-    document.getElementById('add-personnel-btn')?.addEventListener('click', () => this.showAddPersonnelModal());
-    document.getElementById('add-visitor-btn')?.addEventListener('click', () => this.showAddPersonnelModal('visitor'));
-    
-    // OCR and QR functionality
-    document.getElementById('scan-id-btn')?.addEventListener('click', () => this.handleIDScan());
-    document.getElementById('scan-qr-btn')?.addEventListener('click', () => this.handleQRScan());
-    
-    // Export buttons
-    document.querySelectorAll('.export-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this.handleExport(e));
-    });
-    
-    // Advanced report buttons
-    document.querySelectorAll('.report-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this.handleAdvancedReport(e));
-    });
-    
-    // Activity log controls
-    document.getElementById('clear-activity-btn')?.addEventListener('click', () => this.handleClearActivityLog());
-    document.getElementById('bulk-select-btn')?.addEventListener('click', () => this.toggleBulkSelect());
-    document.getElementById('bulk-delete-btn')?.addEventListener('click', () => this.handleBulkDelete());
-    document.getElementById('apply-filters-btn')?.addEventListener('click', () => this.applyActivityFilters());
-    
-    // Shift management buttons
-    document.getElementById('start-shift-btn')?.addEventListener('click', () => this.showStartShiftModal());
-    document.getElementById('end-shift-btn')?.addEventListener('click', () => this.handleEndShift());
-    document.getElementById('handover-btn')?.addEventListener('click', () => this.showHandoverModal());
-    
-    // Sync management buttons
-    document.getElementById('enable-sync-btn')?.addEventListener('click', () => this.enableSync());
-    document.getElementById('disable-sync-btn')?.addEventListener('click', () => this.disableSync());
-    document.getElementById('start-server-btn')?.addEventListener('click', () => this.startSyncServer());
-    document.getElementById('stop-server-btn')?.addEventListener('click', () => this.stopSyncServer());
-    document.getElementById('connect-btn')?.addEventListener('click', () => this.connectToSyncServer());
-    document.getElementById('scan-qr-connect-btn')?.addEventListener('click', () => this.scanSyncQR());
-    document.getElementById('clear-sync-log-btn')?.addEventListener('click', () => this.clearSyncLog());
-    
-    // Settings button - using event delegation
-    document.addEventListener('click', (e) => {
-      if (e.target.id === 'settings-btn' || e.target.closest('#settings-btn')) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[App] Settings button clicked via delegation');
-        this.showSettingsMenu();
-      }
-    });
-    
-    // Prevent default touch behaviors on buttons
-    document.querySelectorAll('button').forEach(button => {
-      button.addEventListener('touchstart', (e) => {
-        e.currentTarget.classList.add('touching');
-      });
-      button.addEventListener('touchend', (e) => {
-        e.currentTarget.classList.remove('touching');
-      });
-    });
   }
 
   async initializeComponents() {
