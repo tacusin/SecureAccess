@@ -2617,3 +2617,100 @@ body {
     break-inside: avoid;
   }
 }
+
+/* Group Members Display */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: hsl(var(--surface-variant));
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(var(--outline-variant));
+  transition: all 0.2s ease;
+}
+
+.member-item.current-user {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+}
+
+.member-item.online {
+  border-left: 3px solid hsl(var(--success));
+}
+
+.member-item.offline {
+  border-left: 3px solid hsl(var(--outline-variant));
+  opacity: 0.7;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: hsl(var(--primary) / 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary));
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: 500;
+  color: hsl(var(--on-surface));
+  margin-bottom: 2px;
+}
+
+.member-role {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--on-surface-variant));
+}
+
+.member-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+.member-status .status-icon {
+  font-size: 16px;
+}
+
+.member-status .status-text {
+  color: hsl(var(--on-surface-variant));
+}
+
+.member-item.online .status-icon {
+  color: hsl(var(--success));
+}
+
+.member-item.offline .status-icon {
+  color: hsl(var(--outline-variant));
+}
+
+.no-members {
+  text-align: center;
+  color: hsl(var(--on-surface-variant));
+  padding: var(--spacing-lg);
+  font-style: italic;
+}
+
+.member-count {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
